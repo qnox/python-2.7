@@ -97,26 +97,32 @@ fi
 
 # Fix library paths to be relocatable using install_name_tool
 # Only change paths to libpython, not system libraries
-find "${PORTABLE_DIR}" -name "*.so" -o -name "*.dylib" | while read lib; do
+find "${PORTABLE_DIR}" \( -name "*.so" -o -name "*.dylib" \) | while read lib; do
     # Get current library paths and only fix libpython references
-    otool -L "$lib" | grep "libpython" | grep -o "/.*\.dylib" | while read dep; do
+    # Use || true to prevent grep from failing the script when no matches are found
+    otool -L "$lib" 2>/dev/null | grep "libpython" | grep -o "/.*\.dylib" | while read dep; do
         depname=$(basename "$dep")
         # Change absolute paths to relative paths
         install_name_tool -change "$dep" "@loader_path/../lib/$depname" "$lib" 2>/dev/null || true
-    done
+    done || true
 done
 
 # Fix Python binary - change libpython path and add rpath
+echo "Fixing Python binary library paths..."
 if [ -f "${PORTABLE_DIR}/bin/python" ]; then
     # Change libpython path to use @rpath
     PYTHON_LIB=$(otool -L "${PORTABLE_DIR}/bin/python" | grep "libpython" | grep -o "/.*\.dylib" | head -1)
     if [ -n "$PYTHON_LIB" ]; then
+        echo "Changing libpython path: $PYTHON_LIB -> @rpath/$(basename $PYTHON_LIB)"
         install_name_tool -change "$PYTHON_LIB" "@rpath/$(basename $PYTHON_LIB)" "${PORTABLE_DIR}/bin/python" 2>/dev/null || true
     fi
+    echo "Adding rpath @loader_path/../lib"
     install_name_tool -add_rpath "@loader_path/../lib" "${PORTABLE_DIR}/bin/python" 2>/dev/null || true
 fi
+echo "Library paths fixed"
 
 # Create portable launcher script
+echo "Creating portable launcher script..."
 cat > "${PORTABLE_DIR}/bin/python-portable" << 'EOF'
 #!/bin/bash
 # Portable Python launcher for macOS
