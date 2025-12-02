@@ -46,9 +46,21 @@ if exist "C:\Program Files\Git\usr\bin\patch.exe" (
 )
 
 echo Applying timemodule.c fix for modern MSVC...
-"C:\Program Files\Git\usr\bin\patch.exe" -d "%SOURCE_DIR%" -p0 -N --binary --ignore-whitespace < patches\windows\02-fix-timemodule-msvc.patch
+echo Checking patch file:
+type patches\windows\02-fix-timemodule-msvc.patch | head -20
+echo.
+echo Checking source file line endings:
+file "%SOURCE_DIR%\Modules\timemodule.c" 2>nul || echo File command not available
+echo.
+echo Applying patch with verbose output:
+"C:\Program Files\Git\usr\bin\patch.exe" -d "%SOURCE_DIR%" -p0 -N --binary --ignore-whitespace --verbose < patches\windows\02-fix-timemodule-msvc.patch 2>&1
 if errorlevel 1 (
     echo ERROR: timemodule.c patch failed to apply!
+    echo Showing reject file if it exists:
+    type "%SOURCE_DIR%\Modules\timemodule.c.rej" 2>nul
+    echo.
+    echo Showing first 30 lines of timemodule.c around line 808:
+    powershell "Get-Content '%SOURCE_DIR%\Modules\timemodule.c' | Select-Object -Skip 805 -First 30"
     exit /b 1
 )
 echo timemodule.c patched successfully
