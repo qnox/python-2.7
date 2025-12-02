@@ -121,20 +121,6 @@ if [ -f "${PORTABLE_DIR}/bin/python" ]; then
 fi
 echo "Library paths fixed"
 
-# Create portable launcher script
-echo "Creating portable launcher script..."
-cat > "${PORTABLE_DIR}/bin/python-portable" << 'EOF'
-#!/bin/bash
-# Portable Python launcher for macOS
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PYTHON_HOME="$(dirname "${SCRIPT_DIR}")"
-export DYLD_LIBRARY_PATH="${PYTHON_HOME}/lib:${DYLD_LIBRARY_PATH:-}"
-export PYTHONHOME="${PYTHON_HOME}"
-exec "${PYTHON_HOME}/bin/python" "$@"
-EOF
-
-chmod +x "${PORTABLE_DIR}/bin/python-portable"
-
 # Create README for portable usage
 cat > "${PORTABLE_DIR}/README.txt" << EOF
 Python ${PYTHON_VERSION} Portable Build for macOS
@@ -144,11 +130,7 @@ This is a portable Python installation that can be placed in any directory.
 
 Usage:
 1. Extract this archive to any location
-2. Use ./bin/python-portable to run Python with correct paths
-3. Or set environment variables:
-   export PYTHONHOME="\$(pwd)"
-   export DYLD_LIBRARY_PATH="\${PYTHONHOME}/lib:\${DYLD_LIBRARY_PATH}"
-   ./bin/python
+2. Run ./bin/python or ./bin/python2 directly
 
 Features:
 - Relocatable installation
