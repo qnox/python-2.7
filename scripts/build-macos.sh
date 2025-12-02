@@ -96,17 +96,23 @@ else
 fi
 
 # Fix library paths to be relocatable using install_name_tool
+# Only change paths to libpython, not system libraries
 find "${PORTABLE_DIR}" -name "*.so" -o -name "*.dylib" | while read lib; do
-    # Get current library paths
-    otool -L "$lib" | grep -o "/.*\.dylib" | while read dep; do
+    # Get current library paths and only fix libpython references
+    otool -L "$lib" | grep "libpython" | grep -o "/.*\.dylib" | while read dep; do
         depname=$(basename "$dep")
         # Change absolute paths to relative paths
         install_name_tool -change "$dep" "@loader_path/../lib/$depname" "$lib" 2>/dev/null || true
     done
 done
 
-# Fix Python binary
+# Fix Python binary - change libpython path and add rpath
 if [ -f "${PORTABLE_DIR}/bin/python" ]; then
+    # Change libpython path to use @rpath
+    PYTHON_LIB=$(otool -L "${PORTABLE_DIR}/bin/python" | grep "libpython" | grep -o "/.*\.dylib" | head -1)
+    if [ -n "$PYTHON_LIB" ]; then
+        install_name_tool -change "$PYTHON_LIB" "@rpath/$(basename $PYTHON_LIB)" "${PORTABLE_DIR}/bin/python" 2>/dev/null || true
+    fi
     install_name_tool -add_rpath "@loader_path/../lib" "${PORTABLE_DIR}/bin/python" 2>/dev/null || true
 fi
 
