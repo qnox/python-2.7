@@ -91,63 +91,47 @@ if [ ! -d "${PORTABLE_DIR}/include" ]; then
 fi
 echo "PASS: Directory structure is correct"
 
-# Test 2: Test portable launcher
+# Test 2: Test python binary
 echo ""
-echo "=== Test 2: Test portable launcher ==="
-if [ -f "${PORTABLE_DIR}/bin/python-portable" ]; then
-    chmod +x "${PORTABLE_DIR}/bin/python-portable"
+echo "=== Test 2: Test python binary ==="
+# Version check
+echo "Running: ${PORTABLE_DIR}/bin/python --version"
+VERSION_OUTPUT=$("${PORTABLE_DIR}/bin/python" --version 2>&1) || {
+    EXIT_CODE=$?
+    echo "ERROR: Python crashed with exit code ${EXIT_CODE}"
+    echo "Output: ${VERSION_OUTPUT}"
 
-    # Version check
-    echo "Running: ${PORTABLE_DIR}/bin/python-portable --version"
-    VERSION_OUTPUT=$("${PORTABLE_DIR}/bin/python-portable" --version 2>&1) || {
-        EXIT_CODE=$?
-        echo "ERROR: Python crashed with exit code ${EXIT_CODE}"
-        echo "Output: ${VERSION_OUTPUT}"
-
-        # Try running the binary directly to see library issues
-        echo "Checking library dependencies:"
+    # Try running the binary directly to see library issues
+    echo "Checking library dependencies:"
+    if command -v otool >/dev/null 2>&1; then
         otool -L "${PORTABLE_DIR}/bin/python" || true
-
-        # Try a simpler test
-        echo "Attempting to run python binary directly:"
-        "${PORTABLE_DIR}/bin/python" --version 2>&1 || echo "Direct python also failed"
-
-        exit 1
-    }
-    echo "Version: ${VERSION_OUTPUT}"
-    if [[ ! "${VERSION_OUTPUT}" =~ "2.7.18" ]]; then
-        echo "FAIL: Version check failed"
-        exit 1
+    elif command -v ldd >/dev/null 2>&1; then
+        ldd "${PORTABLE_DIR}/bin/python" || true
     fi
 
-    # Basic execution
-    "${PORTABLE_DIR}/bin/python-portable" -c "print('Portable launcher: OK')"
-
-    # Check paths are relative
-    EXECUTABLE=$("${PORTABLE_DIR}/bin/python-portable" -c "import sys; print(sys.executable)")
-    echo "Python executable: ${EXECUTABLE}"
-
-    echo "PASS: Portable launcher works"
-else
-    echo "FAIL: Portable launcher not found"
+    exit 1
+}
+echo "Version: ${VERSION_OUTPUT}"
+if [[ ! "${VERSION_OUTPUT}" =~ "2.7.18" ]]; then
+    echo "FAIL: Version check failed"
     exit 1
 fi
 
-# Test 3: Test direct binary with environment variables
+# Basic execution
+"${PORTABLE_DIR}/bin/python" -c "print('Python binary: OK')"
+
+# Check paths are relative
+EXECUTABLE=$("${PORTABLE_DIR}/bin/python" -c "import sys; print(sys.executable)")
+echo "Python executable: ${EXECUTABLE}"
+
+echo "PASS: Python binary works"
+
+# Test 3: Test python2 symlink
 echo ""
-echo "=== Test 3: Test direct binary with environment variables ==="
-cd "${PORTABLE_DIR}"
-export PYTHONHOME="${PORTABLE_DIR}"
-
-if [[ "$OSTYPE" == "darwin"* ]]; then
-    export DYLD_LIBRARY_PATH="${PORTABLE_DIR}/lib:${DYLD_LIBRARY_PATH:-}"
-else
-    export LD_LIBRARY_PATH="${PORTABLE_DIR}/lib:${LD_LIBRARY_PATH:-}"
-fi
-
-"${PORTABLE_DIR}/bin/python" --version
-"${PORTABLE_DIR}/bin/python" -c "print('Direct binary: OK')"
-echo "PASS: Direct binary works with environment variables"
+echo "=== Test 3: Test python2 symlink ==="
+"${PORTABLE_DIR}/bin/python2" --version 2>&1
+"${PORTABLE_DIR}/bin/python2" -c "print('python2 symlink: OK')"
+echo "PASS: python2 symlink works"
 
 # Test 4: Standard library imports
 echo ""
