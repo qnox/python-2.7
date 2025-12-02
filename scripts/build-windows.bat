@@ -20,21 +20,39 @@ if not exist "%SOURCE_DIR%" (
 
 REM Apply patches for VS2022 compatibility
 echo Applying patches for VS2022 compatibility...
+
+REM Check if patches exist
+if not exist "patches\windows\01-upgrade-vs2022-toolset.patch" (
+    echo ERROR: Patch file 01-upgrade-vs2022-toolset.patch not found!
+    dir patches\windows\
+    exit /b 1
+)
+if not exist "patches\windows\02-fix-timemodule-msvc.patch" (
+    echo ERROR: Patch file 02-fix-timemodule-msvc.patch not found!
+    dir patches\windows\
+    exit /b 1
+)
+
+echo Applying VS2022 toolset upgrade patch...
 if exist "C:\Program Files\Git\usr\bin\patch.exe" (
-    echo Using Git patch utility...
     "C:\Program Files\Git\usr\bin\patch.exe" -d "%SOURCE_DIR%" -p1 -N --binary < patches\windows\01-upgrade-vs2022-toolset.patch
     if errorlevel 1 (
-        echo WARNING: Patch 01 may have already been applied or failed
-    )
-
-    echo Applying timemodule.c fix for modern MSVC...
-    "C:\Program Files\Git\usr\bin\patch.exe" -d "%SOURCE_DIR%" -p1 -N --binary < patches\windows\02-fix-timemodule-msvc.patch
-    if errorlevel 1 (
-        echo WARNING: Patch 02 may have already been applied or failed
+        echo ERROR: VS2022 toolset patch failed to apply!
+        exit /b 1
     )
 ) else (
-    echo WARNING: Git patch utility not found, build may fail with VS2022
+    echo ERROR: Git patch utility not found!
+    exit /b 1
 )
+
+echo Applying timemodule.c fix for modern MSVC...
+REM Use python to patch the file to avoid line ending issues
+python -c "import sys; content = open(sys.argv[1], 'r').read(); content = content.replace('PyModule_AddIntConstant(m, \"timezone\", timezone);', 'PyModule_AddIntConstant(m, \"timezone\", _timezone);').replace('PyModule_AddIntConstant(m, \"daylight\", daylight);', 'PyModule_AddIntConstant(m, \"daylight\", _daylight);').replace('Py_BuildValue(\"(zz)\", tzname[0], tzname[1])', 'Py_BuildValue(\"(zz)\", _tzname[0], _tzname[1])').replace('PyModule_AddIntConstant(m, \"altzone\", timezone-3600);', 'PyModule_AddIntConstant(m, \"altzone\", _timezone-3600);'); open(sys.argv[1], 'w').write(content)" "%SOURCE_DIR%\Modules\timemodule.c"
+if errorlevel 1 (
+    echo ERROR: Failed to fix timemodule.c
+    exit /b 1
+)
+echo timemodule.c patched successfully
 
 cd "%SOURCE_DIR%\PCbuild"
 

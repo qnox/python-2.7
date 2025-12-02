@@ -56,6 +56,8 @@ ls -la "${TEST_DIR}"
 if [ -n "${PORTABLE_DIR}" ] && [ -d "${PORTABLE_DIR}" ]; then
     echo "Contents of ${PORTABLE_DIR}:"
     ls -la "${PORTABLE_DIR}"
+    echo "Subdirectories in ${PORTABLE_DIR}:"
+    find "${PORTABLE_DIR}" -maxdepth 2 -type d
 fi
 
 # Test 1: Verify directory structure

@@ -84,7 +84,16 @@ rm -rf "${PORTABLE_DIR}"
 mkdir -p "${PORTABLE_DIR}"
 
 # Copy installed files
-cp -r "${INSTALL_PREFIX}/python"/* "${PORTABLE_DIR}/"
+echo "Checking installation at: ${INSTALL_PREFIX}"
+ls -la "${INSTALL_PREFIX}" || echo "INSTALL_PREFIX does not exist"
+if [ -d "${INSTALL_PREFIX}/python" ]; then
+    echo "Contents of ${INSTALL_PREFIX}/python:"
+    ls -la "${INSTALL_PREFIX}/python"
+    cp -r "${INSTALL_PREFIX}/python"/* "${PORTABLE_DIR}/"
+else
+    echo "ERROR: ${INSTALL_PREFIX}/python does not exist!"
+    exit 1
+fi
 
 # Fix library paths to be relocatable using install_name_tool
 find "${PORTABLE_DIR}" -name "*.so" -o -name "*.dylib" | while read lib; do
