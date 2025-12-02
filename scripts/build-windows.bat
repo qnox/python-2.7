@@ -46,7 +46,7 @@ if exist "C:\Program Files\Git\usr\bin\patch.exe" (
 )
 
 echo Applying timemodule.c fix for modern MSVC...
-"C:\Program Files\Git\usr\bin\patch.exe" -d "%SOURCE_DIR%" -p0 -N --binary < patches\windows\02-fix-timemodule-msvc.patch
+"C:\Program Files\Git\usr\bin\patch.exe" -d "%SOURCE_DIR%" -p0 -N --binary --ignore-whitespace < patches\windows\02-fix-timemodule-msvc.patch
 if errorlevel 1 (
     echo ERROR: timemodule.c patch failed to apply!
     exit /b 1
@@ -54,7 +54,7 @@ if errorlevel 1 (
 echo timemodule.c patched successfully
 
 echo Applying posixmodule.c fix for modern MSVC...
-"C:\Program Files\Git\usr\bin\patch.exe" -d "%SOURCE_DIR%" -p0 -N --binary < patches\windows\03-fix-posixmodule-msvc.patch
+"C:\Program Files\Git\usr\bin\patch.exe" -d "%SOURCE_DIR%" -p0 -N --binary --ignore-whitespace < patches\windows\03-fix-posixmodule-msvc.patch
 if errorlevel 1 (
     echo ERROR: posixmodule.c patch failed to apply!
     exit /b 1
