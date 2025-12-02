@@ -18,36 +18,21 @@ if not exist "%SOURCE_DIR%" (
     del "Python-%PYTHON_VERSION%.tgz"
 )
 
-REM Apply patches for modern Visual Studio
-echo Applying patches for VS2019 compatibility...
-powershell -Command "Get-Content patches\windows\01-upgrade-vs2019-toolset.patch | ForEach-Object { $_ -replace '/', '\' } | Set-Content patches\windows\01-upgrade-vs2019-toolset-win.patch"
-
-REM Apply patch to upgrade toolset
-echo Patching pyproject.props for VS2019...
-if exist "%SOURCE_DIR%\PCbuild\pyproject.props" (
-    powershell -Command ^
-    "$content = Get-Content '%SOURCE_DIR%\PCbuild\pyproject.props' -Raw; ^
-    $content = $content -replace '<PlatformToolset>v90</PlatformToolset>', ^
-    '<PlatformToolset Condition=''\"$(VisualStudioVersion)\"'' == ''\"16.0\"''>v142</PlatformToolset>^
-    <PlatformToolset Condition=''\"$(VisualStudioVersion)\"'' == ''\"15.0\"''>v141</PlatformToolset>^
-    <PlatformToolset Condition=''\"$(VisualStudioVersion)\"'' == ''\"14.0\"''>v140</PlatformToolset>^
-    <PlatformToolset Condition=''\"$(PlatformToolset)\"'' == ''\"\">v142</PlatformToolset>'; ^
-    $content = $content -replace '(<CharacterSet>NotSet</CharacterSet>)', '$1^
-    <PreferredToolArchitecture>x64</PreferredToolArchitecture>^
-    <WindowsTargetPlatformVersion Condition=''\"$(WindowsTargetPlatformVersion)\"'' == ''\"\">10.0</WindowsTargetPlatformVersion>'; ^
-    $content = $content -replace 'Condition=\"\$\(Configuration\)\"', 'Condition=\"''$$(Configuration)''\"'; ^
-    Set-Content '%SOURCE_DIR%\PCbuild\pyproject.props' -Value $content"
+REM Apply patches using patch command or manual copying
+echo Applying patches for VS2022 compatibility...
+if exist "C:\Program Files\Git\usr\bin\patch.exe" (
+    echo Using Git patch utility...
+    "C:\Program Files\Git\usr\bin\patch.exe" -d "%SOURCE_DIR%" -p1 -N --binary < patches\windows\01-upgrade-vs2022-toolset.patch
+) else (
+    echo Git patch not found, copying pre-patched file...
+    REM Fallback: copy a pre-patched version if available
+    if exist "patches\windows\python.props" (
+        copy /Y patches\windows\python.props "%SOURCE_DIR%\PCbuild\python.props"
+    ) else (
+        echo WARNING: No patch utility found and no pre-patched file available
+        echo Build may fail with VS2022
+    )
 )
-
-REM Fix MSBuild conditions in pyd.props
-if exist "%SOURCE_DIR%\PCbuild\pyd.props" (
-    powershell -Command ^
-    "$content = Get-Content '%SOURCE_DIR%\PCbuild\pyd.props' -Raw; ^
-    $content = $content -replace 'Condition=\"\$\(Platform\)\"', 'Condition=\"''$$(Platform)''\"'; ^
-    Set-Content '%SOURCE_DIR%\PCbuild\pyd.props' -Value $content"
-)
-
-echo Patches applied successfully
 
 cd "%SOURCE_DIR%\PCbuild"
 
@@ -127,7 +112,7 @@ echo - Import libraries for C extension development >> "%PORTABLE_DIR%\README.tx
 echo. >> "%PORTABLE_DIR%\README.txt"
 echo Build info: >> "%PORTABLE_DIR%\README.txt"
 echo - Architecture: %TARGET_ARCH% >> "%PORTABLE_DIR%\README.txt"
-echo - Compiler: MSVC v142 (VS2019) >> "%PORTABLE_DIR%\README.txt"
+echo - Compiler: MSVC v143 (VS2022) >> "%PORTABLE_DIR%\README.txt"
 echo - Built on: %DATE% %TIME% >> "%PORTABLE_DIR%\README.txt"
 
 echo === Build complete ===

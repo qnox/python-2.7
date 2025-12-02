@@ -1,18 +1,28 @@
---- configure.orig	2020-04-20 01:33:36.000000000 +0000
-+++ configure	2024-12-02 12:00:00.000000000 +0000
-@@ -3151,6 +3151,14 @@
- 	MACOSX_DEFAULT_ARCH="ppc"
- 	;;
-     *)
-+	# Support for Apple Silicon (arm64)
-+	if test "`uname -p`" = "arm" -o "`uname -m`" = "arm64"
-+	then
-+	    MACOSX_DEFAULT_ARCH="arm64"
-+	elif test "`uname -m`" = "x86_64"
-+	then
-+	    MACOSX_DEFAULT_ARCH="x86_64"
-+	else
- 	as_fn_error $? "Unexpected output of 'arch' on OSX" "$LINENO" 5
-+	fi
- 	;;
-     esac
+--- Python-2.7.18/configure.orig	2025-12-02 17:43:35
++++ Python-2.7.18/configure	2025-12-02 17:44:39
+@@ -8461,6 +8461,12 @@
+     		;;
+     	ppc)
+     		MACOSX_DEFAULT_ARCH="ppc"
++    		;;
++    	arm64)
++    		MACOSX_DEFAULT_ARCH="arm64"
++    		;;
++    	i386|x86_64)
++    		MACOSX_DEFAULT_ARCH="$(/usr/bin/arch)"
+     		;;
+     	*)
+     		as_fn_error $? "Unexpected output of 'arch' on OSX" "$LINENO" 5
+@@ -8473,6 +8479,12 @@
+     		;;
+     	ppc)
+     		MACOSX_DEFAULT_ARCH="ppc64"
++    		;;
++    	arm64)
++    		MACOSX_DEFAULT_ARCH="arm64"
++    		;;
++    	i386|x86_64)
++    		MACOSX_DEFAULT_ARCH="x86_64"
+     		;;
+     	*)
+     		as_fn_error $? "Unexpected output of 'arch' on OSX" "$LINENO" 5
