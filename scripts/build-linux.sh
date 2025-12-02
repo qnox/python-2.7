@@ -27,7 +27,7 @@ cd "${SOURCE_DIR}"
 
 # Apply portable configuration
 # This makes Python relocatable by using relative paths
-export LDFLAGS="-Wl,-rpath,\$ORIGIN/../lib"
+export LDFLAGS="-Wl,-rpath,\\\$ORIGIN/../lib"
 export CFLAGS="-fPIC"
 
 if [ "${TARGET_LIBC}" = "musl" ]; then
@@ -41,7 +41,7 @@ if [ "${TARGET_LIBC}" = "musl" ]; then
         export CXX="musl-g++"
         export CFLAGS="${CFLAGS} -m32"
         export LDFLAGS="${LDFLAGS} -m32"
-        EXTRA_CONFIG_ARGS="--disable-ipv6 --host=i686-pc-linux-musl"
+        EXTRA_CONFIG_ARGS="--disable-ipv6 --build=x86_64-pc-linux-gnu --host=i686-pc-linux-musl"
     else
         echo "Cross-compilation for musl ${TARGET_ARCH} not implemented yet"
         exit 1
@@ -49,7 +49,7 @@ if [ "${TARGET_LIBC}" = "musl" ]; then
 elif [ "${TARGET_ARCH}" = "i686" ]; then
     export CFLAGS="${CFLAGS} -m32"
     export LDFLAGS="${LDFLAGS} -m32"
-    EXTRA_CONFIG_ARGS=""
+    EXTRA_CONFIG_ARGS="--build=x86_64-pc-linux-gnu --host=i686-pc-linux-gnu"
 else
     EXTRA_CONFIG_ARGS=""
 fi
@@ -59,8 +59,6 @@ fi
     --prefix="/python" \
     --enable-shared \
     --enable-unicode=ucs4 \
-    --with-system-ffi \
-    --with-system-expat \
     ${EXTRA_CONFIG_ARGS:-}
 
 # Build

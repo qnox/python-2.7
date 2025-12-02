@@ -58,6 +58,14 @@ echo Building Python...
 call build.bat -p %PLATFORM% -c Release
 if errorlevel 1 exit /b 1
 
+echo Checking build output...
+if not exist "%ARCH_DIR%\python.exe" (
+    echo ERROR: python.exe not found in %ARCH_DIR%
+    echo Build may have failed or files are in a different location
+    dir /b
+    exit /b 1
+)
+
 REM Prepare portable installation
 set PORTABLE_DIR=%BUILD_DIR%\python-%PYTHON_VERSION%-%TARGET_TRIPLE%
 if exist "%PORTABLE_DIR%" rmdir /s /q "%PORTABLE_DIR%"

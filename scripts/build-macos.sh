@@ -67,10 +67,7 @@ export LDFLAGS="${LDFLAGS} ${ARCH_FLAGS}"
     --enable-framework=no \
     --enable-shared \
     --enable-unicode=ucs2 \
-    --with-system-ffi \
-    --with-system-expat \
-    --enable-optimizations \
-    --with-ensurepip=install
+    --with-ensurepip=no
 
 # Build
 make -j$(sysctl -n hw.ncpu)
