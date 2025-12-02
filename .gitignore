@@ -1,0 +1,31 @@
+# Build artifacts
+build/
+dist/
+Python-*/
+
+# Python cache
+*.pyc
+*.pyo
+__pycache__/
+*.so
+*.dylib
+*.dll
+
+# OS specific
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Archives
+*.tar.gz
+*.tar.xz
+*.tar.bz2
+*.zip
+*.sha256

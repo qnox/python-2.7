@@ -1,0 +1,226 @@
+name: Build Python 2.7
+
+on:
+  push:
+    branches: [main, master]
+    tags:
+      - 'v*'
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Linux glibc builds
+          - os: ubuntu-20.04
+            platform: linux
+            arch: x86_64
+            libc: glibc
+            target: x86_64-unknown-linux-gnu
+            setup_script: scripts/setup-linux.sh
+            build_script: scripts/build-linux.sh
+            test_script: scripts/test.sh
+            package_script: scripts/package.sh
+
+          - os: ubuntu-20.04
+            platform: linux
+            arch: i686
+            libc: glibc
+            target: i686-unknown-linux-gnu
+            setup_script: scripts/setup-linux.sh
+            build_script: scripts/build-linux.sh
+            test_script: scripts/test.sh
+            package_script: scripts/package.sh
+
+          # Linux musl builds
+          - os: ubuntu-20.04
+            platform: linux
+            arch: x86_64
+            libc: musl
+            target: x86_64-unknown-linux-musl
+            setup_script: scripts/setup-linux.sh
+            build_script: scripts/build-linux.sh
+            test_script: scripts/test.sh
+            package_script: scripts/package.sh
+
+          - os: ubuntu-20.04
+            platform: linux
+            arch: i686
+            libc: musl
+            target: i686-unknown-linux-musl
+            setup_script: scripts/setup-linux.sh
+            build_script: scripts/build-linux.sh
+            test_script: scripts/test.sh
+            package_script: scripts/package.sh
+
+          # macOS builds
+          - os: macos-12
+            platform: macos
+            arch: x86_64
+            target: x86_64-apple-darwin
+            setup_script: scripts/setup-macos.sh
+            build_script: scripts/build-macos.sh
+            test_script: scripts/test.sh
+            package_script: scripts/package.sh
+
+          - os: macos-14
+            platform: macos
+            arch: arm64
+            target: arm64-apple-darwin
+            setup_script: scripts/setup-macos.sh
+            build_script: scripts/build-macos.sh
+            test_script: scripts/test.sh
+            package_script: scripts/package.sh
+
+          # Windows builds
+          - os: windows-2019
+            platform: windows
+            arch: x86_64
+            msvc: amd64
+            target: x86_64-pc-windows-msvc
+            setup_script: scripts\setup-windows.bat
+            build_script: scripts\build-windows.bat
+            test_script: scripts\test.bat
+            package_script: scripts\package.bat
+
+          - os: windows-2019
+            platform: windows
+            arch: x86
+            msvc: x86
+            target: i686-pc-windows-msvc
+            setup_script: scripts\setup-windows.bat
+            build_script: scripts\build-windows.bat
+            test_script: scripts\test.bat
+            package_script: scripts\package.bat
+
+    runs-on: ${{ matrix.os }}
+    name: ${{ matrix.target }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      # Windows-specific: Set up MSVC
+      - name: Set up MSVC
+        if: matrix.platform == 'windows'
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: ${{ matrix.msvc }}
+
+      # Setup - Unix (Linux/macOS)
+      - name: Setup build environment (Unix)
+        if: matrix.platform == 'linux' || matrix.platform == 'macos'
+        run: bash ${{ matrix.setup_script }}
+        env:
+          TARGET_ARCH: ${{ matrix.arch }}
+          TARGET_LIBC: ${{ matrix.libc || '' }}
+          TARGET_TRIPLE: ${{ matrix.target }}
+          TARGET_PLATFORM: ${{ matrix.platform }}
+
+      # Setup - Windows
+      - name: Setup build environment (Windows)
+        if: matrix.platform == 'windows'
+        shell: cmd
+        run: call ${{ matrix.setup_script }}
+        env:
+          TARGET_ARCH: ${{ matrix.arch }}
+          TARGET_TRIPLE: ${{ matrix.target }}
+          TARGET_PLATFORM: ${{ matrix.platform }}
+
+      # Build - Unix (Linux/macOS)
+      - name: Build Python 2.7 (Unix)
+        if: matrix.platform == 'linux' || matrix.platform == 'macos'
+        run: bash ${{ matrix.build_script }}
+        env:
+          TARGET_ARCH: ${{ matrix.arch }}
+          TARGET_LIBC: ${{ matrix.libc || '' }}
+          TARGET_TRIPLE: ${{ matrix.target }}
+          TARGET_PLATFORM: ${{ matrix.platform }}
+
+      # Build - Windows
+      - name: Build Python 2.7 (Windows)
+        if: matrix.platform == 'windows'
+        shell: cmd
+        run: call ${{ matrix.build_script }}
+        env:
+          TARGET_ARCH: ${{ matrix.arch }}
+          TARGET_TRIPLE: ${{ matrix.target }}
+          TARGET_PLATFORM: ${{ matrix.platform }}
+
+      # Package - Unix (Linux/macOS)
+      - name: Package distribution (Unix)
+        if: matrix.platform == 'linux' || matrix.platform == 'macos'
+        run: bash ${{ matrix.package_script }}
+        env:
+          TARGET_ARCH: ${{ matrix.arch }}
+          TARGET_LIBC: ${{ matrix.libc || '' }}
+          TARGET_TRIPLE: ${{ matrix.target }}
+          TARGET_PLATFORM: ${{ matrix.platform }}
+
+      # Package - Windows
+      - name: Package distribution (Windows)
+        if: matrix.platform == 'windows'
+        shell: cmd
+        run: call ${{ matrix.package_script }}
+        env:
+          TARGET_ARCH: ${{ matrix.arch }}
+          TARGET_TRIPLE: ${{ matrix.target }}
+          TARGET_PLATFORM: ${{ matrix.platform }}
+
+      # Test - Unix (Linux/macOS)
+      - name: Test Python 2.7 (Unix)
+        if: matrix.platform == 'linux' || matrix.platform == 'macos'
+        run: bash ${{ matrix.test_script }}
+        env:
+          TARGET_ARCH: ${{ matrix.arch }}
+          TARGET_TRIPLE: ${{ matrix.target }}
+          TARGET_PLATFORM: ${{ matrix.platform }}
+
+      # Test - Windows
+      - name: Test Python 2.7 (Windows)
+        if: matrix.platform == 'windows'
+        shell: cmd
+        run: call ${{ matrix.test_script }}
+        env:
+          TARGET_ARCH: ${{ matrix.arch }}
+          TARGET_TRIPLE: ${{ matrix.target }}
+          TARGET_PLATFORM: ${{ matrix.platform }}
+
+      # Upload artifacts
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-2.7.18-${{ matrix.target }}
+          path: dist/*
+          retention-days: 30
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: artifacts/**/*
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

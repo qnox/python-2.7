@@ -1,0 +1,194 @@
+# Python 2.7 Build Targets Configuration
+# Reference: python-build-standalone project structure
+
+python_version: "2.7.18"
+
+# Build scripts by platform
+scripts:
+  linux:
+    setup: scripts/setup-linux.sh
+    build: scripts/build-linux.sh
+    test: scripts/test.sh
+    package: scripts/package.sh
+
+  macos:
+    setup: scripts/setup-macos.sh
+    build: scripts/build-macos.sh
+    test: scripts/test.sh
+    package: scripts/package.sh
+
+  windows:
+    setup: scripts\setup-windows.bat
+    build: scripts\build-windows.bat
+    test: scripts\test.bat
+    package: scripts\package.bat
+
+# Platform configurations
+platforms:
+  linux:
+    runner_base: ubuntu-20.04
+    targets:
+      x86_64-unknown-linux-gnu:
+        arch: x86_64
+        libc: glibc
+        build_options:
+          - optimizations
+        features:
+          - shared
+          - unicode-ucs4
+
+      i686-unknown-linux-gnu:
+        arch: i686
+        libc: glibc
+        build_options:
+          - optimizations
+        features:
+          - shared
+          - unicode-ucs4
+          - multilib
+
+      x86_64-unknown-linux-musl:
+        arch: x86_64
+        libc: musl
+        build_options:
+          - optimizations
+        features:
+          - shared
+          - unicode-ucs4
+          - static-libs
+
+      i686-unknown-linux-musl:
+        arch: i686
+        libc: musl
+        build_options:
+          - optimizations
+        features:
+          - shared
+          - unicode-ucs4
+          - multilib
+          - static-libs
+
+  macos:
+    deployment_target:
+      x86_64: "10.9"
+      arm64: "11.0"
+    targets:
+      x86_64-apple-darwin:
+        arch: x86_64
+        runner: macos-12
+        build_options:
+          - optimizations
+        features:
+          - shared
+          - unicode-ucs2
+          - framework-disabled
+
+      arm64-apple-darwin:
+        arch: arm64
+        runner: macos-14
+        build_options:
+          - optimizations
+        features:
+          - shared
+          - unicode-ucs2
+          - framework-disabled
+
+  windows:
+    runner: windows-2019
+    targets:
+      x86_64-pc-windows-msvc:
+        arch: x86_64
+        msvc_arch: amd64
+        build_options:
+          - pgo
+        features:
+          - shared
+
+      i686-pc-windows-msvc:
+        arch: x86
+        msvc_arch: x86
+        build_options:
+          - pgo
+        features:
+          - shared
+
+# Build dependencies by platform
+dependencies:
+  linux:
+    - build-essential
+    - gdb
+    - lcov
+    - pkg-config
+    - libbz2-dev
+    - libffi-dev
+    - libgdbm-dev
+    - libgdbm-compat-dev
+    - liblzma-dev
+    - libncurses5-dev
+    - libreadline6-dev
+    - libsqlite3-dev
+    - libssl-dev
+    - lzma
+    - lzma-dev
+    - tk-dev
+    - uuid-dev
+    - zlib1g-dev
+
+  macos:
+    - openssl@1.1
+    - readline
+    - sqlite3
+    - xz
+    - zlib
+    - tcl-tk
+
+  windows:
+    # Built-in with MSVC
+    - msvc-toolchain
+
+# Portable build configuration
+portable:
+  linux:
+    rpath: "$ORIGIN/../lib"
+    launcher: python-portable
+
+  macos:
+    rpath: "@loader_path/../lib"
+    launcher: python-portable
+
+  windows:
+    path_relative: true
+    launcher: python-portable.bat
+
+# Package formats by platform
+package_formats:
+  linux:
+    - tar.gz
+    - tar.xz
+  macos:
+    - tar.gz
+    - tar.xz
+  windows:
+    - zip
+
+# Free GitHub runners only
+runners:
+  ubuntu-20.04:
+    platform: linux
+    arch: x86_64
+    free: true
+
+  macos-12:
+    platform: macos
+    arch: x86_64
+    free: true
+
+  macos-14:
+    platform: macos
+    arch: arm64
+    free: true
+
+  windows-2019:
+    platform: windows
+    arch: x86_64
+    free: true
