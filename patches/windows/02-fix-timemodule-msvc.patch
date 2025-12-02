@@ -1,0 +1,35 @@
+--- Python-2.7.18/Modules/timemodule.c.orig	2024-01-01 00:00:00.000000000 +0000
++++ Python-2.7.18/Modules/timemodule.c	2024-01-01 00:00:00.000000000 +0000
+@@ -808,6 +808,11 @@
+ #ifdef PYOS_OS2
+     PyModule_AddIntConstant(m, "timezone", _timezone);
+ #else /* !PYOS_OS2 */
++#if defined(MS_WINDOWS) && defined(_MSC_VER) && _MSC_VER >= 1900
++    /* Visual Studio 2015+ requires underscore-prefixed versions */
++    _tzset();
++    PyModule_AddIntConstant(m, "timezone", _timezone);
++#else
+     PyModule_AddIntConstant(m, "timezone", timezone);
+ #endif /* PYOS_OS2 */
+ #ifdef HAVE_ALTZONE
+@@ -816,10 +821,20 @@
+ #ifdef PYOS_OS2
+     PyModule_AddIntConstant(m, "altzone", _timezone-3600);
+ #else /* !PYOS_OS2 */
++#if defined(MS_WINDOWS) && defined(_MSC_VER) && _MSC_VER >= 1900
++    PyModule_AddIntConstant(m, "altzone", _timezone-3600);
++#else
+     PyModule_AddIntConstant(m, "altzone", timezone-3600);
+ #endif /* PYOS_OS2 */
+ #endif
++#if defined(MS_WINDOWS) && defined(_MSC_VER) && _MSC_VER >= 1900
++    PyModule_AddIntConstant(m, "daylight", _daylight);
++    PyModule_AddObject(m, "tzname",
++                       Py_BuildValue("(zz)", _tzname[0], _tzname[1]));
++#else
+     PyModule_AddIntConstant(m, "daylight", daylight);
+     PyModule_AddObject(m, "tzname",
+                        Py_BuildValue("(zz)", tzname[0], tzname[1]));
++#endif
++#endif
+ #else /* !HAVE_TZNAME || __GLIBC__ || __CYGWIN__*/
