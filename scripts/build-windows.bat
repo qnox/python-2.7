@@ -18,20 +18,22 @@ if not exist "%SOURCE_DIR%" (
     del "Python-%PYTHON_VERSION%.tgz"
 )
 
-REM Apply patches using patch command or manual copying
+REM Apply patches for VS2022 compatibility
 echo Applying patches for VS2022 compatibility...
 if exist "C:\Program Files\Git\usr\bin\patch.exe" (
     echo Using Git patch utility...
     "C:\Program Files\Git\usr\bin\patch.exe" -d "%SOURCE_DIR%" -p1 -N --binary < patches\windows\01-upgrade-vs2022-toolset.patch
-) else (
-    echo Git patch not found, copying pre-patched file...
-    REM Fallback: copy a pre-patched version if available
-    if exist "patches\windows\python.props" (
-        copy /Y patches\windows\python.props "%SOURCE_DIR%\PCbuild\python.props"
-    ) else (
-        echo WARNING: No patch utility found and no pre-patched file available
-        echo Build may fail with VS2022
+    if errorlevel 1 (
+        echo WARNING: Patch 01 may have already been applied or failed
     )
+
+    echo Applying timemodule.c fix for modern MSVC...
+    "C:\Program Files\Git\usr\bin\patch.exe" -d "%SOURCE_DIR%" -p1 -N --binary < patches\windows\02-fix-timemodule-msvc.patch
+    if errorlevel 1 (
+        echo WARNING: Patch 02 may have already been applied or failed
+    )
+) else (
+    echo WARNING: Git patch utility not found, build may fail with VS2022
 )
 
 cd "%SOURCE_DIR%\PCbuild"

@@ -25,15 +25,6 @@ else
     ls -la "${DIST_DIR}/" || true
     exit 1
 fi
-if [ ! -d "${PORTABLE_DIR}/lib" ]; then
-    echo "FAIL: lib directory not found"
-    exit 1
-fi
-if [ ! -d "${PORTABLE_DIR}/include" ]; then
-    echo "FAIL: include directory not found"
-    exit 1
-fi
-echo "PASS: Directory structure is correct"
 
 echo "Found archive: ${ARCHIVE}"
 

@@ -44,7 +44,18 @@ if [ "${TARGET_ARCH}" = "i686" ]; then
     echo "Installing 32-bit build tools..."
     sudo dpkg --add-architecture i386
     sudo apt-get update
-    sudo apt-get install -y gcc-multilib g++-multilib
+    sudo apt-get install -y \
+        gcc-multilib \
+        g++-multilib \
+        libc6-dev-i386 \
+        lib32z1-dev \
+        lib32ncurses-dev
+
+    # For musl i686, we need additional setup
+    if [ "${TARGET_LIBC}" = "musl" ]; then
+        echo "Note: musl i686 cross-compilation requires musl-gcc with multilib support"
+        echo "This may not work on all systems. Consider building natively or in a container."
+    fi
 fi
 
 echo "=== Linux build environment setup complete ==="

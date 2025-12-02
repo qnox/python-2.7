@@ -27,7 +27,7 @@ cd "${SOURCE_DIR}"
 
 # Apply portable configuration
 # This makes Python relocatable by using relative paths
-export LDFLAGS="-Wl,-rpath,\\\$ORIGIN/../lib"
+export LDFLAGS='-Wl,-rpath,$ORIGIN/../lib'
 export CFLAGS="-fPIC"
 
 if [ "${TARGET_LIBC}" = "musl" ]; then
@@ -36,22 +36,12 @@ if [ "${TARGET_LIBC}" = "musl" ]; then
         export CXX="musl-g++"
         EXTRA_CONFIG_ARGS="--disable-ipv6"
     elif [ "${TARGET_ARCH}" = "i686" ]; then
-        # For musl i686, use musl-gcc with -m32
-        export CC="musl-gcc"
-        export CXX="musl-g++"
-        export CFLAGS="${CFLAGS} -m32"
-        export LDFLAGS="${LDFLAGS} -m32"
-        # Find Python for cross-compilation
-        if command -v python2.7 >/dev/null 2>&1; then
-            PYTHON_FOR_BUILD="python2.7"
-        elif command -v python2 >/dev/null 2>&1; then
-            PYTHON_FOR_BUILD="python2"
-        elif command -v python3 >/dev/null 2>&1; then
-            PYTHON_FOR_BUILD="python3"
-        else
-            PYTHON_FOR_BUILD="python"
-        fi
-        EXTRA_CONFIG_ARGS="--disable-ipv6 --build=x86_64-pc-linux-gnu --host=i686-pc-linux-musl PYTHON_FOR_BUILD=${PYTHON_FOR_BUILD}"
+        # musl-gcc doesn't support -m32 for cross-compilation
+        # This requires a proper i686-linux-musl cross-compilation toolchain
+        echo "ERROR: musl i686 cross-compilation requires a dedicated toolchain"
+        echo "musl-gcc does not support multilib (-m32) compilation"
+        echo "This target should be built in a container with i686-linux-musl-gcc"
+        exit 1
     else
         echo "Cross-compilation for musl ${TARGET_ARCH} not implemented yet"
         exit 1
@@ -69,7 +59,7 @@ elif [ "${TARGET_ARCH}" = "i686" ]; then
     else
         PYTHON_FOR_BUILD="python"
     fi
-    EXTRA_CONFIG_ARGS="--build=x86_64-pc-linux-gnu --host=i686-pc-linux-gnu PYTHON_FOR_BUILD=${PYTHON_FOR_BUILD}"
+    EXTRA_CONFIG_ARGS="--disable-ipv6 --build=x86_64-pc-linux-gnu --host=i686-pc-linux-gnu PYTHON_FOR_BUILD=${PYTHON_FOR_BUILD}"
 else
     EXTRA_CONFIG_ARGS=""
 fi

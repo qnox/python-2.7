@@ -50,15 +50,8 @@ jobs:
             test_script: scripts/test.sh
             package_script: scripts/package.sh
 
-          - os: ubuntu-22.04
-            platform: linux
-            arch: i686
-            libc: musl
-            target: i686-unknown-linux-musl
-            setup_script: scripts/setup-linux.sh
-            build_script: scripts/build-linux.sh
-            test_script: scripts/test.sh
-            package_script: scripts/package.sh
+          # Note: i686-unknown-linux-musl is disabled
+          # musl-gcc doesn't support multilib, requires dedicated i686-linux-musl-gcc toolchain
 
           # macOS builds
           - os: macos-13
