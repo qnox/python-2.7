@@ -18,6 +18,15 @@ if not exist "%SOURCE_DIR%" (
     del "Python-%PYTHON_VERSION%.tgz"
 )
 
+REM Normalize source file line endings to LF before applying patches
+echo Normalizing source file line endings to LF...
+powershell -Command "Get-ChildItem -Path '%SOURCE_DIR%' -Recurse -Include *.c,*.h,*.py,*.in | ForEach-Object { $content = [IO.File]::ReadAllText($_.FullName) -replace \"`r`n\", \"`n\"; [IO.File]::WriteAllText($_.FullName, $content, [System.Text.UTF8Encoding]::new($false)) }"
+if errorlevel 1 (
+    echo ERROR: Failed to normalize line endings
+    exit /b 1
+)
+echo Line endings normalized to LF
+
 REM Apply patches for VS2022 compatibility
 echo Applying patches for VS2022 compatibility...
 
@@ -46,32 +55,18 @@ if exist "C:\Program Files\Git\usr\bin\patch.exe" (
 )
 
 echo Applying timemodule.c fix for modern MSVC...
-echo Checking patch file:
-type patches\windows\02-fix-timemodule-msvc.patch | head -20
-echo.
-echo Checking source file line endings:
-file "%SOURCE_DIR%\Modules\timemodule.c" 2>nul || echo File command not available
-echo.
-echo Applying patch with verbose output:
-"C:\Program Files\Git\usr\bin\patch.exe" -d "%SOURCE_DIR%" -p0 -N --binary --ignore-whitespace --verbose < patches\windows\02-fix-timemodule-msvc.patch 2>&1
+"C:\Program Files\Git\usr\bin\patch.exe" -d "%SOURCE_DIR%" -p0 -N --binary < patches\windows\02-fix-timemodule-msvc.patch
 if errorlevel 1 (
     echo ERROR: timemodule.c patch failed to apply!
-    echo Showing reject file if it exists:
-    type "%SOURCE_DIR%\Modules\timemodule.c.rej" 2>nul
-    echo.
-    echo Showing first 30 lines of timemodule.c around line 808:
-    powershell "Get-Content '%SOURCE_DIR%\Modules\timemodule.c' | Select-Object -Skip 805 -First 30"
     exit /b 1
 )
-echo timemodule.c patched successfully
 
 echo Applying posixmodule.c fix for modern MSVC...
-"C:\Program Files\Git\usr\bin\patch.exe" -d "%SOURCE_DIR%" -p0 -N --binary --ignore-whitespace < patches\windows\03-fix-posixmodule-msvc.patch
+"C:\Program Files\Git\usr\bin\patch.exe" -d "%SOURCE_DIR%" -p0 -N --binary < patches\windows\03-fix-posixmodule-msvc.patch
 if errorlevel 1 (
     echo ERROR: posixmodule.c patch failed to apply!
     exit /b 1
 )
-echo posixmodule.c patched successfully
 
 cd "%SOURCE_DIR%\PCbuild"
 
