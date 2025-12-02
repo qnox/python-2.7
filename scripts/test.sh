@@ -40,11 +40,18 @@ echo "Extracting archive..."
 cd "${TEST_DIR}"
 ${EXTRACT_CMD} "${ARCHIVE}"
 
+# Debug: what did we extract?
+echo "Contents after extraction:"
+ls -la "${TEST_DIR}"
+
 # Find the extracted directory
-PORTABLE_DIR=$(find "${TEST_DIR}" -maxdepth 1 -type d -name "python-*" | head -n 1)
+PORTABLE_DIR=$(find "${TEST_DIR}" -maxdepth 1 -type d -name "python-*" 2>/dev/null | head -n 1)
+echo "Find result: '${PORTABLE_DIR}'"
+
 if [ -z "${PORTABLE_DIR}" ]; then
     echo "Error: Could not find extracted Python directory"
-    ls -la "${TEST_DIR}"
+    echo "Looking for: python-* in ${TEST_DIR}"
+    find "${TEST_DIR}" -maxdepth 2 -type d
     exit 1
 fi
 
@@ -56,15 +63,22 @@ ls -la "${TEST_DIR}"
 if [ -n "${PORTABLE_DIR}" ] && [ -d "${PORTABLE_DIR}" ]; then
     echo "Contents of ${PORTABLE_DIR}:"
     ls -la "${PORTABLE_DIR}"
-    echo "Subdirectories in ${PORTABLE_DIR}:"
-    find "${PORTABLE_DIR}" -maxdepth 2 -type d
+    echo "Checking for bin directory: ${PORTABLE_DIR}/bin"
+    if [ -d "${PORTABLE_DIR}/bin" ]; then
+        echo "bin directory EXISTS"
+        ls -la "${PORTABLE_DIR}/bin"
+    else
+        echo "bin directory NOT FOUND"
+    fi
 fi
 
 # Test 1: Verify directory structure
 echo ""
 echo "=== Test 1: Verify directory structure ==="
 if [ ! -d "${PORTABLE_DIR}/bin" ]; then
-    echo "FAIL: bin directory not found"
+    echo "FAIL: bin directory not found at: ${PORTABLE_DIR}/bin"
+    echo "PORTABLE_DIR value: '${PORTABLE_DIR}'"
+    echo "Directory check result: $?"
     exit 1
 fi
 if [ ! -d "${PORTABLE_DIR}/lib" ]; then

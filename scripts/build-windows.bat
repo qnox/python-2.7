@@ -46,13 +46,21 @@ if exist "C:\Program Files\Git\usr\bin\patch.exe" (
 )
 
 echo Applying timemodule.c fix for modern MSVC...
-REM Use python to patch the file to avoid line ending issues
 python -c "import sys; content = open(sys.argv[1], 'r').read(); content = content.replace('PyModule_AddIntConstant(m, \"timezone\", timezone);', 'PyModule_AddIntConstant(m, \"timezone\", _timezone);').replace('PyModule_AddIntConstant(m, \"daylight\", daylight);', 'PyModule_AddIntConstant(m, \"daylight\", _daylight);').replace('Py_BuildValue(\"(zz)\", tzname[0], tzname[1])', 'Py_BuildValue(\"(zz)\", _tzname[0], _tzname[1])').replace('PyModule_AddIntConstant(m, \"altzone\", timezone-3600);', 'PyModule_AddIntConstant(m, \"altzone\", _timezone-3600);'); open(sys.argv[1], 'w').write(content)" "%SOURCE_DIR%\Modules\timemodule.c"
 if errorlevel 1 (
     echo ERROR: Failed to fix timemodule.c
     exit /b 1
 )
 echo timemodule.c patched successfully
+
+echo Fixing posixmodule.c for modern MSVC...
+REM Comment out __pioinfo usage which is not available in modern MSVC
+python -c "import sys, re; content = open(sys.argv[1], 'r').read(); content = re.sub(r'extern __declspec\(dllimport\) char \* __pioinfo\[\];', '// extern __declspec(dllimport) char * __pioinfo[]; // Not available in VS2015+', content); content = content.replace('_PyVerify_fd(int fd)', '_PyVerify_fd(int fd) { return 1; } // Simplified for VS2015+\nint _PyVerify_fd_old(int fd)'); open(sys.argv[1], 'w').write(content)" "%SOURCE_DIR%\Modules\posixmodule.c"
+if errorlevel 1 (
+    echo ERROR: Failed to fix posixmodule.c
+    exit /b 1
+)
+echo posixmodule.c patched successfully
 
 cd "%SOURCE_DIR%\PCbuild"
 
