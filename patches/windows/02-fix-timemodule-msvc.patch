@@ -1,5 +1,5 @@
---- timemodule.c.orig	2025-12-02 19:11:56
-+++ timemodule.c	2025-12-02 19:12:04
+--- Modules/timemodule.c.orig	2025-12-02 19:11:56
++++ Modules/timemodule.c	2025-12-02 19:12:04
 @@ -808,7 +808,7 @@
  #ifdef PYOS_OS2
      PyModule_AddIntConstant(m, "timezone", _timezone);
