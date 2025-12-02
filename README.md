@@ -175,6 +175,10 @@ python-2.7/
 │   └── workflows/
 │       └── build.yml          # Unified matrix CI/CD workflow
 ├── scripts/
+│   ├── setup-linux.sh         # Linux environment setup
+│   ├── setup-macos.sh         # macOS environment setup
+│   ├── setup-windows.bat      # Windows environment setup
+│   ├── apply-patches.sh       # Patch harness system
 │   ├── build.sh               # Unified build dispatcher
 │   ├── build-linux.sh         # Linux build script
 │   ├── build-macos.sh         # macOS build script
@@ -183,7 +187,14 @@ python-2.7/
 │   ├── package.bat            # Packaging script (Windows)
 │   ├── test.sh                # Test script (Unix)
 │   └── test.bat               # Test script (Windows)
+├── patches/                   # Platform-specific patches
+│   ├── common/               # Patches for all platforms
+│   ├── linux/                # Linux-specific patches
+│   ├── macos/                # macOS-specific patches
+│   │   └── arm64/           # Apple Silicon patches
+│   └── windows/              # Windows-specific patches
 ├── build-targets.yml          # Build configuration (targets, runners, deps)
+├── PATCHES.md                 # Patch system documentation
 ├── main.py                    # Example Python script
 └── README.md                  # This file
 ```
@@ -214,6 +225,26 @@ python-2.7/
 - **Static linking**: Available for musl builds
 - **Shared libraries**: Included for all builds
 
+## Patch System
+
+Python 2.7.18 doesn't natively support modern platforms like Apple Silicon. This project includes a **patch harness system** that automatically applies platform-specific fixes:
+
+- **Apple Silicon Support**: Patches configure script to recognize ARM64 architecture
+- **Modern Platform Compatibility**: Fixes for newer compilers and libraries
+- **Organized by Platform**: Patches are separated by platform, architecture, and environment
+
+See [PATCHES.md](PATCHES.md) for detailed documentation on the patch system.
+
+### Adding Custom Patches
+
+```bash
+# Create patch from modified source
+diff -Naur Python-2.7.18.orig/ Python-2.7.18/ > patches/platform/arch/fix.patch
+
+# Patches are automatically applied during build
+bash scripts/build-linux.sh
+```
+
 ## Why Python 2.7?
 
 While Python 2.7 reached end-of-life in 2020, many legacy applications still depend on it. This project provides:
@@ -222,6 +253,7 @@ While Python 2.7 reached end-of-life in 2020, many legacy applications still dep
 - Modern build infrastructure
 - Easy distribution and deployment
 - Support for legacy codebases during migration
+- **Modern platform support** (including Apple Silicon)
 
 **Note**: Python 2.7 no longer receives security updates. Please migrate to Python 3.x for new projects.
 

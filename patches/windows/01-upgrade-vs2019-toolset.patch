@@ -1,0 +1,30 @@
+--- PCbuild/pyproject.props.orig	2020-04-20 01:33:36.000000000 +0000
++++ PCbuild/pyproject.props	2024-12-02 14:00:00.000000000 +0000
+@@ -34,7 +34,7 @@
+     <OutputPath>$(BuildPath)</OutputPath>
+     <Linkage-clean>$(IntermediateOutputPath)$(TargetName).lastbuildstate</Linkage-clean>
+   </PropertyGroup>
+-  <Import Project="pyd.props" Condition="$(Configuration) == 'Release' or $(Configuration) == 'Debug'" />
++  <Import Project="pyd.props" Condition="'$(Configuration)' == 'Release' or '$(Configuration)' == 'Debug'" />
+   <Import Project="pyd_d.props" Condition="$(Configuration) == 'PGInstrument' or $(Configuration) == 'PGUpdate'" />
+
+   <PropertyGroup>
+@@ -60,8 +60,16 @@
+   </PropertyGroup>
+
+   <PropertyGroup>
+-    <PlatformToolset>v90</PlatformToolset>
++    <!-- Use the latest available platform toolset -->
++    <PlatformToolset Condition="'$(VisualStudioVersion)' == '16.0'">v142</PlatformToolset>
++    <PlatformToolset Condition="'$(VisualStudioVersion)' == '15.0'">v141</PlatformToolset>
++    <PlatformToolset Condition="'$(VisualStudioVersion)' == '14.0'">v140</PlatformToolset>
++    <PlatformToolset Condition="'$(PlatformToolset)' == ''">v142</PlatformToolset>
++
++    <!-- Use Windows 10 SDK if available, fallback to 8.1 -->
++    <WindowsTargetPlatformVersion Condition="'$(WindowsTargetPlatformVersion)' == ''">10.0</WindowsTargetPlatformVersion>
++
+     <CharacterSet>NotSet</CharacterSet>
++    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+   </PropertyGroup>
+
+   <ItemDefinitionGroup>

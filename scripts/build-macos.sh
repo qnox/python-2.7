@@ -19,6 +19,10 @@ if [ ! -d "${SOURCE_DIR}" ]; then
     rm "Python-${PYTHON_VERSION}.tgz"
 fi
 
+# Apply patches
+echo "Applying patches..."
+bash scripts/apply-patches.sh "${SOURCE_DIR}"
+
 cd "${SOURCE_DIR}"
 
 # Set up homebrew paths for dependencies

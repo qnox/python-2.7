@@ -1,0 +1,11 @@
+--- PCbuild/pyd.props.orig	2020-04-20 01:33:36.000000000 +0000
++++ PCbuild/pyd.props	2024-12-02 14:00:00.000000000 +0000
+@@ -10,7 +10,7 @@
+   <PropertyGroup>
+     <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
+     <_PlatformPreprocessorDefinition>_WIN32;</_PlatformPreprocessorDefinition>
+-    <_PlatformPreprocessorDefinition Condition="$(Platform) == 'x64'">_WIN64;_M_X64;</_PlatformPreprocessorDefinition>
++    <_PlatformPreprocessorDefinition Condition="'$(Platform)' == 'x64'">_WIN64;_M_X64;</_PlatformPreprocessorDefinition>
+   </PropertyGroup>
+   <ItemDefinitionGroup>
+     <ClCompile>
