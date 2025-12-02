@@ -34,11 +34,18 @@ if [ "${TARGET_LIBC}" = "musl" ]; then
     if [ "${TARGET_ARCH}" = "x86_64" ]; then
         export CC="musl-gcc"
         export CXX="musl-g++"
+        EXTRA_CONFIG_ARGS="--disable-ipv6"
+    elif [ "${TARGET_ARCH}" = "i686" ]; then
+        # For musl i686, use musl-gcc with -m32
+        export CC="musl-gcc"
+        export CXX="musl-g++"
+        export CFLAGS="${CFLAGS} -m32"
+        export LDFLAGS="${LDFLAGS} -m32"
+        EXTRA_CONFIG_ARGS="--disable-ipv6 --host=i686-pc-linux-musl"
     else
         echo "Cross-compilation for musl ${TARGET_ARCH} not implemented yet"
         exit 1
     fi
-    EXTRA_CONFIG_ARGS="--disable-ipv6"
 elif [ "${TARGET_ARCH}" = "i686" ]; then
     export CFLAGS="${CFLAGS} -m32"
     export LDFLAGS="${LDFLAGS} -m32"
@@ -54,7 +61,6 @@ fi
     --enable-unicode=ucs4 \
     --with-system-ffi \
     --with-system-expat \
-    --enable-optimizations \
     ${EXTRA_CONFIG_ARGS:-}
 
 # Build
