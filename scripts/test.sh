@@ -50,6 +50,14 @@ fi
 
 echo "Extracted to: ${PORTABLE_DIR}"
 
+# Debug: show what was extracted
+echo "Contents of extraction:"
+ls -la "${TEST_DIR}"
+if [ -n "${PORTABLE_DIR}" ] && [ -d "${PORTABLE_DIR}" ]; then
+    echo "Contents of ${PORTABLE_DIR}:"
+    ls -la "${PORTABLE_DIR}"
+fi
+
 # Test 1: Verify directory structure
 echo ""
 echo "=== Test 1: Verify directory structure ==="
