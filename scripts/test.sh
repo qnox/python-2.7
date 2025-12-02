@@ -98,7 +98,22 @@ if [ -f "${PORTABLE_DIR}/bin/python-portable" ]; then
     chmod +x "${PORTABLE_DIR}/bin/python-portable"
 
     # Version check
-    VERSION_OUTPUT=$("${PORTABLE_DIR}/bin/python-portable" --version 2>&1)
+    echo "Running: ${PORTABLE_DIR}/bin/python-portable --version"
+    VERSION_OUTPUT=$("${PORTABLE_DIR}/bin/python-portable" --version 2>&1) || {
+        EXIT_CODE=$?
+        echo "ERROR: Python crashed with exit code ${EXIT_CODE}"
+        echo "Output: ${VERSION_OUTPUT}"
+
+        # Try running the binary directly to see library issues
+        echo "Checking library dependencies:"
+        otool -L "${PORTABLE_DIR}/bin/python" || true
+
+        # Try a simpler test
+        echo "Attempting to run python binary directly:"
+        "${PORTABLE_DIR}/bin/python" --version 2>&1 || echo "Direct python also failed"
+
+        exit 1
+    }
     echo "Version: ${VERSION_OUTPUT}"
     if [[ ! "${VERSION_OUTPUT}" =~ "2.7.18" ]]; then
         echo "FAIL: Version check failed"
