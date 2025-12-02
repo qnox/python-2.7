@@ -1,3 +1,0 @@
-# Preserve CRLF line endings in Windows patch files
-# These patches need CRLF to match Windows source file line endings
-patches/windows/*.patch text eol=crlf
