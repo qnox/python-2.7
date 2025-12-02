@@ -41,7 +41,17 @@ if [ "${TARGET_LIBC}" = "musl" ]; then
         export CXX="musl-g++"
         export CFLAGS="${CFLAGS} -m32"
         export LDFLAGS="${LDFLAGS} -m32"
-        EXTRA_CONFIG_ARGS="--disable-ipv6 --build=x86_64-pc-linux-gnu --host=i686-pc-linux-musl"
+        # Find Python for cross-compilation
+        if command -v python2.7 >/dev/null 2>&1; then
+            PYTHON_FOR_BUILD="python2.7"
+        elif command -v python2 >/dev/null 2>&1; then
+            PYTHON_FOR_BUILD="python2"
+        elif command -v python3 >/dev/null 2>&1; then
+            PYTHON_FOR_BUILD="python3"
+        else
+            PYTHON_FOR_BUILD="python"
+        fi
+        EXTRA_CONFIG_ARGS="--disable-ipv6 --build=x86_64-pc-linux-gnu --host=i686-pc-linux-musl PYTHON_FOR_BUILD=${PYTHON_FOR_BUILD}"
     else
         echo "Cross-compilation for musl ${TARGET_ARCH} not implemented yet"
         exit 1
@@ -49,7 +59,17 @@ if [ "${TARGET_LIBC}" = "musl" ]; then
 elif [ "${TARGET_ARCH}" = "i686" ]; then
     export CFLAGS="${CFLAGS} -m32"
     export LDFLAGS="${LDFLAGS} -m32"
-    EXTRA_CONFIG_ARGS="--build=x86_64-pc-linux-gnu --host=i686-pc-linux-gnu"
+    # Find Python for cross-compilation
+    if command -v python2.7 >/dev/null 2>&1; then
+        PYTHON_FOR_BUILD="python2.7"
+    elif command -v python2 >/dev/null 2>&1; then
+        PYTHON_FOR_BUILD="python2"
+    elif command -v python3 >/dev/null 2>&1; then
+        PYTHON_FOR_BUILD="python3"
+    else
+        PYTHON_FOR_BUILD="python"
+    fi
+    EXTRA_CONFIG_ARGS="--build=x86_64-pc-linux-gnu --host=i686-pc-linux-gnu PYTHON_FOR_BUILD=${PYTHON_FOR_BUILD}"
 else
     EXTRA_CONFIG_ARGS=""
 fi

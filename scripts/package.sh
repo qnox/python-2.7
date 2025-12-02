@@ -26,8 +26,16 @@ tar cJf "${DIST_DIR}/${ARCHIVE_NAME}.tar.xz" "python-${PYTHON_VERSION}-${TARGET_
 
 # Generate checksums
 cd "${DIST_DIR}"
-sha256sum "${ARCHIVE_NAME}.tar.gz" > "${ARCHIVE_NAME}.tar.gz.sha256"
-sha256sum "${ARCHIVE_NAME}.tar.xz" > "${ARCHIVE_NAME}.tar.xz.sha256"
+# Use shasum on macOS, sha256sum on Linux
+if command -v sha256sum >/dev/null 2>&1; then
+    sha256sum "${ARCHIVE_NAME}.tar.gz" > "${ARCHIVE_NAME}.tar.gz.sha256"
+    sha256sum "${ARCHIVE_NAME}.tar.xz" > "${ARCHIVE_NAME}.tar.xz.sha256"
+elif command -v shasum >/dev/null 2>&1; then
+    shasum -a 256 "${ARCHIVE_NAME}.tar.gz" > "${ARCHIVE_NAME}.tar.gz.sha256"
+    shasum -a 256 "${ARCHIVE_NAME}.tar.xz" > "${ARCHIVE_NAME}.tar.xz.sha256"
+else
+    echo "WARNING: No SHA256 utility found, skipping checksums"
+fi
 
 echo "=== Packaging complete ==="
 echo "Archives created in: ${DIST_DIR}"
