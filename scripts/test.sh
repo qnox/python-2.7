@@ -44,8 +44,8 @@ ${EXTRACT_CMD} "${ARCHIVE}"
 echo "Contents after extraction:"
 ls -la "${TEST_DIR}"
 
-# Find the extracted directory
-PORTABLE_DIR=$(find "${TEST_DIR}" -maxdepth 1 -type d -name "python-*" 2>/dev/null | head -n 1)
+# Find the extracted directory (exclude TEST_DIR itself with -mindepth 1)
+PORTABLE_DIR=$(find "${TEST_DIR}" -mindepth 1 -maxdepth 1 -type d -name "python-*" 2>/dev/null | head -n 1)
 echo "Find result: '${PORTABLE_DIR}'"
 
 if [ -z "${PORTABLE_DIR}" ]; then
