@@ -1,5 +1,5 @@
---- setup.py.orig	2025-12-03 11:25:18.848575767 +0100
-+++ setup.py	2025-12-03 11:25:18.854343633 +0100
+--- a/setup.py
++++ b/setup.py
 @@ -30,7 +30,7 @@
  host_platform = get_platform()
  
@@ -9,15 +9,6 @@
  
  # This global variable is used to hold the list of modules to be disabled.
  disabled_module_list = []
-@@ -250,7 +250,7 @@
-         incdirlist = []
- 
-         if host_platform == 'darwin' and ("--disable-toolbox-glue" not in
--            sysconfig.get_config_var("CONFIG_ARGS")):
-+            (sysconfig.get_config_var("CONFIG_ARGS") or '')):
-             # Mac OS X also includes some mac-specific modules
-             macmoddir = os.path.join(srcdir, 'Mac/Modules')
-             moddirlist.append(macmoddir)
 @@ -1303,7 +1303,7 @@
          # The standard Unix dbm module:
          if host_platform not in ['cygwin']:
@@ -36,15 +27,6 @@
              expat_inc = []
              define_macros = []
              expat_lib = ['expat']
-@@ -1688,7 +1688,7 @@
- 
- 
-         if host_platform == 'darwin' and ("--disable-toolbox-glue" not in
--                sysconfig.get_config_var("CONFIG_ARGS")):
-+                (sysconfig.get_config_var("CONFIG_ARGS") or '')):
- 
-             if int(os.uname()[2].split('.')[0]) >= 8:
-                 # We're on Mac OS X 10.4 or later, the compiler should
 @@ -2082,7 +2082,7 @@
                                           ffi_configfile):
                  from distutils.dir_util import mkpath

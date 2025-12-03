@@ -35,8 +35,13 @@ sudo apt-get install -y \
 
 # musl-specific setup
 if [ "${TARGET_LIBC}" = "musl" ]; then
-    echo "Installing musl tools..."
-    sudo apt-get install -y musl-tools musl-dev
+    echo "Setting up musl build environment..."
+    # Install clang for building musl
+    sudo apt-get install -y clang
+
+    # Build and install musl from source with musl-clang wrapper
+    # This approach is used by python-build-standalone
+    bash "$(dirname "$0")/setup-musl.sh"
 fi
 
 # 32-bit architecture setup
