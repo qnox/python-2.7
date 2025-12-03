@@ -48,12 +48,23 @@ apply_patches_from_dir() {
         # Try to apply patch
         if patch -d "${SOURCE_DIR}" -p0 -N --dry-run -s < "${patch}" >/dev/null 2>&1; then
             patch -d "${SOURCE_DIR}" -p0 -N < "${patch}"
+            if [ $? -ne 0 ]; then
+                echo "    ✗ Failed to apply patch"
+                exit 1
+            fi
             echo "    ✓ Applied successfully"
         elif patch -d "${SOURCE_DIR}" -p1 -N --dry-run -s < "${patch}" >/dev/null 2>&1; then
             patch -d "${SOURCE_DIR}" -p1 -N < "${patch}"
+            if [ $? -ne 0 ]; then
+                echo "    ✗ Failed to apply patch with -p1"
+                exit 1
+            fi
             echo "    ✓ Applied successfully (with -p1)"
         else
-            echo "    ⚠ Patch already applied or does not apply cleanly, skipping"
+            echo "    ✗ Patch does not apply cleanly"
+            echo "    Trying to show patch output for debugging:"
+            patch -d "${SOURCE_DIR}" -p1 -N < "${patch}" || true
+            exit 1
         fi
     done
 }
