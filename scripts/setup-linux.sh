@@ -42,6 +42,10 @@ if [ "${TARGET_LIBC}" = "musl" ]; then
     # Build and install musl from source with musl-clang wrapper
     # This approach is used by python-build-standalone
     bash "$(dirname "$0")/setup-musl.sh"
+
+    # Build all Python dependencies from source with musl-clang
+    echo "Building Python dependencies from source..."
+    bash "$(dirname "$0")/build-musl-deps.sh"
 fi
 
 # 32-bit architecture setup
