@@ -219,8 +219,8 @@ mv "${PORTABLE_DIR}" "${MOVED_DIR}/"
 PORTABLE_DIR="${MOVED_DIR}/$(basename ${PORTABLE_DIR})"
 
 echo "Moved to: ${PORTABLE_DIR}"
-"${PORTABLE_DIR}/bin/python-portable" --version
-"${PORTABLE_DIR}/bin/python-portable" -c "print('Relocatability: OK')"
+"${PORTABLE_DIR}/bin/python" --version
+"${PORTABLE_DIR}/bin/python" -c "print('Relocatability: OK')"
 echo "PASS: Python is relocatable"
 
 # Test 7: Test pip/easy_install if available
