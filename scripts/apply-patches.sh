@@ -63,7 +63,7 @@ apply_patches_from_dir() {
 apply_patches_from_dir "${PATCHES_DIR}/common" "common patches"
 
 # 2. Platform-specific patches
-case "${TARGET_PLATFORM}" in
+case "${TARGET_PLATFORM:-unknown}" in
     linux)
         apply_patches_from_dir "${PATCHES_DIR}/linux" "Linux patches"
 
