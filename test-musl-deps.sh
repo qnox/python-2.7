@@ -41,6 +41,37 @@ docker run --rm --platform $PLATFORM \
     done
 
     echo ''
+    echo '6. Checking libraries for glibc dependencies...'
+    apt-get install -y -qq binutils >/dev/null 2>&1
+    HAS_GLIBC=0
+    for lib in \${LIBS[@]}; do
+        # Extract all object files and check their symbols
+        TMPDIR=\$(mktemp -d)
+        cd \$TMPDIR
+        ar x /usr/local/lib/\$lib
+        for obj in *.o; do
+            if [ -f \"\$obj\" ]; then
+                # Check for glibc-specific symbols
+                if nm \$obj 2>/dev/null | grep -q '__getauxval\\|GLIBC'; then
+                    echo \"  ✗ \$lib contains glibc dependencies\"
+                    nm \$obj | grep '__getauxval\\|GLIBC' | head -5
+                    HAS_GLIBC=1
+                    break
+                fi
+            fi
+        done
+        cd - >/dev/null
+        rm -rf \$TMPDIR
+    done
+
+    if [ \$HAS_GLIBC -eq 1 ]; then
+        echo ''
+        echo '✗ ERROR: Libraries contain glibc dependencies - will not work on Alpine musl!'
+        exit 1
+    fi
+    echo '  ✓ No glibc dependencies found'
+
+    echo ''
     echo '=== All dependencies built successfully ==='
     echo 'Built libraries:'
     ls -lh /usr/local/lib/*.a
