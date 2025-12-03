@@ -78,7 +78,7 @@ if [ ! -f "${INSTALL_PREFIX}/lib/libssl.a" ]; then
     curl -LO https://www.openssl.org/source/openssl-1.1.1w.tar.gz
     tar xzf openssl-1.1.1w.tar.gz
     cd openssl-1.1.1w
-    CC=musl-clang ./config --prefix="${INSTALL_PREFIX}" no-shared no-async
+    CC=musl-clang ./config --prefix="${INSTALL_PREFIX}" no-shared no-async no-afalgeng -DOPENSSL_NO_SECURE_MEMORY
     make -j$(nproc)
     sudo make install_sw
     cd ..
