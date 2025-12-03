@@ -41,8 +41,9 @@ CC=musl-clang ./config \
     no-engine \
     -DOPENSSL_NO_SECURE_MEMORY
 
-make -j$(nproc)
-sudo make install_sw
+# Only build libraries, not apps/tests which try to link libgcc
+make -j$(nproc) build_libs
+sudo make install_dev
 
 cd ..
 rm -rf openssl-1.1.1w openssl-1.1.1w.tar.gz
