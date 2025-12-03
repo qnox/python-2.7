@@ -1,0 +1,65 @@
+--- setup.py.orig	2025-12-03 11:25:18.848575767 +0100
++++ setup.py	2025-12-03 11:25:18.854343633 +0100
+@@ -30,7 +30,7 @@
+ host_platform = get_platform()
+ 
+ # Were we compiled --with-pydebug or with #define Py_DEBUG?
+-COMPILED_WITH_PYDEBUG = ('--with-pydebug' in sysconfig.get_config_var("CONFIG_ARGS"))
++COMPILED_WITH_PYDEBUG = ('--with-pydebug' in (sysconfig.get_config_var("CONFIG_ARGS") or ''))
+ 
+ # This global variable is used to hold the list of modules to be disabled.
+ disabled_module_list = []
+@@ -250,7 +250,7 @@
+         incdirlist = []
+ 
+         if host_platform == 'darwin' and ("--disable-toolbox-glue" not in
+-            sysconfig.get_config_var("CONFIG_ARGS")):
++            (sysconfig.get_config_var("CONFIG_ARGS") or '')):
+             # Mac OS X also includes some mac-specific modules
+             macmoddir = os.path.join(srcdir, 'Mac/Modules')
+             moddirlist.append(macmoddir)
+@@ -1303,7 +1303,7 @@
+         # The standard Unix dbm module:
+         if host_platform not in ['cygwin']:
+             config_args = [arg.strip("'")
+-                           for arg in sysconfig.get_config_var("CONFIG_ARGS").split()]
++                           for arg in (sysconfig.get_config_var("CONFIG_ARGS") or '').split()]
+             dbm_args = [arg for arg in config_args
+                         if arg.startswith('--with-dbmliborder=')]
+             if dbm_args:
+@@ -1520,7 +1520,7 @@
+         #
+         # More information on Expat can be found at www.libexpat.org.
+         #
+-        if '--with-system-expat' in sysconfig.get_config_var("CONFIG_ARGS"):
++        if '--with-system-expat' in (sysconfig.get_config_var("CONFIG_ARGS") or ''):
+             expat_inc = []
+             define_macros = []
+             expat_lib = ['expat']
+@@ -1688,7 +1688,7 @@
+ 
+ 
+         if host_platform == 'darwin' and ("--disable-toolbox-glue" not in
+-                sysconfig.get_config_var("CONFIG_ARGS")):
++                (sysconfig.get_config_var("CONFIG_ARGS") or '')):
+ 
+             if int(os.uname()[2].split('.')[0]) >= 8:
+                 # We're on Mac OS X 10.4 or later, the compiler should
+@@ -2082,7 +2082,7 @@
+                                          ffi_configfile):
+                 from distutils.dir_util import mkpath
+                 mkpath(ffi_builddir)
+-                config_args = [arg for arg in sysconfig.get_config_var("CONFIG_ARGS").split()
++                config_args = [arg for arg in (sysconfig.get_config_var("CONFIG_ARGS") or '').split()
+                                if (('--host=' in arg) or ('--build=' in arg))]
+                 if not self.verbose:
+                     config_args.append("-q")
+@@ -2160,7 +2160,7 @@
+                              sources=['_ctypes/_ctypes_test.c'])
+         self.extensions.extend([ext, ext_test])
+ 
+-        if not '--with-system-ffi' in sysconfig.get_config_var("CONFIG_ARGS"):
++        if not '--with-system-ffi' in (sysconfig.get_config_var("CONFIG_ARGS") or ''):
+             return
+ 
+         if host_platform == 'darwin':
