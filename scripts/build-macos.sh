@@ -41,10 +41,15 @@ if [ ! -d "${SQLITE_PREFIX}" ]; then
     SQLITE_PREFIX="/opt/homebrew/opt/sqlite"
 fi
 
+ZLIB_PREFIX="/usr/local/opt/zlib"
+if [ ! -d "${ZLIB_PREFIX}" ]; then
+    ZLIB_PREFIX="/opt/homebrew/opt/zlib"
+fi
+
 # Configure compiler flags for portable build
 export MACOSX_DEPLOYMENT_TARGET="10.9"
-export CFLAGS="-I${OPENSSL_PREFIX}/include -I${READLINE_PREFIX}/include -I${SQLITE_PREFIX}/include"
-export LDFLAGS="-L${OPENSSL_PREFIX}/lib -L${READLINE_PREFIX}/lib -L${SQLITE_PREFIX}/lib -Wl,-rpath,@loader_path/../lib"
+export CFLAGS="-I${OPENSSL_PREFIX}/include -I${READLINE_PREFIX}/include -I${SQLITE_PREFIX}/include -I${ZLIB_PREFIX}/include"
+export LDFLAGS="-L${OPENSSL_PREFIX}/lib -L${READLINE_PREFIX}/lib -L${SQLITE_PREFIX}/lib -L${ZLIB_PREFIX}/lib -Wl,-rpath,@loader_path/../lib"
 export CPPFLAGS="${CFLAGS}"
 
 # Architecture-specific settings
