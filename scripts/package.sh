@@ -42,27 +42,44 @@ echo "Archives created in: ${DIST_DIR}"
 ls -lh "${DIST_DIR}"
 
 # Verify the packaged binary has correct library paths (macOS only)
-if [[ "$OSTYPE" == "darwin"* ]]; then
+if [[ "$OSTYPE" == "darwin"* ]] || uname -s | grep -q "Darwin"; then
     echo ""
     echo "=== Verifying packaged binary ==="
+    echo "OS: $(uname -s), OSTYPE: ${OSTYPE:-not set}"
+
     TEMP_VERIFY=$(mktemp -d)
     cd "${TEMP_VERIFY}"
-    tar xzf "${DIST_DIR}/${ARCHIVE_NAME}.tar.gz" "python-${PYTHON_VERSION}-${TARGET_TRIPLE}/bin/python2.7"
+    tar xzf "${DIST_DIR}/${ARCHIVE_NAME}.tar.gz" "python-${PYTHON_VERSION}-${TARGET_TRIPLE}/bin/python2.7" 2>&1 || {
+        echo "ERROR: Failed to extract binary from archive"
+        exit 1
+    }
 
-    echo "Checking library paths in packaged python2.7:"
-    LIB_PATHS=$(otool -L "python-${PYTHON_VERSION}-${TARGET_TRIPLE}/bin/python2.7" | grep libpython)
-    echo "$LIB_PATHS"
+    BINARY_PATH="python-${PYTHON_VERSION}-${TARGET_TRIPLE}/bin/python2.7"
+    echo "Extracted binary: $BINARY_PATH"
+    ls -la "$BINARY_PATH"
+
+    echo ""
+    echo "Full library paths in packaged python2.7:"
+    otool -L "$BINARY_PATH"
+    echo ""
+    echo "Full rpaths in packaged python2.7:"
+    otool -l "$BINARY_PATH" | grep -A 2 "cmd LC_RPATH" || echo "No rpath found"
+    echo ""
+
+    LIB_PATHS=$(otool -L "$BINARY_PATH" | grep libpython)
+    echo "Libpython line: $LIB_PATHS"
 
     if echo "$LIB_PATHS" | grep -q "@rpath/libpython"; then
         echo "✓ VERIFIED: Packaged binary uses @rpath (correct)"
     else
         echo "✗ ERROR: Packaged binary does NOT use @rpath!"
-        echo "Full library paths:"
-        otool -L "python-${PYTHON_VERSION}-${TARGET_TRIPLE}/bin/python2.7"
+        echo "This means the install_name_tool fix was not applied or was reverted"
         rm -rf "${TEMP_VERIFY}"
         exit 1
     fi
 
     rm -rf "${TEMP_VERIFY}"
     cd "${DIST_DIR}"
+else
+    echo "Skipping verification (not macOS): OS=$(uname -s), OSTYPE=${OSTYPE:-not set}"
 fi
