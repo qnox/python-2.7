@@ -109,18 +109,56 @@ done
 
 # Fix Python binary - change libpython path and add rpath
 # Fix the actual python2.7 binary (python and python2 are just symlinks to it)
-echo "Fixing Python binary library paths..."
+echo "=== Fixing Python binary library paths ==="
+echo "Checking for python binaries in ${PORTABLE_DIR}/bin/"
+ls -la "${PORTABLE_DIR}/bin/python"* || echo "ERROR: No python binaries found!"
+
 if [ -f "${PORTABLE_DIR}/bin/python2.7" ]; then
+    echo "Found python2.7 binary"
+    echo "BEFORE fix - Library paths for python2.7:"
+    otool -L "${PORTABLE_DIR}/bin/python2.7" | head -5
+    echo "BEFORE fix - Rpaths for python2.7:"
+    otool -l "${PORTABLE_DIR}/bin/python2.7" | grep -A 2 "cmd LC_RPATH" || echo "No rpath found"
+
     # Change libpython path to use @rpath
     PYTHON_LIB=$(otool -L "${PORTABLE_DIR}/bin/python2.7" | grep "libpython" | grep -o "/.*\.dylib" | head -1)
     if [ -n "$PYTHON_LIB" ]; then
         echo "Changing libpython path: $PYTHON_LIB -> @rpath/$(basename $PYTHON_LIB)"
-        install_name_tool -change "$PYTHON_LIB" "@rpath/$(basename $PYTHON_LIB)" "${PORTABLE_DIR}/bin/python2.7" 2>/dev/null || true
+        install_name_tool -change "$PYTHON_LIB" "@rpath/$(basename $PYTHON_LIB)" "${PORTABLE_DIR}/bin/python2.7"
+        CHANGE_RESULT=$?
+        echo "install_name_tool -change exit code: $CHANGE_RESULT"
+    else
+        echo "WARNING: No libpython found in python2.7 dependencies"
     fi
+
     echo "Adding rpath @loader_path/../lib"
-    install_name_tool -add_rpath "@loader_path/../lib" "${PORTABLE_DIR}/bin/python2.7" 2>/dev/null || true
+    # Check if rpath already exists
+    if otool -l "${PORTABLE_DIR}/bin/python2.7" | grep -q "@loader_path/../lib"; then
+        echo "Rpath @loader_path/../lib already exists, skipping"
+    else
+        install_name_tool -add_rpath "@loader_path/../lib" "${PORTABLE_DIR}/bin/python2.7"
+        RPATH_RESULT=$?
+        echo "install_name_tool -add_rpath exit code: $RPATH_RESULT"
+    fi
+
+    echo "AFTER fix - Library paths for python2.7:"
+    otool -L "${PORTABLE_DIR}/bin/python2.7" | head -5
+    echo "AFTER fix - Rpaths for python2.7:"
+    otool -l "${PORTABLE_DIR}/bin/python2.7" | grep -A 2 "cmd LC_RPATH"
+
+    # Verify the fix was applied
+    FINAL_LIB=$(otool -L "${PORTABLE_DIR}/bin/python2.7" | grep "libpython" | head -1)
+    if echo "$FINAL_LIB" | grep -q "@rpath"; then
+        echo "SUCCESS: Library path successfully changed to use @rpath"
+    else
+        echo "ERROR: Library path still not using @rpath: $FINAL_LIB"
+        exit 1
+    fi
+else
+    echo "ERROR: ${PORTABLE_DIR}/bin/python2.7 not found!"
+    exit 1
 fi
-echo "Library paths fixed"
+echo "=== Library paths fixed ==="
 
 # Create README for portable usage
 cat > "${PORTABLE_DIR}/README.txt" << EOF
