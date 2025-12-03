@@ -32,23 +32,21 @@ export LDFLAGS='-Wl,-rpath,\$$ORIGIN/../lib'
 export CFLAGS="-fPIC"
 
 if [ "${TARGET_LIBC}" = "musl" ]; then
-    if [ "${TARGET_ARCH}" = "x86_64" ]; then
-        export CC="musl-gcc"
-        export CXX="musl-g++"
+    # Check if we're on a true musl system (Alpine) or using musl-clang wrapper
+    if [ -f /etc/alpine-release ]; then
+        # Alpine - native musl, use default gcc
+        echo "Building on Alpine (native musl)"
         EXTRA_CONFIG_ARGS="--disable-ipv6"
-    elif [ "${TARGET_ARCH}" = "aarch64" ] || [ "${TARGET_ARCH}" = "arm64" ]; then
-        export CC="musl-gcc"
-        export CXX="musl-g++"
+    elif command -v musl-clang >/dev/null 2>&1; then
+        # Using musl-clang wrapper (built from source via setup-musl.sh)
+        # This is the python-build-standalone approach
+        export CC="musl-clang"
+        export CXX="clang++"
+        echo "Using musl-clang for musl build"
         EXTRA_CONFIG_ARGS="--disable-ipv6"
-    elif [ "${TARGET_ARCH}" = "i686" ]; then
-        # musl-gcc doesn't support -m32 for cross-compilation
-        # This requires a proper i686-linux-musl cross-compilation toolchain
-        echo "ERROR: musl i686 cross-compilation requires a dedicated toolchain"
-        echo "musl-gcc does not support multilib (-m32) compilation"
-        echo "This target should be built in a container with i686-linux-musl-gcc"
-        exit 1
     else
-        echo "Cross-compilation for musl ${TARGET_ARCH} not implemented yet"
+        echo "ERROR: musl build requested but musl-clang not found"
+        echo "Run setup-linux.sh first to build musl from source"
         exit 1
     fi
 elif [ "${TARGET_ARCH}" = "i686" ]; then

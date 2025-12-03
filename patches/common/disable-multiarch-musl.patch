@@ -1,0 +1,14 @@
+--- a/setup.py
++++ b/setup.py
+@@ -422,6 +422,11 @@ class PyBuildExt(build_ext):
+             add_dir_to_list(self.compiler.include_dirs, d)
+ 
+     def add_multiarch_paths(self):
++        # Skip multiarch paths when using musl-clang to avoid mixing glibc headers
++        cc = sysconfig.get_config_var('CC') or 'gcc'
++        if 'musl' in cc:
++            return
++
+         # Debian/Ubuntu multiarch support.
+         # https://wiki.ubuntu.com/MultiarchSpec
+         cc = sysconfig.get_config_var('CC')

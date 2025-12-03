@@ -98,7 +98,7 @@ case "${TARGET_PLATFORM:-unknown}" in
         ;;
 
     *)
-        echo "Warning: Unknown platform: ${TARGET_PLATFORM}"
+        echo "Warning: Unknown platform: ${TARGET_PLATFORM:-unknown}"
         ;;
 esac
 
