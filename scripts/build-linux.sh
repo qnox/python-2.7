@@ -27,7 +27,8 @@ cd "${SOURCE_DIR}"
 
 # Apply portable configuration
 # This makes Python relocatable by using relative paths
-export LDFLAGS='-Wl,-rpath,$ORIGIN/../lib'
+# Use $$ to escape $ for make, \$$ for shell
+export LDFLAGS='-Wl,-rpath,\$$ORIGIN/../lib'
 export CFLAGS="-fPIC"
 
 if [ "${TARGET_LIBC}" = "musl" ]; then
