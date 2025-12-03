@@ -108,16 +108,17 @@ find "${PORTABLE_DIR}" \( -name "*.so" -o -name "*.dylib" \) | while read lib; d
 done
 
 # Fix Python binary - change libpython path and add rpath
+# Fix the actual python2.7 binary (python and python2 are just symlinks to it)
 echo "Fixing Python binary library paths..."
-if [ -f "${PORTABLE_DIR}/bin/python" ]; then
+if [ -f "${PORTABLE_DIR}/bin/python2.7" ]; then
     # Change libpython path to use @rpath
-    PYTHON_LIB=$(otool -L "${PORTABLE_DIR}/bin/python" | grep "libpython" | grep -o "/.*\.dylib" | head -1)
+    PYTHON_LIB=$(otool -L "${PORTABLE_DIR}/bin/python2.7" | grep "libpython" | grep -o "/.*\.dylib" | head -1)
     if [ -n "$PYTHON_LIB" ]; then
         echo "Changing libpython path: $PYTHON_LIB -> @rpath/$(basename $PYTHON_LIB)"
-        install_name_tool -change "$PYTHON_LIB" "@rpath/$(basename $PYTHON_LIB)" "${PORTABLE_DIR}/bin/python" 2>/dev/null || true
+        install_name_tool -change "$PYTHON_LIB" "@rpath/$(basename $PYTHON_LIB)" "${PORTABLE_DIR}/bin/python2.7" 2>/dev/null || true
     fi
     echo "Adding rpath @loader_path/../lib"
-    install_name_tool -add_rpath "@loader_path/../lib" "${PORTABLE_DIR}/bin/python" 2>/dev/null || true
+    install_name_tool -add_rpath "@loader_path/../lib" "${PORTABLE_DIR}/bin/python2.7" 2>/dev/null || true
 fi
 echo "Library paths fixed"
 
