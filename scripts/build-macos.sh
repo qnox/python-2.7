@@ -121,14 +121,21 @@ if [ -f "${PORTABLE_DIR}/bin/python2.7" ]; then
     otool -l "${PORTABLE_DIR}/bin/python2.7" | grep -A 2 "cmd LC_RPATH" || echo "No rpath found"
 
     # Change libpython path to use @rpath
-    PYTHON_LIB=$(otool -L "${PORTABLE_DIR}/bin/python2.7" | grep "libpython" | grep -o "/.*\.dylib" | head -1)
+    PYTHON_LIB=$(otool -L "${PORTABLE_DIR}/bin/python2.7" | grep "libpython" | grep -o "/.*\.dylib" | head -1) || true
     if [ -n "$PYTHON_LIB" ]; then
         echo "Changing libpython path: $PYTHON_LIB -> @rpath/$(basename $PYTHON_LIB)"
-        install_name_tool -change "$PYTHON_LIB" "@rpath/$(basename $PYTHON_LIB)" "${PORTABLE_DIR}/bin/python2.7"
-        CHANGE_RESULT=$?
-        echo "install_name_tool -change exit code: $CHANGE_RESULT"
+        if install_name_tool -change "$PYTHON_LIB" "@rpath/$(basename $PYTHON_LIB)" "${PORTABLE_DIR}/bin/python2.7" 2>&1; then
+            echo "install_name_tool -change: SUCCESS"
+        else
+            CHANGE_RESULT=$?
+            echo "install_name_tool -change: FAILED with exit code $CHANGE_RESULT"
+            exit 1
+        fi
     else
-        echo "WARNING: No libpython found in python2.7 dependencies"
+        echo "ERROR: No libpython found in python2.7 dependencies"
+        echo "Full otool output:"
+        otool -L "${PORTABLE_DIR}/bin/python2.7"
+        exit 1
     fi
 
     echo "Adding rpath @loader_path/../lib"
