@@ -40,3 +40,29 @@ fi
 echo "=== Packaging complete ==="
 echo "Archives created in: ${DIST_DIR}"
 ls -lh "${DIST_DIR}"
+
+# Verify the packaged binary has correct library paths (macOS only)
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    echo ""
+    echo "=== Verifying packaged binary ==="
+    TEMP_VERIFY=$(mktemp -d)
+    cd "${TEMP_VERIFY}"
+    tar xzf "${DIST_DIR}/${ARCHIVE_NAME}.tar.gz" "python-${PYTHON_VERSION}-${TARGET_TRIPLE}/bin/python2.7"
+
+    echo "Checking library paths in packaged python2.7:"
+    LIB_PATHS=$(otool -L "python-${PYTHON_VERSION}-${TARGET_TRIPLE}/bin/python2.7" | grep libpython)
+    echo "$LIB_PATHS"
+
+    if echo "$LIB_PATHS" | grep -q "@rpath/libpython"; then
+        echo "✓ VERIFIED: Packaged binary uses @rpath (correct)"
+    else
+        echo "✗ ERROR: Packaged binary does NOT use @rpath!"
+        echo "Full library paths:"
+        otool -L "python-${PYTHON_VERSION}-${TARGET_TRIPLE}/bin/python2.7"
+        rm -rf "${TEMP_VERIFY}"
+        exit 1
+    fi
+
+    rm -rf "${TEMP_VERIFY}"
+    cd "${DIST_DIR}"
+fi
