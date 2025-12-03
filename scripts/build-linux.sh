@@ -36,6 +36,10 @@ if [ "${TARGET_LIBC}" = "musl" ]; then
         export CC="musl-gcc"
         export CXX="musl-g++"
         EXTRA_CONFIG_ARGS="--disable-ipv6"
+    elif [ "${TARGET_ARCH}" = "aarch64" ] || [ "${TARGET_ARCH}" = "arm64" ]; then
+        export CC="musl-gcc"
+        export CXX="musl-g++"
+        EXTRA_CONFIG_ARGS="--disable-ipv6"
     elif [ "${TARGET_ARCH}" = "i686" ]; then
         # musl-gcc doesn't support -m32 for cross-compilation
         # This requires a proper i686-linux-musl cross-compilation toolchain
@@ -61,7 +65,11 @@ elif [ "${TARGET_ARCH}" = "i686" ]; then
         PYTHON_FOR_BUILD="python"
     fi
     EXTRA_CONFIG_ARGS="--disable-ipv6 --build=x86_64-pc-linux-gnu --host=i686-pc-linux-gnu PYTHON_FOR_BUILD=${PYTHON_FOR_BUILD}"
+elif [ "${TARGET_ARCH}" = "aarch64" ] || [ "${TARGET_ARCH}" = "arm64" ]; then
+    # ARM64 native build - no special flags needed
+    EXTRA_CONFIG_ARGS=""
 else
+    # Default for x86_64 and other architectures
     EXTRA_CONFIG_ARGS=""
 fi
 
@@ -77,7 +85,10 @@ make -j$(nproc)
 
 # Install to temporary location
 rm -rf "${INSTALL_PREFIX}"
-make install DESTDIR="${INSTALL_PREFIX}"
+# Use sharedinstall first to install extension modules, then install everything else
+# This approach is used by python-build-standalone to avoid PYTHONPATH issues
+make -j$(nproc) sharedinstall DESTDIR="${INSTALL_PREFIX}"
+make -j$(nproc) install DESTDIR="${INSTALL_PREFIX}"
 
 echo "=== Creating portable Python distribution ==="
 

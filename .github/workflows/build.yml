@@ -39,12 +39,32 @@ jobs:
             test_script: scripts/test.sh
             package_script: scripts/package.sh
 
+          - os: ubuntu-24.04-arm64
+            platform: linux
+            arch: aarch64
+            libc: glibc
+            target: aarch64-unknown-linux-gnu
+            setup_script: scripts/setup-linux.sh
+            build_script: scripts/build-linux.sh
+            test_script: scripts/test.sh
+            package_script: scripts/package.sh
+
           # Linux musl builds
           - os: ubuntu-22.04
             platform: linux
             arch: x86_64
             libc: musl
             target: x86_64-unknown-linux-musl
+            setup_script: scripts/setup-linux.sh
+            build_script: scripts/build-linux.sh
+            test_script: scripts/test.sh
+            package_script: scripts/package.sh
+
+          - os: ubuntu-24.04-arm64
+            platform: linux
+            arch: aarch64
+            libc: musl
+            target: aarch64-unknown-linux-musl
             setup_script: scripts/setup-linux.sh
             build_script: scripts/build-linux.sh
             test_script: scripts/test.sh
