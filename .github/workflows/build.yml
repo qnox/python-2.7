@@ -121,12 +121,14 @@ jobs:
         with:
           submodules: true
 
-      # Windows-specific: Set up MSVC
+      # Windows-specific: Set up MSVC environment
       - name: Set up MSVC
         if: matrix.platform == 'windows'
         uses: ilammy/msvc-dev-cmd@v1
         with:
           arch: ${{ matrix.msvc }}
+          # Use VS2022 toolset (v143)
+          vsversion: 2022
 
       # Setup - Unix (Linux/macOS)
       - name: Setup build environment (Unix)
