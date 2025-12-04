@@ -51,10 +51,38 @@ The harness applies patches in this order:
 
 (Add more patches here as needed)
 
+## Line Ending Requirements
+
+**CRITICAL**: Patch files must use the same line endings as the files they patch!
+
+- **Windows `.props`/`.vcxproj` files**: Use **CRLF** in patches (these files have CRLF in Python source)
+- **C/C++ source files** (`.c`, `.h`): Use **LF** in patches (Python uses LF even on Windows)
+- **Unix/Linux/macOS files**: Use **LF** in patches
+- **Shell scripts** (`.sh`): Use **LF** in patches
+
+The `.gitattributes` file is configured to:
+- Store patches as **binary** to preserve exact line endings as committed
+- Prevent Git from auto-converting patch line endings
+- Ensure consistent behavior across platforms
+
+### Verifying Line Endings
+
+```bash
+# Check line endings
+file patches/windows/*.patch
+
+# Convert to CRLF (for Windows XML/project files)
+unix2dos patch-file.patch
+
+# Convert to LF (for C files and Unix)
+dos2unix patch-file.patch
+```
+
 ## Patch Guidelines
 
 1. **One fix per patch**: Each patch should address one specific issue
 2. **Descriptive names**: Use format `NN-description.patch` where NN is sequence number
-3. **Documentation**: Add a comment at the top of each patch explaining what it fixes
-4. **Testing**: Test patches on target platform before committing
-5. **Upstream**: If possible, reference upstream bug reports or discussions
+3. **Correct line endings**: Match the target file's line endings (see above)
+4. **Documentation**: Add a comment at the top of each patch explaining what it fixes
+5. **Testing**: Test patches on target platform before committing
+6. **Upstream**: If possible, reference upstream bug reports or discussions
