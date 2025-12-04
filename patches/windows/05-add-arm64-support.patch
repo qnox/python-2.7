@@ -1,0 +1,236 @@
+Add ARM64 (aarch64) platform support for Windows builds
+
+This patch adds support for building Python 2.7.18 on Windows ARM64.
+It must be applied AFTER patches 01-04 (VS2022 toolset upgrade, MSVC fixes, Tcl/Tk upgrade).
+
+Changes:
+- Adds ARM64 platform architecture mapping (ArchName)
+- Configures ARM64 linker target machine (MachineARM64)
+- Removes invalid base addresses for ARM64 (must be >4GB)
+- Configures Tcl/Tk 8.6.14 with ARM64 support and threaded DLLs
+- Excludes x86/x64-specific assembly code from ARM64 builds
+- Excludes _ctypes from ARM64 (missing libffi ARM64 assembly)
+
+--- Python-2.7.18/PCbuild/python.props.orig
++++ Python-2.7.18/PCbuild/python.props
+@@ -23,6 +23,7 @@
+     so we define our own constant ArchName and use wherever we need it.
+     -->
+     <ArchName Condition="'$(ArchName)' == '' and $(Platform) == 'x64'">amd64</ArchName>
++    <ArchName Condition="'$(ArchName)' == '' and $(Platform) == 'ARM64'">arm64</ArchName>
+     <ArchName Condition="'$(ArchName)' == ''">win32</ArchName>
+     <ArchName Condition="$(Configuration) == 'PGInstrument' or $(Configuration) == 'PGUpdate'">$(ArchName)-pgo</ArchName>
+
+--- Python-2.7.18/PCbuild/pyproject.props.orig
++++ Python-2.7.18/PCbuild/pyproject.props
+@@ -59,6 +59,7 @@
+       <IgnoreSpecificDefaultLibraries>LIBC;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+       <TargetMachine>MachineX86</TargetMachine>
+       <TargetMachine Condition="'$(Platform)' == 'x64'">MachineX64</TargetMachine>
++      <TargetMachine Condition="'$(Platform)' == 'ARM64'">MachineARM64</TargetMachine>
+       <ProfileGuidedDatabase Condition="$(SupportPGO)">$(OutDir)$(TargetName).pgd</ProfileGuidedDatabase>
+       <LinkTimeCodeGeneration Condition="$(Configuration) == 'Release'">UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+       <LinkTimeCodeGeneration Condition="$(SupportPGO) and $(Configuration) == 'PGInstrument'">PGInstrument</LinkTimeCodeGeneration>
+--- Python-2.7.18/PCbuild/tcltk.props.orig
++++ Python-2.7.18/PCbuild/tcltk.props
+@@ -19,7 +19,10 @@
+     <tixDir>$(ExternalsDir)tix-$(TixMajorVersion).$(TixMinorVersion).$(TixPatchLevel).$(TixRevision)\</tixDir>
+     <tcltkDir>$(ExternalsDir)tcltk\</tcltkDir>
+     <tcltkDir Condition="'$(Platform)' == 'x64'">$(ExternalsDir)tcltk64\</tcltkDir>
++    <tcltkDir Condition="'$(Platform)' == 'ARM64'">$(ExternalsDir)tcltk-arm64\</tcltkDir>
+     <TclDebugExt Condition="'$(Configuration)' == 'Debug'">g</TclDebugExt>
++    <!-- ARM64 uses threaded 8.6.14 builds with 't' suffix -->
++    <TclThreadExt Condition="'$(Platform)' == 'ARM64'">t</TclThreadExt>
+     <tclDLLName>tcl$(TclMajorVersion)$(TclMinorVersion)$(TclDebugExt).dll</tclDLLName>
+     <tclLibName>tcl$(TclMajorVersion)$(TclMinorVersion)$(TclDebugExt).lib</tclLibName>
+     <tclShExeName>tclsh$(TclMajorVersion)$(TclMinorVersion)$(TclDebugExt).exe</tclShExeName>
+@@ -30,8 +33,12 @@
+     <tcltkLib>$(tcltkDir)lib\tcl$(TclMajorVersion)$(TclMinorVersion)$(TclDebugExt).lib;$(tcltkDir)lib\tk$(TclMajorVersion)$(TclMinorVersion)$(TclDebugExt).lib</tcltkLib>
+     <TclMachine>IX86</TclMachine>
+     <TclMachine Condition="'$(Platform)' == 'x64'">AMD64</TclMachine>
++    <TclMachine Condition="'$(Platform)' == 'ARM64'">ARM64</TclMachine>
+     <TclVersions>TCL_MAJOR_VERSION=$(TclMajorVersion) TCL_MINOR_VERSION=$(TclMinorVersion) TCL_PATCH_LEVEL=$(TclPatchLevel)</TclVersions>
+     <TclShortVersions>TCL_MAJOR=$(TclMajorVersion) TCL_MINOR=$(TclMinorVersion) TCL_PATCH=$(TclPatchLevel)</TclShortVersions>
++    <!-- Update DLL names to include thread suffix for ARM64 -->
++    <tclDLLName>tcl$(TclMajorVersion)$(TclMinorVersion)$(TclDebugExt)$(TclThreadExt).dll</tclDLLName>
++    <tclLibName>tcl$(TclMajorVersion)$(TclMinorVersion)$(TclDebugExt)$(TclThreadExt).lib</tclLibName>
++    <tclShExeName>tclsh$(TclMajorVersion)$(TclMinorVersion)$(TclDebugExt)$(TclThreadExt).exe</tclShExeName>
++    <tkDLLName>tk$(TkMajorVersion)$(TkMinorVersion)$(TclDebugExt)$(TclThreadExt).dll</tkDLLName>
++    <tkLibName>tk$(TkMajorVersion)$(TkMinorVersion)$(TclDebugExt)$(TclThreadExt).lib</tkLibName>
++    <tcltkLib>$(tcltkDir)lib\tcl$(TclMajorVersion)$(TclMinorVersion)$(TclDebugExt)$(TclThreadExt).lib;$(tcltkDir)lib\tk$(TkMajorVersion)$(TclMinorVersion)$(TclDebugExt)$(TclThreadExt).lib</tcltkLib>
+     <TkVersions>TK_MAJOR_VERSION=$(TkMajorVersion) TK_MINOR_VERSION=$(TkMinorVersion) TK_PATCH_LEVEL=$(TkPatchLevel)</TkVersions>
+
+     <BuildDirTop>Release</BuildDirTop>
+--- Python-2.7.18/PCbuild/pythoncore.vcxproj.orig
++++ Python-2.7.18/PCbuild/pythoncore.vcxproj
+@@ -90,7 +90,8 @@
+     </ClCompile>
+     <Link>
+       <AdditionalDependencies>ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+-      <BaseAddress>0x1e000000</BaseAddress>
++      <!-- ARM64 requires base address above 4GB -->
++      <BaseAddress Condition="'$(Platform)' != 'ARM64'">0x1e000000</BaseAddress>
+     </Link>
+   </ItemDefinitionGroup>
+   <ItemGroup>
+--- Python-2.7.18/PCbuild/_ctypes.vcxproj.orig
++++ Python-2.7.18/PCbuild/_ctypes.vcxproj
+@@ -103,10 +103,12 @@
+     <ClCompile Include="..\Modules\_ctypes\stgdict.c" />
+     <ClCompile Include="..\Modules\_ctypes\libffi_msvc\win32.c">
+       <ExcludedFromBuild Condition="'$(Platform)'=='x64'">true</ExcludedFromBuild>
++      <ExcludedFromBuild Condition="'$(Platform)'=='ARM64'">true</ExcludedFromBuild>
+     </ClCompile>
+   </ItemGroup>
+   <ItemGroup>
+     <CustomBuild Include="..\Modules\_ctypes\libffi_msvc\win64.asm">
+       <ExcludedFromBuild Condition="'$(Platform)'=='Win32'">true</ExcludedFromBuild>
++      <ExcludedFromBuild Condition="'$(Platform)'=='ARM64'">true</ExcludedFromBuild>
+       <Command>ml64 /nologo /c /Zi /Fo "$(IntDir)win64.obj" "%(FullPath)"</Command>
+       <Outputs>$(IntDir)win64.obj;%(Outputs)</Outputs>
+     </CustomBuild>
+--- Python-2.7.18/PCbuild/pcbuild.proj.orig
++++ Python-2.7.18/PCbuild/pcbuild.proj
+@@ -37,7 +37,9 @@
+     <!-- python[w].exe -->
+     <Projects Include="python.vcxproj;pythonw.vcxproj" />
+     <!-- Extension modules -->
+-    <ExtensionModules Include="_ctypes;_elementtree;_msi;_multiprocessing;pyexpat;select;unicodedata;winsound" />
++    <!-- _ctypes excluded from ARM64 due to missing libffi assembly -->
++    <ExtensionModules Include="_elementtree;_msi;_multiprocessing;pyexpat;select;unicodedata;winsound" />
++    <ExtensionModules Include="_ctypes" Condition="'$(Platform)' != 'ARM64'" />
+     <!-- Extension modules that require external sources -->
+     <ExternalModules Include="bz2;_sqlite3" />
+     <!-- _ssl will build _socket as well, which may cause conflicts in parallel builds -->
+--- Python-2.7.18/PCbuild/_bsddb.vcxproj.orig
++++ Python-2.7.18/PCbuild/_bsddb.vcxproj
+@@ -62,7 +62,7 @@
+     <Link>
+       <AdditionalDependencies>ws2_32.lib;$(bsddbDir)$(bsddbDatabasePlatformDir)\libdb47s$(PyDebugExt).lib;%(AdditionalDependencies)</AdditionalDependencies>
+       <IgnoreDefaultLibraryNames>msvcrt.lib;%(IgnoreDefaultLibraryNames)</IgnoreDefaultLibraryNames>
+-      <BaseAddress>0x1e180000</BaseAddress>
++      <BaseAddress Condition="'$(Platform)' != 'ARM64'">0x1e180000</BaseAddress>
+     </Link>
+   </ItemDefinitionGroup>
+   <ItemGroup>
+--- Python-2.7.18/PCbuild/_elementtree.vcxproj.orig
++++ Python-2.7.18/PCbuild/_elementtree.vcxproj
+@@ -58,7 +58,7 @@
+       <PreprocessorDefinitions>_USRDLL;Py_BUILD_CORE_MODULE;USE_PYEXPAT_CAPI;XML_STATIC;HAVE_EXPAT_CONFIG_H;XML_POOR_ENTROPY;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+     </ClCompile>
+     <Link>
+-      <BaseAddress>0x1D100000</BaseAddress>
++      <BaseAddress Condition="'$(Platform)' != 'ARM64'">0x1D100000</BaseAddress>
+     </Link>
+   </ItemDefinitionGroup>
+   <ItemGroup>
+--- Python-2.7.18/PCbuild/_msi.vcxproj.orig
++++ Python-2.7.18/PCbuild/_msi.vcxproj
+@@ -57,7 +57,7 @@
+     </ClCompile>
+     <Link>
+       <AdditionalDependencies>fci.lib;msi.lib;rpcrt4.lib;%(AdditionalDependencies)</AdditionalDependencies>
+-      <BaseAddress>0x1D160000</BaseAddress>
++      <BaseAddress Condition="'$(Platform)' != 'ARM64'">0x1D160000</BaseAddress>
+     </Link>
+   </ItemDefinitionGroup>
+   <ItemGroup>
+--- Python-2.7.18/PCbuild/_multiprocessing.vcxproj.orig
++++ Python-2.7.18/PCbuild/_multiprocessing.vcxproj
+@@ -58,7 +58,7 @@
+     </ClCompile>
+     <Link>
+       <AdditionalDependencies>ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+-      <BaseAddress>0x1e1D0000</BaseAddress>
++      <BaseAddress Condition="'$(Platform)' != 'ARM64'">0x1e1D0000</BaseAddress>
+     </Link>
+   </ItemDefinitionGroup>
+   <ItemGroup>
+--- Python-2.7.18/PCbuild/_socket.vcxproj.orig
++++ Python-2.7.18/PCbuild/_socket.vcxproj
+@@ -58,7 +58,7 @@
+     </ClCompile>
+     <Link>
+       <AdditionalDependencies>ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+-      <BaseAddress>0x1e1B0000</BaseAddress>
++      <BaseAddress Condition="'$(Platform)' != 'ARM64'">0x1e1B0000</BaseAddress>
+     </Link>
+   </ItemDefinitionGroup>
+   <ItemGroup>
+--- Python-2.7.18/PCbuild/_sqlite3.vcxproj.orig
++++ Python-2.7.18/PCbuild/_sqlite3.vcxproj
+@@ -60,7 +60,7 @@
+     </ClCompile>
+     <Link>
+       <AdditionalDependencies>$(OutDir)sqlite3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+-      <BaseAddress>0x1e1C0000</BaseAddress>
++      <BaseAddress Condition="'$(Platform)' != 'ARM64'">0x1e1C0000</BaseAddress>
+     </Link>
+   </ItemDefinitionGroup>
+   <ItemGroup>
+--- Python-2.7.18/PCbuild/_testcapi.vcxproj.orig
++++ Python-2.7.18/PCbuild/_testcapi.vcxproj
+@@ -56,7 +56,7 @@
+       <PreprocessorDefinitions>_USRDLL;Py_BUILD_CORE_MODULE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+     </ClCompile>
+     <Link>
+-      <BaseAddress>0x1e1F0000</BaseAddress>
++      <BaseAddress Condition="'$(Platform)' != 'ARM64'">0x1e1F0000</BaseAddress>
+     </Link>
+   </ItemDefinitionGroup>
+   <ItemGroup>
+--- Python-2.7.18/PCbuild/bz2.vcxproj.orig
++++ Python-2.7.18/PCbuild/bz2.vcxproj
+@@ -59,7 +59,7 @@
+     </ClCompile>
+     <Link>
+       <AdditionalDependencies>$(OutDir)libbz2.lib;%(AdditionalDependencies)</AdditionalDependencies>
+-      <BaseAddress>0x1D170000</BaseAddress>
++      <BaseAddress Condition="'$(Platform)' != 'ARM64'">0x1D170000</BaseAddress>
+     </Link>
+   </ItemDefinitionGroup>
+   <ItemGroup>
+--- Python-2.7.18/PCbuild/python.vcxproj.orig
++++ Python-2.7.18/PCbuild/python.vcxproj
+@@ -58,7 +58,7 @@
+     </ClCompile>
+     <Link>
+       <OutputFile>$(OutDir)$(ProjectName).exe</OutputFile>
+-      <BaseAddress>0x1d000000</BaseAddress>
++      <BaseAddress Condition="'$(Platform)' != 'ARM64'">0x1d000000</BaseAddress>
+       <StackReserveSize>2000000</StackReserveSize>
+       <SubSystem>Console</SubSystem>
+     </Link>
+--- Python-2.7.18/PCbuild/pythonw.vcxproj.orig
++++ Python-2.7.18/PCbuild/pythonw.vcxproj
+@@ -60,7 +60,7 @@
+     </ResourceCompile>
+     <Link>
+       <OutputFile>$(OutDir)$(ProjectName).exe</OutputFile>
+-      <BaseAddress>0x1d000000</BaseAddress>
++      <BaseAddress Condition="'$(Platform)' != 'ARM64'">0x1d000000</BaseAddress>
+       <StackReserveSize>2000000</StackReserveSize>
+       <SubSystem>Windows</SubSystem>
+     </Link>
+--- Python-2.7.18/PCbuild/select.vcxproj.orig
++++ Python-2.7.18/PCbuild/select.vcxproj
+@@ -58,7 +58,7 @@
+     </ClCompile>
+     <Link>
+       <AdditionalDependencies>ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+-      <BaseAddress>0x1D180000</BaseAddress>
++      <BaseAddress Condition="'$(Platform)' != 'ARM64'">0x1D180000</BaseAddress>
+     </Link>
+   </ItemDefinitionGroup>
+   <ItemGroup>
+--- Python-2.7.18/PCbuild/unicodedata.vcxproj.orig
++++ Python-2.7.18/PCbuild/unicodedata.vcxproj
+@@ -56,7 +56,7 @@
+       <PreprocessorDefinitions>_USRDLL;Py_BUILD_CORE_MODULE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+     </ClCompile>
+     <Link>
+-      <BaseAddress>0x1D120000</BaseAddress>
++      <BaseAddress Condition="'$(Platform)' != 'ARM64'">0x1D120000</BaseAddress>
+     </Link>
+   </ItemDefinitionGroup>
+   <ItemGroup>
