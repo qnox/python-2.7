@@ -43,7 +43,19 @@ if [ "${TARGET_LIBC}" = "musl" ]; then
         export CC="musl-clang"
         export CXX="clang++"
         echo "Using musl-clang for musl build"
-        EXTRA_CONFIG_ARGS="--disable-ipv6"
+
+        # Find Python for cross-compilation (setup.py needs a host Python)
+        if command -v python2.7 >/dev/null 2>&1; then
+            PYTHON_FOR_BUILD="python2.7"
+        elif command -v python2 >/dev/null 2>&1; then
+            PYTHON_FOR_BUILD="python2"
+        elif command -v python3 >/dev/null 2>&1; then
+            PYTHON_FOR_BUILD="python3"
+        else
+            PYTHON_FOR_BUILD="python"
+        fi
+
+        EXTRA_CONFIG_ARGS="--disable-ipv6 PYTHON_FOR_BUILD=${PYTHON_FOR_BUILD}"
     else
         echo "ERROR: musl build requested but musl-clang not found"
         echo "Run setup-linux.sh first to build musl from source"
