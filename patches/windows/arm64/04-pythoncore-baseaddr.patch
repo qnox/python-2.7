@@ -1,0 +1,11 @@
+--- PCbuild/pythoncore.vcxproj.orig	2025-12-04 15:17:00.846057900 +0000
++++ PCbuild/pythoncore.vcxproj	2025-12-04 15:17:19.009930900 +0000
+@@ -74,7 +74,7 @@
+     </ClCompile>
+     <Link>
+       <AdditionalDependencies>ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+-      <BaseAddress>0x1e000000</BaseAddress>
++      <BaseAddress Condition="'$(Platform)' != 'ARM64'">0x1e000000</BaseAddress>
+     </Link>
+   </ItemDefinitionGroup>
+   <ItemGroup>

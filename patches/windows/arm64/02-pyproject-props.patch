@@ -1,0 +1,10 @@
+--- PCbuild/pyproject.props.orig	2025-12-04 15:15:21.627945800 +0000
++++ PCbuild/pyproject.props	2025-12-04 15:15:38.005203900 +0000
+@@ -60,6 +60,7 @@
+       <IgnoreSpecificDefaultLibraries>LIBC;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+       <TargetMachine>MachineX86</TargetMachine>
+       <TargetMachine Condition="'$(Platform)' == 'x64'">MachineX64</TargetMachine>
++      <TargetMachine Condition="'$(Platform)' == 'ARM64'">MachineARM64</TargetMachine>
+       <ProfileGuidedDatabase Condition="$(SupportPGO)">$(OutDir)$(TargetName).pgd</ProfileGuidedDatabase>
+       <LinkTimeCodeGeneration Condition="$(Configuration) == 'Release'">UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+       <LinkTimeCodeGeneration Condition="$(SupportPGO) and $(Configuration) == 'PGInstrument'">PGInstrument</LinkTimeCodeGeneration>
