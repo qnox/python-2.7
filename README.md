@@ -15,7 +15,8 @@ Automated builds of portable Python 2.7.18 for multiple platforms, architectures
 ### Linux
 - **x86_64-unknown-linux-gnu**: 64-bit Linux with glibc
 - **i686-unknown-linux-gnu**: 32-bit Linux with glibc
-- **x86_64-unknown-linux-musl**: 64-bit Linux with musl libc (static-friendly)
+- **aarch64-unknown-linux-musl**: ARM64 Linux with musl libc (Alpine, embedded)
+- **x86_64-unknown-linux-musl**: 64-bit Linux with musl libc (Alpine, static-friendly)
 - **i686-unknown-linux-musl**: 32-bit Linux with musl libc
 
 ### macOS
@@ -82,10 +83,18 @@ Download pre-built binaries from the [Releases](../../releases) page.
 
 ### Prerequisites
 
-#### Linux
+#### Linux (glibc builds)
 ```bash
 sudo apt-get install build-essential libssl-dev libffi-dev \
     libsqlite3-dev libbz2-dev libreadline-dev zlib1g-dev
+```
+
+#### Linux (musl builds)
+```bash
+# musl builds compile ALL dependencies from source
+sudo apt-get install build-essential curl clang
+bash scripts/setup-musl.sh      # Builds musl-clang from source
+bash scripts/build-musl-deps.sh # Builds all dependencies
 ```
 
 #### macOS
@@ -261,13 +270,24 @@ While Python 2.7 reached end-of-life in 2020, many legacy applications still dep
 
 Contributions are welcome! Please feel free to submit issues or pull requests.
 
+### Build System Philosophy
+
+**FAIL FAST - NO TOLERANCE FOR ERRORS**
+
+All build scripts use `set -euo pipefail` and fail immediately on ANY error:
+- No defensive checks or warnings
+- No "already installed" guards
+- No partial failures tolerated
+- Scripts stop at the FIRST error
+
+This ensures build errors are IMPOSSIBLE to miss and forces immediate fixing of issues.
+
 ### Areas for Improvement
 
-- Add ARM64 Linux builds (when GitHub provides free ARM runners)
-- Add static musl builds
 - Optimize build times
 - Add more comprehensive tests
 - Support additional Python versions
+- Fix _ssl module runtime linking on Alpine musl
 
 ## License
 
