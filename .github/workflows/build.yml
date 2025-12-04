@@ -29,16 +29,6 @@ jobs:
             test_script: scripts/test.sh
             package_script: scripts/package.sh
 
-          - os: ubuntu-22.04
-            platform: linux
-            arch: i686
-            libc: glibc
-            target: i686-unknown-linux-gnu
-            setup_script: scripts/setup-linux.sh
-            build_script: scripts/build-linux.sh
-            test_script: scripts/test.sh
-            package_script: scripts/package.sh
-
           - os: ubuntu-24.04-arm
             platform: linux
             arch: aarch64
@@ -70,9 +60,6 @@ jobs:
             test_script: scripts/test.sh
             package_script: scripts/package.sh
 
-          # Note: i686-unknown-linux-musl is disabled
-          # musl-gcc doesn't support multilib, requires dedicated i686-linux-musl-gcc toolchain
-
           # macOS builds
           - os: macos-13
             platform: macos
@@ -103,11 +90,11 @@ jobs:
             test_script: scripts\test.bat
             package_script: scripts\package.bat
 
-          - os: windows-2022
+          - os: windows-11-arm
             platform: windows
-            arch: x86
-            msvc: x86
-            target: i686-pc-windows-msvc
+            arch: aarch64
+            msvc: arm64
+            target: aarch64-pc-windows-msvc
             setup_script: scripts\setup-windows.bat
             build_script: scripts\build-windows.bat
             test_script: scripts\test.bat
