@@ -43,7 +43,9 @@ if [ "${TARGET_LIBC}" = "musl" ]; then
         export CC="musl-clang"
         export CXX="clang++"
         echo "Using musl-clang for musl build"
-        EXTRA_CONFIG_ARGS="--disable-ipv6"
+        # Set cross_compiling=yes to prevent setup.py from adding /usr/include
+        # This avoids glibc header pollution when building on Ubuntu with musl-clang
+        EXTRA_CONFIG_ARGS="--disable-ipv6 cross_compiling=yes"
     else
         echo "ERROR: musl build requested but musl-clang not found"
         echo "Run setup-linux.sh first to build musl from source"
