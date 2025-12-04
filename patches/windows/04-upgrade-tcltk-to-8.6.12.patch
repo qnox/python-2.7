@@ -1,0 +1,23 @@
+--- PCbuild/tcltk.props.orig	2020-04-20 01:07:47.000000000 +0000
++++ PCbuild/tcltk.props	2025-12-04 15:00:00.000000000 +0000
+@@ -3,17 +3,17 @@
+   <Import Project="pyproject.props" />
+   <PropertyGroup>
+     <TclMajorVersion>8</TclMajorVersion>
+-    <TclMinorVersion>5</TclMinorVersion>
+-    <TclPatchLevel>19</TclPatchLevel>
++    <TclMinorVersion>6</TclMinorVersion>
++    <TclPatchLevel>12</TclPatchLevel>
+     <TclRevision>0</TclRevision>
+     <TkMajorVersion>$(TclMajorVersion)</TkMajorVersion>
+     <TkMinorVersion>$(TclMinorVersion)</TkMinorVersion>
+     <TkPatchLevel>$(TclPatchLevel)</TkPatchLevel>
+     <TkRevision>$(TclRevision)</TkRevision>
+     <TixMajorVersion>8</TixMajorVersion>
+     <TixMinorVersion>4</TixMinorVersion>
+     <TixPatchLevel>3</TixPatchLevel>
+-    <TixRevision>5</TixRevision>
++    <TixRevision>6</TixRevision>
+     <tclDir>$(ExternalsDir)tcl-$(TclMajorVersion).$(TclMinorVersion).$(TclPatchLevel).$(TclRevision)\</tclDir>
+     <tkDir>$(ExternalsDir)tk-$(TkMajorVersion).$(TkMinorVersion).$(TkPatchLevel).$(TkRevision)\</tkDir>
+     <tixDir>$(ExternalsDir)tix-$(TixMajorVersion).$(TixMinorVersion).$(TixPatchLevel).$(TixRevision)\</tixDir>
