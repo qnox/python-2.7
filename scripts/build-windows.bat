@@ -97,6 +97,18 @@ if exist "patches\windows\04-upgrade-tcltk-to-8.6.12.patch" (
 
 echo [2/6] Patches applied successfully
 
+REM Add ARM64 configurations to Visual Studio projects if building for ARM64
+if "%TARGET_ARCH%"=="aarch64" (
+    echo.
+    echo [3/6] Adding ARM64 platform configurations to Visual Studio projects...
+    powershell -ExecutionPolicy Bypass -File "%CD%\scripts\add-arm64-configs.ps1" -SourceDir "%SOURCE_DIR%"
+    if errorlevel 1 (
+        echo ERROR: Failed to add ARM64 configurations
+        exit /b 1
+    )
+    echo [3/6] ARM64 configurations added successfully
+)
+
 echo.
 echo [3/6] Configuring build environment...
 cd "%SOURCE_DIR%\PCbuild"
