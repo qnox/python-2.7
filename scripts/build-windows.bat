@@ -37,25 +37,26 @@ echo Build Directory: %BUILD_DIR%
 echo ========================================
 echo.
 
-REM Download Python source if not present
-if not exist "%SOURCE_DIR%" (
-    echo [1/6] Downloading Python source...
-    curl -LO "https://www.python.org/ftp/python/%PYTHON_VERSION%/Python-%PYTHON_VERSION%.tgz"
-    if errorlevel 1 (
-        echo ERROR: Failed to download Python source
-        exit /b 1
-    )
-    echo [1/6] Extracting Python source...
-    tar xzf "Python-%PYTHON_VERSION%.tgz"
-    if errorlevel 1 (
-        echo ERROR: Failed to extract Python source
-        exit /b 1
-    )
-    del "Python-%PYTHON_VERSION%.tgz"
-    echo [1/6] Python source ready
-) else (
-    echo [1/6] Using existing Python source
+REM Always use fresh Python source to avoid patch conflicts
+if exist "%SOURCE_DIR%" (
+    echo [1/6] Removing existing Python source...
+    rmdir /s /q "%SOURCE_DIR%"
 )
+
+echo [1/6] Downloading Python source...
+curl -LO "https://www.python.org/ftp/python/%PYTHON_VERSION%/Python-%PYTHON_VERSION%.tgz"
+if errorlevel 1 (
+    echo ERROR: Failed to download Python source
+    exit /b 1
+)
+echo [1/6] Extracting Python source...
+tar xzf "Python-%PYTHON_VERSION%.tgz"
+if errorlevel 1 (
+    echo ERROR: Failed to extract Python source
+    exit /b 1
+)
+del "Python-%PYTHON_VERSION%.tgz"
+echo [1/6] Python source ready
 
 echo.
 echo [2/6] Applying patches for VS2022 compatibility...
