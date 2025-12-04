@@ -39,16 +39,7 @@ if not exist "%SOURCE_DIR%" (
 )
 
 echo.
-echo [2/6] Normalizing source file line endings to LF...
-powershell -Command "Get-ChildItem -Path '%SOURCE_DIR%' -Recurse -Include *.c,*.h,*.py,*.in | ForEach-Object { $content = [IO.File]::ReadAllText($_.FullName) -replace \"`r`n\", \"`n\"; [IO.File]::WriteAllText($_.FullName, $content, [System.Text.UTF8Encoding]::new($false)) }"
-if errorlevel 1 (
-    echo ERROR: Failed to normalize line endings
-    exit /b 1
-)
-echo [2/6] Line endings normalized to LF
-
-echo.
-echo [3/6] Applying patches for VS2022 compatibility...
+echo [2/6] Applying patches for VS2022 compatibility...
 
 REM Check if Git patch utility is available
 if not exist "C:\Program Files\Git\usr\bin\patch.exe" (
@@ -67,45 +58,48 @@ if not exist "patches\windows\01-upgrade-vs2022-toolset.patch" (
 )
 
 REM Apply VS2022 toolset upgrade patch
-echo [3/6] Applying VS2022 toolset upgrade patch...
+echo [2/6] Applying VS2022 toolset upgrade patch...
 %PATCH_EXE% -d "%SOURCE_DIR%" -p1 -N --binary < patches\windows\01-upgrade-vs2022-toolset.patch
 if errorlevel 1 (
-    echo WARNING: VS2022 toolset patch may have already been applied
+    echo ERROR: Failed to apply VS2022 toolset patch
+    exit /b 1
 )
 
 REM Apply timemodule.c fix for modern MSVC
 if exist "patches\windows\02-fix-timemodule-msvc.patch" (
-    echo [3/6] Applying timemodule.c fix for modern MSVC...
+    echo [2/6] Applying timemodule.c fix for modern MSVC...
     %PATCH_EXE% -d "%SOURCE_DIR%" -p0 -N --binary < patches\windows\02-fix-timemodule-msvc.patch
     if errorlevel 1 (
-        echo WARNING: timemodule.c patch may have already been applied
+        echo ERROR: Failed to apply timemodule.c patch
+        exit /b 1
     )
 )
 
 REM Apply posixmodule.c fix for modern MSVC
 if exist "patches\windows\03-fix-posixmodule-msvc.patch" (
-    echo [3/6] Applying posixmodule.c fix for modern MSVC...
+    echo [2/6] Applying posixmodule.c fix for modern MSVC...
     %PATCH_EXE% -d "%SOURCE_DIR%" -p0 -N --binary < patches\windows\03-fix-posixmodule-msvc.patch
     if errorlevel 1 (
-        echo WARNING: posixmodule.c patch may have already been applied
+        echo ERROR: Failed to apply posixmodule.c patch
+        exit /b 1
     )
 )
 
-echo [3/6] Patches applied successfully
+echo [2/6] Patches applied successfully
 
 echo.
-echo [4/6] Configuring build environment...
+echo [3/6] Configuring build environment...
 cd "%SOURCE_DIR%\PCbuild"
 
 REM Set architecture based on TARGET_ARCH
 if "%TARGET_ARCH%"=="x86_64" (
     set PLATFORM=x64
     set ARCH_DIR=amd64
-    echo [4/6] Architecture: x64 ^(amd64^)
+    echo [3/6] Architecture: x64 ^(amd64^)
 ) else if "%TARGET_ARCH%"=="x86" (
     set PLATFORM=Win32
     set ARCH_DIR=win32
-    echo [4/6] Architecture: Win32 ^(x86^)
+    echo [3/6] Architecture: Win32 ^(x86^)
 ) else (
     echo ERROR: Unknown architecture: %TARGET_ARCH%
     echo Supported architectures: x86_64, x86
@@ -119,29 +113,29 @@ if not defined VSINSTALLDIR (
     echo Or run vcvarsall.bat manually
     exit /b 1
 )
-echo [4/6] MSVC Environment: %VSINSTALLDIR%
+echo [3/6] MSVC Environment: %VSINSTALLDIR%
 
 REM Build external dependencies
 echo.
-echo [5/6] Building external dependencies...
+echo [4/6] Building external dependencies...
 echo This may take several minutes...
 call "%SOURCE_DIR%\PCbuild\build.bat" -e -p %PLATFORM%
 if errorlevel 1 (
     echo ERROR: Failed to build external dependencies
     exit /b 1
 )
-echo [5/6] External dependencies built successfully
+echo [4/6] External dependencies built successfully
 
 REM Build Python with Release configuration
 echo.
-echo [6/6] Building Python %PYTHON_VERSION% ^(Release configuration^)...
+echo [5/6] Building Python %PYTHON_VERSION% ^(Release configuration^)...
 echo This may take several minutes...
 call "%SOURCE_DIR%\PCbuild\build.bat" -p %PLATFORM% -c Release
 if errorlevel 1 (
     echo ERROR: Failed to build Python
     exit /b 1
 )
-echo [6/6] Python built successfully
+echo [5/6] Python built successfully
 
 echo.
 echo ========================================

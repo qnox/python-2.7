@@ -1,0 +1,3 @@
+# Patch files: Preserve exact line endings as committed
+# Critical: patches must match the line endings of the files they patch
+*.patch binary
