@@ -63,15 +63,24 @@ docker run --rm --platform $PLATFORM \
     -e TARGET_ARCH=$ARCH \
     -e TARGET_LIBC=musl \
     -e TARGET_TRIPLE=${ARCH}-unknown-linux-musl \
+    -e TARGET_PLATFORM=linux \
     ubuntu:24.04 bash -c "
     export DEBIAN_FRONTEND=noninteractive &&
     apt-get update -qq &&
-    apt-get install -y -qq build-essential curl clang sudo > /dev/null 2>&1 &&
+    apt-get install -y -qq build-essential curl clang sudo file patchelf > /dev/null 2>&1 &&
     bash scripts/setup-musl.sh > /dev/null 2>&1 &&
     bash scripts/build-musl-deps.sh > /dev/null 2>&1 &&
     echo 'Building Python...' &&
     rm -rf Python-2.7.18 build &&
-    bash scripts/build-linux.sh 2>&1 | tee /tmp/python-build.log
+    bash scripts/build-linux.sh 2>&1 | tee /tmp/python-build.log &&
+    echo '' &&
+    echo 'Checking for glibc header pollution...' &&
+    if grep -q 'bits/libc-header-start.h\|bits/errno.h' /tmp/python-build.log; then
+        echo '✗ ERROR: glibc headers detected in build!'
+        grep 'bits/libc-header-start.h\|bits/errno.h' /tmp/python-build.log
+        exit 1
+    fi &&
+    echo '✓ No glibc header pollution detected'
 "
 
 echo "✓ Test 3 passed: Python built successfully"
