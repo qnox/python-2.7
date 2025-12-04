@@ -17,7 +17,7 @@ curl -L https://github.com/madler/zlib/releases/download/v1.3/zlib-1.3.tar.gz -o
 tar xzf zlib-1.3.tar.gz
 cd zlib-1.3
 
-CC=musl-clang ./configure --prefix="${INSTALL_PREFIX}" --static
+CC=musl-clang CFLAGS="-fPIC" ./configure --prefix="${INSTALL_PREFIX}" --static
 
 make -j$(nproc)
 sudo make install

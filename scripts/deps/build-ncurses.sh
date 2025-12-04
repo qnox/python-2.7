@@ -29,8 +29,9 @@ CC=musl-clang CFLAGS="-fPIC" ./configure \
     --without-tests \
     --disable-stripping
 
-make -j$(nproc)
-sudo make install
+# Build libraries only - skip progs which fails with libgcc quad-precision issues
+make -j$(nproc) libs
+sudo make install.libs
 
 cd ..
 rm -rf ncurses-6.4 ncurses-6.4.tar.gz
