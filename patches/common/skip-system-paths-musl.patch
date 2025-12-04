@@ -1,0 +1,19 @@
+--- a/setup.py
++++ b/setup.py
+@@ -560,11 +560,16 @@ class PyBuildExt(build_ext):
+         # if a file is found in one of those directories, it can
+         # be assumed that no additional -I,-L directives are needed.
+         inc_dirs = self.compiler.include_dirs[:]
+         lib_dirs = self.compiler.library_dirs[:]
+-        if not cross_compiling:
++
++        # Skip system paths when using musl-clang to avoid glibc header pollution
++        cc = sysconfig.get_config_var('CC') or 'gcc'
++        using_musl = 'musl' in cc
++
++        if not cross_compiling and not using_musl:
+             for d in (
+                 '/usr/include',
+                 ):
+                 add_dir_to_list(inc_dirs, d)
+             for d in (
