@@ -1,0 +1,10 @@
+--- PCbuild/python.props.orig	2025-12-04 15:14:35.146473700 +0000
++++ PCbuild/python.props	2025-12-04 15:14:49.324760100 +0000
+@@ -23,6 +23,7 @@
+     so we define our own constant ArchName and use wherever we need it.
+     -->
+     <ArchName Condition="'$(ArchName)' == '' and $(Platform) == 'x64'">amd64</ArchName>
++    <ArchName Condition="'$(ArchName)' == '' and $(Platform) == 'ARM64'">arm64</ArchName>
+     <ArchName Condition="'$(ArchName)' == ''">win32</ArchName>
+     <ArchName Condition="$(Configuration) == 'PGInstrument' or $(Configuration) == 'PGUpdate'">$(ArchName)-pgo</ArchName>
+ 

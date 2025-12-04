@@ -9,6 +9,25 @@ set PYTHON_VERSION=2.7.18
 set BUILD_DIR=%CD%\build
 set SOURCE_DIR=%CD%\Python-%PYTHON_VERSION%
 
+REM Detect architecture if not set
+if "%TARGET_ARCH%"=="" (
+    if "%PROCESSOR_ARCHITECTURE%"=="AMD64" (
+        set TARGET_ARCH=x86_64
+        set TARGET_TRIPLE=x86_64-pc-windows-msvc
+    ) else if "%PROCESSOR_ARCHITECTURE%"=="ARM64" (
+        set TARGET_ARCH=aarch64
+        set TARGET_TRIPLE=aarch64-pc-windows-msvc
+    ) else if "%PROCESSOR_ARCHITECTURE%"=="x86" (
+        set TARGET_ARCH=x86
+        set TARGET_TRIPLE=i686-pc-windows-msvc
+    ) else (
+        echo ERROR: Could not detect architecture
+        echo Please set TARGET_ARCH environment variable to: x86_64, aarch64, or x86
+        exit /b 1
+    )
+    echo Auto-detected architecture: %TARGET_ARCH%
+)
+
 echo ========================================
 echo === Building Python %PYTHON_VERSION% ===
 echo ========================================
@@ -95,19 +114,38 @@ if exist "patches\windows\04-upgrade-tcltk-to-8.6.12.patch" (
     )
 )
 
-echo [2/6] Patches applied successfully
-
-REM Add ARM64 configurations to Visual Studio projects if building for ARM64
+REM Apply ARM64 support patches if building for ARM64
 if "%TARGET_ARCH%"=="aarch64" (
-    echo.
-    echo [3/6] Adding ARM64 platform configurations to Visual Studio projects...
+    echo [2/6] Applying ARM64 support patches...
+    %PATCH_EXE% -d "%SOURCE_DIR%" -p0 -N --binary < patches\windows\arm64\01-python-props.patch
+    if errorlevel 1 (
+        echo ERROR: Failed to apply python.props ARM64 patch
+        exit /b 1
+    )
+    %PATCH_EXE% -d "%SOURCE_DIR%" -p0 -N --binary < patches\windows\arm64\02-pyproject-props.patch
+    if errorlevel 1 (
+        echo ERROR: Failed to apply pyproject.props ARM64 patch
+        exit /b 1
+    )
+    %PATCH_EXE% -d "%SOURCE_DIR%" -p0 -N --binary < patches\windows\arm64\03-tcltk-props.patch
+    if errorlevel 1 (
+        echo ERROR: Failed to apply tcltk.props ARM64 patch
+        exit /b 1
+    )
+    %PATCH_EXE% -d "%SOURCE_DIR%" -p0 -N --binary < patches\windows\arm64\04-pythoncore-baseaddr.patch
+    if errorlevel 1 (
+        echo ERROR: Failed to apply pythoncore BaseAddress ARM64 patch
+        exit /b 1
+    )
+    echo [2/6] Adding ARM64 platform configurations to Visual Studio projects...
     powershell -ExecutionPolicy Bypass -File "%CD%\scripts\add-arm64-configs.ps1" -SourceDir "%SOURCE_DIR%"
     if errorlevel 1 (
         echo ERROR: Failed to add ARM64 configurations
         exit /b 1
     )
-    echo [3/6] ARM64 configurations added successfully
 )
+
+echo [2/6] Patches applied successfully
 
 echo.
 echo [3/6] Configuring build environment...
