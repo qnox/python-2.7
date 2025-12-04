@@ -96,13 +96,17 @@ if "%TARGET_ARCH%"=="x86_64" (
     set PLATFORM=x64
     set ARCH_DIR=amd64
     echo [3/6] Architecture: x64 ^(amd64^)
+) else if "%TARGET_ARCH%"=="aarch64" (
+    set PLATFORM=ARM64
+    set ARCH_DIR=arm64
+    echo [3/6] Architecture: ARM64 ^(aarch64^)
 ) else if "%TARGET_ARCH%"=="x86" (
     set PLATFORM=Win32
     set ARCH_DIR=win32
     echo [3/6] Architecture: Win32 ^(x86^)
 ) else (
     echo ERROR: Unknown architecture: %TARGET_ARCH%
-    echo Supported architectures: x86_64, x86
+    echo Supported architectures: x86_64, aarch64, x86
     exit /b 1
 )
 
