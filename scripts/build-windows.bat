@@ -85,6 +85,16 @@ if exist "patches\windows\03-fix-posixmodule-msvc.patch" (
     )
 )
 
+REM Apply Tcl/Tk 8.6.12 upgrade patch
+if exist "patches\windows\04-upgrade-tcltk-to-8.6.12.patch" (
+    echo [2/6] Upgrading Tcl/Tk to 8.6.12...
+    %PATCH_EXE% -d "%SOURCE_DIR%" -p0 -N --binary < patches\windows\04-upgrade-tcltk-to-8.6.12.patch
+    if errorlevel 1 (
+        echo ERROR: Failed to apply Tcl/Tk upgrade patch
+        exit /b 1
+    )
+)
+
 echo [2/6] Patches applied successfully
 
 echo.
@@ -119,27 +129,60 @@ if not defined VSINSTALLDIR (
 )
 echo [3/6] MSVC Environment: %VSINSTALLDIR%
 
+REM Download prebuilt Tcl/Tk binaries instead of building from source
+REM This avoids compilation issues with modern Windows SDK
+echo.
+echo [4/6] Setting up prebuilt Tcl/Tk binaries...
+set TCLTK_URL=https://github.com/python/cpython-bin-deps/archive/e3c3e9a2856124aa32b608632a52742d479eb7a9.tar.gz
+set TCLTK_DIR=%SOURCE_DIR%\externals\tcltk
+if "%ARCH_DIR%"=="amd64" set TCLTK_DIR=%SOURCE_DIR%\externals\tcltk64
+
+REM Create externals directory if it doesn't exist
+if not exist "%SOURCE_DIR%\externals" mkdir "%SOURCE_DIR%\externals"
+
+if not exist "%TCLTK_DIR%\bin\tcl86.dll" (
+    echo Downloading prebuilt Tcl/Tk binaries...
+    curl -L -o "%SOURCE_DIR%\externals\tcltk-bin.tar.gz" "%TCLTK_URL%"
+    if errorlevel 1 (
+        echo ERROR: Failed to download Tcl/Tk binaries
+        exit /b 1
+    )
+    echo Extracting Tcl/Tk binaries...
+    tar xzf "%SOURCE_DIR%\externals\tcltk-bin.tar.gz" -C "%SOURCE_DIR%\externals"
+    if errorlevel 1 (
+        echo ERROR: Failed to extract Tcl/Tk binaries
+        exit /b 1
+    )
+    REM Copy from extracted directory to expected location
+    for /d %%D in ("%SOURCE_DIR%\externals\cpython-bin-deps-*") do (
+        xcopy /E /I /Y "%%D\%ARCH_DIR%" "%TCLTK_DIR%\"
+    )
+    echo Tcl/Tk binaries ready
+) else (
+    echo Using existing Tcl/Tk binaries
+)
+
 REM Build external dependencies
 echo.
-echo [4/6] Building external dependencies...
+echo [5/6] Building external dependencies...
 echo This may take several minutes...
 call "%SOURCE_DIR%\PCbuild\build.bat" -e -p %PLATFORM%
 if errorlevel 1 (
     echo ERROR: Failed to build external dependencies
     exit /b 1
 )
-echo [4/6] External dependencies built successfully
+echo [5/6] External dependencies built successfully
 
 REM Build Python with Release configuration
 echo.
-echo [5/6] Building Python %PYTHON_VERSION% ^(Release configuration^)...
+echo [6/6] Building Python %PYTHON_VERSION% ^(Release configuration^)...
 echo This may take several minutes...
 call "%SOURCE_DIR%\PCbuild\build.bat" -p %PLATFORM% -c Release
 if errorlevel 1 (
     echo ERROR: Failed to build Python
     exit /b 1
 )
-echo [5/6] Python built successfully
+echo [6/6] Python built successfully
 
 echo.
 echo ========================================
@@ -159,6 +202,19 @@ if not exist "%ARCH_DIR%\python27.dll" (
 echo Build verification: OK
 echo Python executable: %ARCH_DIR%\python.exe
 echo Python DLL: %ARCH_DIR%\python27.dll
+
+REM Test Tkinter availability
+echo.
+echo ========================================
+echo === Testing Tkinter Support ===
+echo ========================================
+"%ARCH_DIR%\python.exe" -c "import Tkinter; print('Tkinter version: ' + Tkinter.TkVersion.__str__()); print('Tcl version: ' + Tkinter.TclVersion.__str__())"
+if errorlevel 1 (
+    echo WARNING: Tkinter test failed - GUI support may not be available
+    echo This is not a critical error, continuing with build...
+) else (
+    echo Tkinter test: OK
+)
 
 REM Prepare portable installation directory
 echo.
@@ -194,6 +250,17 @@ if errorlevel 1 (
     echo WARNING: Some .pyd files may not have been copied
 )
 
+echo Copying Tcl/Tk DLLs and libraries for Tkinter support...
+if exist "%TCLTK_DIR%\bin\*.dll" (
+    xcopy /Y "%TCLTK_DIR%\bin\*.dll" "%PORTABLE_DIR%\DLLs\" >nul
+    if exist "%TCLTK_DIR%\lib" (
+        xcopy /E /I /Y "%TCLTK_DIR%\lib" "%PORTABLE_DIR%\tcl\" >nul
+        echo Tcl/Tk runtime files copied
+    )
+) else (
+    echo WARNING: Tcl/Tk binaries not found - Tkinter may not work in portable distribution
+)
+
 echo Copying standard library...
 xcopy /E /I /Y "..\..\Lib\*" "%PORTABLE_DIR%\Lib\" >nul
 if errorlevel 1 (
@@ -227,6 +294,8 @@ echo setlocal
 echo set PYTHON_HOME=%%~dp0
 echo set PATH=%%PYTHON_HOME%%;%%PYTHON_HOME%%\DLLs;%%PATH%%
 echo set PYTHONHOME=%%PYTHON_HOME%%
+echo set TCL_LIBRARY=%%PYTHON_HOME%%\tcl\tcl8.6
+echo set TK_LIBRARY=%%PYTHON_HOME%%\tcl\tk8.6
 echo "%%PYTHON_HOME%%\python.exe" %%*
 echo endlocal
 ) > "%PORTABLE_DIR%\python-portable.bat"
@@ -258,6 +327,7 @@ echo --------
 echo - Relocatable installation - works from any directory
 echo - All DLLs included - no external dependencies
 echo - Complete standard library included
+echo - Tkinter/GUI support with Tcl/Tk 8.6.12
 echo - Full development headers included
 echo - Import libraries for C extension development
 echo - Built with modern MSVC v143 ^(Visual Studio 2022^)
@@ -266,8 +336,9 @@ echo DIRECTORY STRUCTURE
 echo -------------------
 echo python.exe, pythonw.exe    - Python executables
 echo python27.dll               - Python runtime library
-echo DLLs/                      - Python extension modules ^(.pyd files^)
+echo DLLs/                      - Python extension modules ^(.pyd files^) and Tcl/Tk DLLs
 echo Lib/                       - Python standard library
+echo tcl/                       - Tcl/Tk runtime libraries
 echo include/                   - C/C++ headers for extension development
 echo libs/                      - Import libraries for linking
 echo python-portable.bat        - Portable launcher script
