@@ -145,14 +145,26 @@ REM Download prebuilt Tcl/Tk binaries instead of building from source
 REM This avoids compilation issues with modern Windows SDK
 echo.
 echo [4/6] Setting up prebuilt Tcl/Tk binaries...
-set TCLTK_URL=https://github.com/python/cpython-bin-deps/archive/e3c3e9a2856124aa32b608632a52742d479eb7a9.tar.gz
+REM Use Tcl/Tk 8.6.14 for ARM64 (has ARM64 binaries), 8.6.12 for x86/x64
+if "%ARCH_DIR%"=="arm64" (
+    set TCLTK_URL=https://github.com/python/cpython-bin-deps/archive/c624cc881bd0e5071dec9de4b120cbe9985d8c14.tar.gz
+    set TCLTK_VERSION=8.6.14
+) else (
+    set TCLTK_URL=https://github.com/python/cpython-bin-deps/archive/e3c3e9a2856124aa32b608632a52742d479eb7a9.tar.gz
+    set TCLTK_VERSION=8.6.12
+)
 set TCLTK_DIR=%SOURCE_DIR%\externals\tcltk
 if "%ARCH_DIR%"=="amd64" set TCLTK_DIR=%SOURCE_DIR%\externals\tcltk64
+if "%ARCH_DIR%"=="arm64" set TCLTK_DIR=%SOURCE_DIR%\externals\tcltk-arm64
 
 REM Create externals directory if it doesn't exist
 if not exist "%SOURCE_DIR%\externals" mkdir "%SOURCE_DIR%\externals"
 
-if not exist "%TCLTK_DIR%\bin\tcl86.dll" (
+REM ARM64 uses tcl86t.dll (threaded), others use tcl86.dll
+set TCLTK_CHECK_DLL=tcl86.dll
+if "%ARCH_DIR%"=="arm64" set TCLTK_CHECK_DLL=tcl86t.dll
+
+if not exist "%TCLTK_DIR%\bin\%TCLTK_CHECK_DLL%" (
     echo Downloading prebuilt Tcl/Tk binaries...
     curl -L -o "%SOURCE_DIR%\externals\tcltk-bin.tar.gz" "%TCLTK_URL%"
     if errorlevel 1 (
@@ -160,14 +172,16 @@ if not exist "%TCLTK_DIR%\bin\tcl86.dll" (
         exit /b 1
     )
     echo Extracting Tcl/Tk binaries...
-    tar xzf "%SOURCE_DIR%\externals\tcltk-bin.tar.gz" -C "%SOURCE_DIR%\externals"
+    powershell -ExecutionPolicy Bypass -Command "cd '%SOURCE_DIR%\externals'; tar -xzf tcltk-bin.tar.gz"
     if errorlevel 1 (
         echo ERROR: Failed to extract Tcl/Tk binaries
         exit /b 1
     )
     REM Copy from extracted directory to expected location
     for /d %%D in ("%SOURCE_DIR%\externals\cpython-bin-deps-*") do (
-        xcopy /E /I /Y "%%D\%ARCH_DIR%" "%TCLTK_DIR%\"
+        if exist "%%D\%ARCH_DIR%" (
+            xcopy /E /I /Y "%%D\%ARCH_DIR%" "%TCLTK_DIR%\"
+        )
     )
     echo Tcl/Tk binaries ready
 ) else (
