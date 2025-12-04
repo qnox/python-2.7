@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Build xz (lzma) for musl
-set -e
+set -euo pipefail
 
 INSTALL_PREFIX="${INSTALL_PREFIX:-/usr/local}"
 BUILD_DIR="${BUILD_DIR:-/tmp/musl-deps-build}"
@@ -8,10 +8,6 @@ BUILD_DIR="${BUILD_DIR:-/tmp/musl-deps-build}"
 echo "Building xz..."
 cd "${BUILD_DIR}"
 
-if [ -f "${INSTALL_PREFIX}/lib/liblzma.a" ]; then
-    echo "xz already installed"
-    exit 0
-fi
 
 curl -LO https://github.com/tukaani-project/xz/releases/download/v5.6.3/xz-5.6.3.tar.gz
 tar xzf xz-5.6.3.tar.gz

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Build ncurses for musl
-set -e
+set -euo pipefail
 
 INSTALL_PREFIX="${INSTALL_PREFIX:-/usr/local}"
 BUILD_DIR="${BUILD_DIR:-/tmp/musl-deps-build}"
@@ -8,10 +8,6 @@ BUILD_DIR="${BUILD_DIR:-/tmp/musl-deps-build}"
 echo "Building ncurses..."
 cd "${BUILD_DIR}"
 
-if [ -f "${INSTALL_PREFIX}/lib/libncursesw.a" ]; then
-    echo "ncurses already installed"
-    exit 0
-fi
 
 curl -LO https://invisible-mirror.net/archives/ncurses/ncurses-6.4.tar.gz
 tar xzf ncurses-6.4.tar.gz

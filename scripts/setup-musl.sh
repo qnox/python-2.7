@@ -2,7 +2,7 @@
 # Build musl libc and create musl-clang wrapper
 # Based on python-build-standalone approach
 
-set -e
+set -euo pipefail
 
 MUSL_VERSION="1.2.2"
 MUSL_URL="https://musl.libc.org/releases/musl-${MUSL_VERSION}.tar.gz"
