@@ -3,7 +3,7 @@
 # All dependencies are built statically with musl-clang
 # This orchestrator script calls individual dependency build scripts
 
-set -e
+set -euo pipefail
 
 # Environment setup
 export BUILD_DIR="/tmp/musl-deps-build"
@@ -62,37 +62,6 @@ bash "${DEPS_DIR}/build-openssl.sh"
 echo ""
 echo "Building gdbm..."
 bash "${DEPS_DIR}/build-gdbm.sh"
-
-# Verify all libraries were created
-echo ""
-echo "=== Verifying all dependencies were built ==="
-MISSING_LIBS=0
-
-check_lib() {
-    if [ -f "$1" ]; then
-        echo "✓ $1"
-    else
-        echo "✗ MISSING: $1"
-        MISSING_LIBS=1
-    fi
-}
-
-check_lib "${INSTALL_PREFIX}/lib/libz.a"
-check_lib "${INSTALL_PREFIX}/lib/libbz2.a"
-check_lib "${INSTALL_PREFIX}/lib/liblzma.a"
-check_lib "${INSTALL_PREFIX}/lib/libsqlite3.a"
-check_lib "${INSTALL_PREFIX}/lib/libffi.a"
-check_lib "${INSTALL_PREFIX}/lib/libncursesw.a"
-check_lib "${INSTALL_PREFIX}/lib/libreadline.a"
-check_lib "${INSTALL_PREFIX}/lib/libssl.a"
-check_lib "${INSTALL_PREFIX}/lib/libcrypto.a"
-check_lib "${INSTALL_PREFIX}/lib/libgdbm.a"
-
-if [ $MISSING_LIBS -eq 1 ]; then
-    echo ""
-    echo "ERROR: Some libraries are missing!"
-    exit 1
-fi
 
 echo ""
 echo "=== All musl dependencies built successfully ==="

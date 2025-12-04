@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Build libffi for musl
-set -e
+set -euo pipefail
 
 INSTALL_PREFIX="${INSTALL_PREFIX:-/usr/local}"
 BUILD_DIR="${BUILD_DIR:-/tmp/musl-deps-build}"
@@ -8,10 +8,6 @@ BUILD_DIR="${BUILD_DIR:-/tmp/musl-deps-build}"
 echo "Building libffi..."
 cd "${BUILD_DIR}"
 
-if [ -f "${INSTALL_PREFIX}/lib/libffi.a" ]; then
-    echo "libffi already installed"
-    exit 0
-fi
 
 curl -LO https://github.com/libffi/libffi/releases/download/v3.3/libffi-3.3.tar.gz
 tar xzf libffi-3.3.tar.gz

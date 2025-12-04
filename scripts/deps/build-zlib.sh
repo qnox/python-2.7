@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Build zlib for musl
-set -e
+set -euo pipefail
 
 INSTALL_PREFIX="${INSTALL_PREFIX:-/usr/local}"
 BUILD_DIR="${BUILD_DIR:-/tmp/musl-deps-build}"
@@ -8,10 +8,6 @@ BUILD_DIR="${BUILD_DIR:-/tmp/musl-deps-build}"
 echo "Building zlib..."
 cd "${BUILD_DIR}"
 
-if [ -f "${INSTALL_PREFIX}/lib/libz.a" ]; then
-    echo "zlib already installed"
-    exit 0
-fi
 
 curl -L https://github.com/madler/zlib/releases/download/v1.3/zlib-1.3.tar.gz -o zlib-1.3.tar.gz
 tar xzf zlib-1.3.tar.gz

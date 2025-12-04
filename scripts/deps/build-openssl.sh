@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Build OpenSSL for musl
 # Based on python-build-standalone approach
-set -e
+set -euo pipefail
 
 INSTALL_PREFIX="${INSTALL_PREFIX:-/usr/local}"
 BUILD_DIR="${BUILD_DIR:-/tmp/musl-deps-build}"
@@ -9,10 +9,6 @@ BUILD_DIR="${BUILD_DIR:-/tmp/musl-deps-build}"
 echo "Building OpenSSL..."
 cd "${BUILD_DIR}"
 
-if [ -f "${INSTALL_PREFIX}/lib/libssl.a" ]; then
-    echo "OpenSSL already installed"
-    exit 0
-fi
 
 # Copy stdatomic.h from clang (needed by OpenSSL)
 if [ ! -f "${INSTALL_PREFIX}/include/stdatomic.h" ]; then

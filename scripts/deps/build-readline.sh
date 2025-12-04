@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Build readline for musl
 # Requires: ncurses
-set -e
+set -euo pipefail
 
 INSTALL_PREFIX="${INSTALL_PREFIX:-/usr/local}"
 BUILD_DIR="${BUILD_DIR:-/tmp/musl-deps-build}"
@@ -9,10 +9,6 @@ BUILD_DIR="${BUILD_DIR:-/tmp/musl-deps-build}"
 echo "Building readline..."
 cd "${BUILD_DIR}"
 
-if [ -f "${INSTALL_PREFIX}/lib/libreadline.a" ]; then
-    echo "readline already installed"
-    exit 0
-fi
 
 curl -LO https://ftp.gnu.org/gnu/readline/readline-8.2.tar.gz
 tar xzf readline-8.2.tar.gz
