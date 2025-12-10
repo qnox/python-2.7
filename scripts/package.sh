@@ -2,41 +2,106 @@
 set -euo pipefail
 
 # Package Python portable distribution
+# Supports creating multiple flavors: install_only and install_only_stripped
+
 PYTHON_VERSION="2.7.18"
 BUILD_DIR="${PWD}/build"
 DIST_DIR="${PWD}/dist"
 PORTABLE_DIR="${BUILD_DIR}/python-${PYTHON_VERSION}-${TARGET_TRIPLE}"
+
+# Get current date in YYYYMMDD format for release tag
+RELEASE_DATE=$(date +%Y%m%d)
 
 echo "=== Packaging Python ${PYTHON_VERSION} for ${TARGET_TRIPLE} ==="
 
 # Create dist directory
 mkdir -p "${DIST_DIR}"
 
-# Create archive name
-ARCHIVE_NAME="python-${PYTHON_VERSION}-${TARGET_TRIPLE}-portable"
+# Function to create an archive for a specific flavor
+create_archive() {
+    local FLAVOR=$1
+    local SOURCE_DIR=$2
 
-# Package as tar.gz
-echo "Creating ${ARCHIVE_NAME}.tar.gz..."
-cd "${BUILD_DIR}"
-tar czf "${DIST_DIR}/${ARCHIVE_NAME}.tar.gz" "python-${PYTHON_VERSION}-${TARGET_TRIPLE}"
+    # Follow python-build-standalone naming: cpython-VERSION+DATE-TRIPLE-FLAVOR
+    local ARCHIVE_NAME="cpython-${PYTHON_VERSION}+${RELEASE_DATE}-${TARGET_TRIPLE}-${FLAVOR}"
 
-# Package as tar.xz for better compression
-echo "Creating ${ARCHIVE_NAME}.tar.xz..."
-tar cJf "${DIST_DIR}/${ARCHIVE_NAME}.tar.xz" "python-${PYTHON_VERSION}-${TARGET_TRIPLE}"
+    echo ""
+    echo "=== Creating ${FLAVOR} archive ==="
 
-# Generate checksums
-cd "${DIST_DIR}"
-# Use shasum on macOS, sha256sum on Linux
-if command -v sha256sum >/dev/null 2>&1; then
-    sha256sum "${ARCHIVE_NAME}.tar.gz" > "${ARCHIVE_NAME}.tar.gz.sha256"
-    sha256sum "${ARCHIVE_NAME}.tar.xz" > "${ARCHIVE_NAME}.tar.xz.sha256"
-elif command -v shasum >/dev/null 2>&1; then
-    shasum -a 256 "${ARCHIVE_NAME}.tar.gz" > "${ARCHIVE_NAME}.tar.gz.sha256"
-    shasum -a 256 "${ARCHIVE_NAME}.tar.xz" > "${ARCHIVE_NAME}.tar.xz.sha256"
-else
-    echo "WARNING: No SHA256 utility found, skipping checksums"
-fi
+    cd "${BUILD_DIR}"
 
+    # Create tar.gz (for compatibility)
+    echo "Creating ${ARCHIVE_NAME}.tar.gz..."
+    tar czf "${DIST_DIR}/${ARCHIVE_NAME}.tar.gz" -C "${SOURCE_DIR}" .
+
+    # Generate checksum
+    cd "${DIST_DIR}"
+    if command -v sha256sum >/dev/null 2>&1; then
+        sha256sum "${ARCHIVE_NAME}.tar.gz" > "${ARCHIVE_NAME}.tar.gz.sha256"
+    elif command -v shasum >/dev/null 2>&1; then
+        shasum -a 256 "${ARCHIVE_NAME}.tar.gz" > "${ARCHIVE_NAME}.tar.gz.sha256"
+    else
+        echo "WARNING: No SHA256 utility found, skipping checksum for ${FLAVOR}"
+    fi
+
+    echo "✓ Created ${ARCHIVE_NAME}.tar.gz"
+    ls -lh "${DIST_DIR}/${ARCHIVE_NAME}.tar.gz"
+}
+
+# Function to strip binaries in a directory tree
+strip_binaries() {
+    local DIR=$1
+
+    echo "Stripping binaries in ${DIR}..."
+
+    if [[ "$OSTYPE" == "darwin"* ]] || uname -s | grep -q "Darwin"; then
+        # macOS: strip binaries and shared libraries
+        find "${DIR}" -type f \( -name "*.so" -o -name "*.dylib" -o -perm +111 \) -exec file {} \; | \
+            grep -E "Mach-O.*executable|Mach-O.*dynamically linked shared library" | \
+            cut -d: -f1 | \
+            while read -r binary; do
+                echo "  Stripping: $(basename "$binary")"
+                strip -x "$binary" 2>/dev/null || true
+            done
+    else
+        # Linux: strip binaries and shared objects
+        find "${DIR}" -type f \( -name "*.so*" -o -perm /111 \) -exec file {} \; | \
+            grep -E "ELF.*executable|ELF.*shared object" | \
+            cut -d: -f1 | \
+            while read -r binary; do
+                echo "  Stripping: $(basename "$binary")"
+                strip "$binary" 2>/dev/null || true
+            done
+    fi
+
+    echo "✓ Stripping complete"
+}
+
+# Create install_only flavor (unstripped)
+echo ""
+echo "=== Creating install_only flavor ==="
+create_archive "install_only" "${PORTABLE_DIR}"
+
+# Create install_only_stripped flavor
+echo ""
+echo "=== Creating install_only_stripped flavor ==="
+
+# Create a temporary copy for stripping
+STRIPPED_DIR="${BUILD_DIR}/python-${PYTHON_VERSION}-${TARGET_TRIPLE}-stripped"
+echo "Creating stripped copy at: ${STRIPPED_DIR}"
+rm -rf "${STRIPPED_DIR}"
+cp -R "${PORTABLE_DIR}" "${STRIPPED_DIR}"
+
+# Strip the binaries
+strip_binaries "${STRIPPED_DIR}"
+
+# Create the stripped archive
+create_archive "install_only_stripped" "${STRIPPED_DIR}"
+
+# Clean up stripped directory
+rm -rf "${STRIPPED_DIR}"
+
+echo ""
 echo "=== Packaging complete ==="
 echo "Archives created in: ${DIST_DIR}"
 ls -lh "${DIST_DIR}"
@@ -44,42 +109,55 @@ ls -lh "${DIST_DIR}"
 # Verify the packaged binary has correct library paths (macOS only)
 if [[ "$OSTYPE" == "darwin"* ]] || uname -s | grep -q "Darwin"; then
     echo ""
-    echo "=== Verifying packaged binary ==="
+    echo "=== Verifying packaged binaries ==="
     echo "OS: $(uname -s), OSTYPE: ${OSTYPE:-not set}"
 
-    TEMP_VERIFY=$(mktemp -d)
-    cd "${TEMP_VERIFY}"
-    tar xzf "${DIST_DIR}/${ARCHIVE_NAME}.tar.gz" "python-${PYTHON_VERSION}-${TARGET_TRIPLE}/bin/python2.7" 2>&1 || {
-        echo "ERROR: Failed to extract binary from archive"
-        exit 1
-    }
+    for FLAVOR in "install_only" "install_only_stripped"; do
+        echo ""
+        echo "--- Verifying ${FLAVOR} ---"
 
-    BINARY_PATH="python-${PYTHON_VERSION}-${TARGET_TRIPLE}/bin/python2.7"
-    echo "Extracted binary: $BINARY_PATH"
-    ls -la "$BINARY_PATH"
+        ARCHIVE_NAME="cpython-${PYTHON_VERSION}+${RELEASE_DATE}-${TARGET_TRIPLE}-${FLAVOR}"
+        TEMP_VERIFY=$(mktemp -d)
+        cd "${TEMP_VERIFY}"
 
-    echo ""
-    echo "Full library paths in packaged python2.7:"
-    otool -L "$BINARY_PATH"
-    echo ""
-    echo "Full rpaths in packaged python2.7:"
-    otool -l "$BINARY_PATH" | grep -A 2 "cmd LC_RPATH" || echo "No rpath found"
-    echo ""
+        tar xzf "${DIST_DIR}/${ARCHIVE_NAME}.tar.gz" "bin/python2.7" 2>&1 || {
+            echo "ERROR: Failed to extract binary from ${FLAVOR} archive"
+            rm -rf "${TEMP_VERIFY}"
+            exit 1
+        }
 
-    LIB_PATHS=$(otool -L "$BINARY_PATH" | grep libpython)
-    echo "Libpython line: $LIB_PATHS"
+        BINARY_PATH="bin/python2.7"
+        echo "Extracted binary: $BINARY_PATH"
+        ls -la "$BINARY_PATH"
 
-    if echo "$LIB_PATHS" | grep -q "@rpath/libpython"; then
-        echo "✓ VERIFIED: Packaged binary uses @rpath (correct)"
-    else
-        echo "✗ ERROR: Packaged binary does NOT use @rpath!"
-        echo "This means the install_name_tool fix was not applied or was reverted"
+        LIB_PATHS=$(otool -L "$BINARY_PATH" | grep libpython || echo "")
+
+        if [ -z "$LIB_PATHS" ]; then
+            echo "✗ ERROR: No libpython found in binary"
+            rm -rf "${TEMP_VERIFY}"
+            exit 1
+        fi
+
+        echo "Libpython line: $LIB_PATHS"
+
+        if echo "$LIB_PATHS" | grep -q "@rpath/libpython"; then
+            echo "✓ VERIFIED: ${FLAVOR} binary uses @rpath (correct)"
+        else
+            echo "✗ ERROR: ${FLAVOR} binary does NOT use @rpath!"
+            rm -rf "${TEMP_VERIFY}"
+            exit 1
+        fi
+
         rm -rf "${TEMP_VERIFY}"
-        exit 1
-    fi
+    done
 
-    rm -rf "${TEMP_VERIFY}"
     cd "${DIST_DIR}"
 else
     echo "Skipping verification (not macOS): OS=$(uname -s), OSTYPE=${OSTYPE:-not set}"
 fi
+
+echo ""
+echo "=== Summary ==="
+echo "Flavors created:"
+echo "  - install_only: Full installation with debug symbols"
+echo "  - install_only_stripped: Smaller, debug symbols removed"
