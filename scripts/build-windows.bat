@@ -142,18 +142,31 @@ if "%TARGET_ARCH%"=="aarch64" (
     if exist "patches\windows\arm64\05-add-arm64-support.patch" (
         echo [2/6] Applying additional ARM64 support patch...
         %PATCH_EXE% -d "%SOURCE_DIR%" -p1 -N --binary < patches\windows\arm64\05-add-arm64-support.patch
-        if errorlevel 1 (
-            echo ERROR: Failed to apply additional ARM64 support patch (05)
+        set PATCH_EXIT=%ERRORLEVEL%
+        echo Patch 05 exit code: %PATCH_EXIT%
+        if %PATCH_EXIT% GTR 1 (
+            echo ERROR: Failed to apply additional ARM64 support patch (05) - exit code %PATCH_EXIT%
             exit /b 1
         )
     )
+    echo [2/6] ARM64 patches completed
 )
 
 echo [2/6] Patches applied successfully
 
 echo.
 echo [3/6] Configuring build environment...
+echo Changing to directory: %SOURCE_DIR%\PCbuild
+if not exist "%SOURCE_DIR%\PCbuild" (
+    echo ERROR: PCbuild directory not found: %SOURCE_DIR%\PCbuild
+    exit /b 1
+)
 cd "%SOURCE_DIR%\PCbuild"
+if errorlevel 1 (
+    echo ERROR: Failed to change to PCbuild directory
+    exit /b 1
+)
+echo Current directory: %CD%
 
 REM Normalize and validate TARGET_ARCH, and set defaults if necessary
 REM Remove all spaces from TARGET_ARCH to avoid comparison issues
