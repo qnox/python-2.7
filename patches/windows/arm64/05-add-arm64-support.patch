@@ -1,67 +1,10 @@
-Add ARM64 (aarch64) platform support for Windows builds
+Remove invalid BaseAddress values for ARM64 builds
 
-This patch adds support for building Python 2.7.18 on Windows ARM64.
-It must be applied AFTER patches 01-04 (VS2022 toolset upgrade, MSVC fixes, Tcl/Tk upgrade).
+ARM64 Windows requires base addresses >4GB, but Python 2.7 uses 32-bit addresses.
+The solution is to remove BaseAddress specifications for ARM64 and let the linker
+choose appropriate addresses automatically.
 
-Changes:
-- Adds ARM64 platform architecture mapping (ArchName)
-- Configures ARM64 linker target machine (MachineARM64)
-- Removes invalid base addresses for ARM64 (must be >4GB)
-- Configures Tcl/Tk 8.6.14 with ARM64 support and threaded DLLs
-- Excludes x86/x64-specific assembly code from ARM64 builds
-
---- PCbuild/python.props.orig	2025-12-04 15:14:35.146473700 +0000
-+++ PCbuild/python.props	2025-12-04 15:14:49.324760100 +0000
-@@ -23,6 +23,7 @@
-     so we define our own constant ArchName and use wherever we need it.
-     -->
-     <ArchName Condition="'$(ArchName)' == '' and $(Platform) == 'x64'">amd64</ArchName>
-+    <ArchName Condition="'$(ArchName)' == '' and $(Platform) == 'ARM64'">arm64</ArchName>
-     <ArchName Condition="'$(ArchName)' == ''">win32</ArchName>
-     <ArchName Condition="$(Configuration) == 'PGInstrument' or $(Configuration) == 'PGUpdate'">$(ArchName)-pgo</ArchName>
- 
-
---- PCbuild/pyproject.props.orig	2025-12-04 15:15:21.627945800 +0000
-+++ PCbuild/pyproject.props	2025-12-04 15:15:38.005203900 +0000
-@@ -60,6 +60,7 @@
-       <IgnoreSpecificDefaultLibraries>LIBC;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
-       <TargetMachine>MachineX86</TargetMachine>
-       <TargetMachine Condition="'$(Platform)' == 'x64'">MachineX64</TargetMachine>
-+      <TargetMachine Condition="'$(Platform)' == 'ARM64'">MachineARM64</TargetMachine>
-       <ProfileGuidedDatabase Condition="$(SupportPGO)">$(OutDir)$(TargetName).pgd</ProfileGuidedDatabase>
-       <LinkTimeCodeGeneration Condition="$(Configuration) == 'Release'">UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
-       <LinkTimeCodeGeneration Condition="$(SupportPGO) and $(Configuration) == 'PGInstrument'">PGInstrument</LinkTimeCodeGeneration>
-
---- PCbuild/tcltk.props.orig	2025-12-04 15:16:01.077623900 +0000
-+++ PCbuild/tcltk.props	2025-12-04 15:16:27.124702000 +0000
-@@ -19,17 +19,21 @@
-     <tixDir>$(ExternalsDir)tix-$(TixMajorVersion).$(TixMinorVersion).$(TixPatchLevel).$(TixRevision)\</tixDir>
-     <tcltkDir>$(ExternalsDir)tcltk\</tcltkDir>
-     <tcltkDir Condition="'$(Platform)' == 'x64'">$(ExternalsDir)tcltk64\</tcltkDir>
-+    <tcltkDir Condition="'$(Platform)' == 'ARM64'">$(ExternalsDir)tcltk-arm64\</tcltkDir>
-     <TclDebugExt Condition="'$(Configuration)' == 'Debug'">g</TclDebugExt>
--    <tclDLLName>tcl$(TclMajorVersion)$(TclMinorVersion)$(TclDebugExt).dll</tclDLLName>
--    <tclLibName>tcl$(TclMajorVersion)$(TclMinorVersion)$(TclDebugExt).lib</tclLibName>
--    <tclShExeName>tclsh$(TclMajorVersion)$(TclMinorVersion)$(TclDebugExt).exe</tclShExeName>
--    <tkDLLName>tk$(TkMajorVersion)$(TkMinorVersion)$(TclDebugExt).dll</tkDLLName>
--    <tkLibName>tk$(TkMajorVersion)$(TkMinorVersion)$(TclDebugExt).lib</tkLibName>
-+    <!-- ARM64 uses threaded 8.6.14 builds with 't' suffix -->
-+    <TclThreadExt Condition="'$(Platform)' == 'ARM64'">t</TclThreadExt>
-+    <tclDLLName>tcl$(TclMajorVersion)$(TclMinorVersion)$(TclDebugExt)$(TclThreadExt).dll</tclDLLName>
-+    <tclLibName>tcl$(TclMajorVersion)$(TclMinorVersion)$(TclDebugExt)$(TclThreadExt).lib</tclLibName>
-+    <tclShExeName>tclsh$(TclMajorVersion)$(TclMinorVersion)$(TclDebugExt)$(TclThreadExt).exe</tclShExeName>
-+    <tkDLLName>tk$(TkMajorVersion)$(TkMinorVersion)$(TclDebugExt)$(TclThreadExt).dll</tkDLLName>
-+    <tkLibName>tk$(TkMajorVersion)$(TkMinorVersion)$(TclDebugExt)$(TclThreadExt).lib</tkLibName>
-     <tixDLLName>tix$(TixMajorVersion)$(TixMinorVersion)$(TclDebugExt).dll</tixDLLName>
-     <tixDLLPath>$(tcltkDir)lib\tix$(TixMajorVersion).$(TixMinorVersion).$(TixPatchLevel)\$(tixDLLName)</tixDLLPath>
--    <tcltkLib>$(tcltkDir)lib\tcl$(TclMajorVersion)$(TclMinorVersion)$(TclDebugExt).lib;$(tcltkDir)lib\tk$(TkMajorVersion)$(TkMinorVersion)$(TclDebugExt).lib</tcltkLib>
-+    <tcltkLib>$(tcltkDir)lib\tcl$(TclMajorVersion)$(TclMinorVersion)$(TclDebugExt)$(TclThreadExt).lib;$(tcltkDir)lib\tk$(TkMajorVersion)$(TkMinorVersion)$(TclDebugExt)$(TclThreadExt).lib</tcltkLib>
-     <TclMachine>IX86</TclMachine>
-     <TclMachine Condition="'$(Platform)' == 'x64'">AMD64</TclMachine>
-+    <TclMachine Condition="'$(Platform)' == 'ARM64'">ARM64</TclMachine>
-     <TclVersions>TCL_MAJOR_VERSION=$(TclMajorVersion) TCL_MINOR_VERSION=$(TclMinorVersion) TCL_PATCH_LEVEL=$(TclPatchLevel)</TclVersions>
-     <TclShortVersions>TCL_MAJOR=$(TclMajorVersion) TCL_MINOR=$(TclMinorVersion) TCL_PATCH=$(TclPatchLevel)</TclShortVersions>
-     <TkVersions>TK_MAJOR_VERSION=$(TkMajorVersion) TK_MINOR_VERSION=$(TkMinorVersion) TK_PATCH_LEVEL=$(TkPatchLevel)</TkVersions>
+This patch must be applied AFTER patches 01-04.
 
 --- PCbuild/_bsddb.vcxproj.orig	2025-12-04 15:17:00.846057900 +0000
 +++ PCbuild/_bsddb.vcxproj	2025-12-04 15:17:19.009930900 +0000
@@ -226,6 +169,18 @@ Changes:
      <Link>
 -      <BaseAddress>0x1D120000</BaseAddress>
 +      <BaseAddress Condition="'$(Platform)' != 'ARM64'">0x1D120000</BaseAddress>
+     </Link>
+   </ItemDefinitionGroup>
+   <ItemGroup>
+
+--- PCbuild/winsound.vcxproj.orig	2025-12-04 15:17:00.846057900 +0000
++++ PCbuild/winsound.vcxproj	2025-12-04 15:17:19.009930900 +0000
+@@ -66,7 +66,7 @@
+     </ClCompile>
+     <Link>
+       <AdditionalDependencies>winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+-      <BaseAddress>0x1D160000</BaseAddress>
++      <BaseAddress Condition="'$(Platform)' != 'ARM64'">0x1D160000</BaseAddress>
      </Link>
    </ItemDefinitionGroup>
    <ItemGroup>
