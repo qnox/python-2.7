@@ -1,6 +1,7 @@
+Only in Python-2.7.18/PCbuild: Python-2.7.18
 diff -ur Python-2.7.18.orig/PCbuild/_bsddb.vcxproj Python-2.7.18/PCbuild/_bsddb.vcxproj
 --- Python-2.7.18.orig/PCbuild/_bsddb.vcxproj	2020-04-19 23:13:39
-+++ Python-2.7.18/PCbuild/_bsddb.vcxproj	2025-12-10 21:59:50
++++ Python-2.7.18/PCbuild/_bsddb.vcxproj	2025-12-10 22:10:46
 @@ -67,7 +67,7 @@
      </ClCompile>
      <Link>
@@ -12,7 +13,7 @@ diff -ur Python-2.7.18.orig/PCbuild/_bsddb.vcxproj Python-2.7.18/PCbuild/_bsddb.
    <ItemGroup>
 diff -ur Python-2.7.18.orig/PCbuild/_ctypes.vcxproj Python-2.7.18/PCbuild/_ctypes.vcxproj
 --- Python-2.7.18.orig/PCbuild/_ctypes.vcxproj	2020-04-19 23:13:39
-+++ Python-2.7.18/PCbuild/_ctypes.vcxproj	2025-12-10 21:59:50
++++ Python-2.7.18/PCbuild/_ctypes.vcxproj	2025-12-10 22:10:46
 @@ -64,7 +64,7 @@
        <AdditionalIncludeDirectories>..\Modules\_ctypes\libffi_msvc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
      </ClCompile>
@@ -24,7 +25,7 @@ diff -ur Python-2.7.18.orig/PCbuild/_ctypes.vcxproj Python-2.7.18/PCbuild/_ctype
    </ItemDefinitionGroup>
 diff -ur Python-2.7.18.orig/PCbuild/_elementtree.vcxproj Python-2.7.18/PCbuild/_elementtree.vcxproj
 --- Python-2.7.18.orig/PCbuild/_elementtree.vcxproj	2020-04-19 23:13:39
-+++ Python-2.7.18/PCbuild/_elementtree.vcxproj	2025-12-10 21:59:50
++++ Python-2.7.18/PCbuild/_elementtree.vcxproj	2025-12-10 22:10:46
 @@ -65,7 +65,7 @@
        <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;USE_PYEXPAT_CAPI;XML_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
      </ClCompile>
@@ -36,7 +37,7 @@ diff -ur Python-2.7.18.orig/PCbuild/_elementtree.vcxproj Python-2.7.18/PCbuild/_
    <ItemGroup>
 diff -ur Python-2.7.18.orig/PCbuild/_msi.vcxproj Python-2.7.18/PCbuild/_msi.vcxproj
 --- Python-2.7.18.orig/PCbuild/_msi.vcxproj	2020-04-19 23:13:39
-+++ Python-2.7.18/PCbuild/_msi.vcxproj	2025-12-10 21:59:50
++++ Python-2.7.18/PCbuild/_msi.vcxproj	2025-12-10 22:10:46
 @@ -62,7 +62,7 @@
    <ItemDefinitionGroup>
      <Link>
@@ -48,7 +49,7 @@ diff -ur Python-2.7.18.orig/PCbuild/_msi.vcxproj Python-2.7.18/PCbuild/_msi.vcxp
    <ItemGroup>
 diff -ur Python-2.7.18.orig/PCbuild/_multiprocessing.vcxproj Python-2.7.18/PCbuild/_multiprocessing.vcxproj
 --- Python-2.7.18.orig/PCbuild/_multiprocessing.vcxproj	2020-04-19 23:13:39
-+++ Python-2.7.18/PCbuild/_multiprocessing.vcxproj	2025-12-10 21:59:50
++++ Python-2.7.18/PCbuild/_multiprocessing.vcxproj	2025-12-10 22:10:46
 @@ -62,7 +62,7 @@
    <ItemDefinitionGroup>
      <Link>
@@ -60,7 +61,7 @@ diff -ur Python-2.7.18.orig/PCbuild/_multiprocessing.vcxproj Python-2.7.18/PCbui
    <ItemGroup>
 diff -ur Python-2.7.18.orig/PCbuild/_socket.vcxproj Python-2.7.18/PCbuild/_socket.vcxproj
 --- Python-2.7.18.orig/PCbuild/_socket.vcxproj	2020-04-19 23:13:39
-+++ Python-2.7.18/PCbuild/_socket.vcxproj	2025-12-10 21:59:50
++++ Python-2.7.18/PCbuild/_socket.vcxproj	2025-12-10 22:10:46
 @@ -62,7 +62,7 @@
    <ItemDefinitionGroup>
      <Link>
@@ -72,7 +73,7 @@ diff -ur Python-2.7.18.orig/PCbuild/_socket.vcxproj Python-2.7.18/PCbuild/_socke
    <ItemGroup>
 diff -ur Python-2.7.18.orig/PCbuild/_sqlite3.vcxproj Python-2.7.18/PCbuild/_sqlite3.vcxproj
 --- Python-2.7.18.orig/PCbuild/_sqlite3.vcxproj	2020-04-19 23:13:39
-+++ Python-2.7.18/PCbuild/_sqlite3.vcxproj	2025-12-10 21:59:50
++++ Python-2.7.18/PCbuild/_sqlite3.vcxproj	2025-12-10 22:10:46
 @@ -65,7 +65,7 @@
        <PreprocessorDefinitions>MODULE_NAME="sqlite3";%(PreprocessorDefinitions)</PreprocessorDefinitions>
      </ClCompile>
@@ -84,7 +85,7 @@ diff -ur Python-2.7.18.orig/PCbuild/_sqlite3.vcxproj Python-2.7.18/PCbuild/_sqli
    <ItemGroup>
 diff -ur Python-2.7.18.orig/PCbuild/_testcapi.vcxproj Python-2.7.18/PCbuild/_testcapi.vcxproj
 --- Python-2.7.18.orig/PCbuild/_testcapi.vcxproj	2020-04-19 23:13:39
-+++ Python-2.7.18/PCbuild/_testcapi.vcxproj	2025-12-10 21:59:50
++++ Python-2.7.18/PCbuild/_testcapi.vcxproj	2025-12-10 22:10:46
 @@ -62,7 +62,7 @@
    </PropertyGroup>
    <ItemDefinitionGroup>
@@ -96,7 +97,7 @@ diff -ur Python-2.7.18.orig/PCbuild/_testcapi.vcxproj Python-2.7.18/PCbuild/_tes
    <ItemGroup>
 diff -ur Python-2.7.18.orig/PCbuild/bz2.vcxproj Python-2.7.18/PCbuild/bz2.vcxproj
 --- Python-2.7.18.orig/PCbuild/bz2.vcxproj	2020-04-19 23:13:39
-+++ Python-2.7.18/PCbuild/bz2.vcxproj	2025-12-10 21:59:50
++++ Python-2.7.18/PCbuild/bz2.vcxproj	2025-12-10 22:10:46
 @@ -67,7 +67,7 @@
        <PreprocessorDefinitions>WIN32;_FILE_OFFSET_BITS=64;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
      </ClCompile>
@@ -108,7 +109,7 @@ diff -ur Python-2.7.18.orig/PCbuild/bz2.vcxproj Python-2.7.18/PCbuild/bz2.vcxpro
    <ItemGroup>
 diff -ur Python-2.7.18.orig/PCbuild/python.vcxproj Python-2.7.18/PCbuild/python.vcxproj
 --- Python-2.7.18.orig/PCbuild/python.vcxproj	2020-04-19 23:13:39
-+++ Python-2.7.18/PCbuild/python.vcxproj	2025-12-10 21:59:50
++++ Python-2.7.18/PCbuild/python.vcxproj	2025-12-10 22:10:46
 @@ -66,7 +66,7 @@
      <Link>
        <SubSystem>Console</SubSystem>
@@ -118,21 +119,9 @@ diff -ur Python-2.7.18.orig/PCbuild/python.vcxproj Python-2.7.18/PCbuild/python.
      </Link>
    </ItemDefinitionGroup>
    <ItemGroup>
-diff -ur Python-2.7.18.orig/PCbuild/pythoncore.vcxproj Python-2.7.18/PCbuild/pythoncore.vcxproj
---- Python-2.7.18.orig/PCbuild/pythoncore.vcxproj	2020-04-19 23:13:39
-+++ Python-2.7.18/PCbuild/pythoncore.vcxproj	2025-12-10 21:59:50
-@@ -74,7 +74,7 @@
-     </ClCompile>
-     <Link>
-       <AdditionalDependencies>ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
--      <BaseAddress>0x1e000000</BaseAddress>
-+      <BaseAddress Condition="'$(Platform)' != 'ARM64'">0x1e000000</BaseAddress>
-     </Link>
-   </ItemDefinitionGroup>
-   <ItemGroup>
 diff -ur Python-2.7.18.orig/PCbuild/pythonw.vcxproj Python-2.7.18/PCbuild/pythonw.vcxproj
 --- Python-2.7.18.orig/PCbuild/pythonw.vcxproj	2020-04-19 23:13:39
-+++ Python-2.7.18/PCbuild/pythonw.vcxproj	2025-12-10 21:59:50
++++ Python-2.7.18/PCbuild/pythonw.vcxproj	2025-12-10 22:10:46
 @@ -65,7 +65,7 @@
    <ItemDefinitionGroup>
      <Link>
@@ -144,7 +133,7 @@ diff -ur Python-2.7.18.orig/PCbuild/pythonw.vcxproj Python-2.7.18/PCbuild/python
    <ItemGroup>
 diff -ur Python-2.7.18.orig/PCbuild/select.vcxproj Python-2.7.18/PCbuild/select.vcxproj
 --- Python-2.7.18.orig/PCbuild/select.vcxproj	2020-04-19 23:13:39
-+++ Python-2.7.18/PCbuild/select.vcxproj	2025-12-10 21:59:50
++++ Python-2.7.18/PCbuild/select.vcxproj	2025-12-10 22:10:46
 @@ -61,7 +61,7 @@
    <ItemDefinitionGroup>
      <Link>
@@ -156,7 +145,7 @@ diff -ur Python-2.7.18.orig/PCbuild/select.vcxproj Python-2.7.18/PCbuild/select.
    <ItemGroup>
 diff -ur Python-2.7.18.orig/PCbuild/unicodedata.vcxproj Python-2.7.18/PCbuild/unicodedata.vcxproj
 --- Python-2.7.18.orig/PCbuild/unicodedata.vcxproj	2020-04-19 23:13:39
-+++ Python-2.7.18/PCbuild/unicodedata.vcxproj	2025-12-10 21:59:50
++++ Python-2.7.18/PCbuild/unicodedata.vcxproj	2025-12-10 22:10:46
 @@ -61,7 +61,7 @@
    </PropertyGroup>
    <ItemDefinitionGroup>
