@@ -1,14 +1,7 @@
-Remove invalid BaseAddress values for ARM64 builds
-
-ARM64 Windows requires base addresses >4GB, but Python 2.7 uses 32-bit addresses.
-The solution is to remove BaseAddress specifications for ARM64 and let the linker
-choose appropriate addresses automatically.
-
-This patch must be applied AFTER patches 01-04.
-
---- PCbuild/_bsddb.vcxproj.orig	2025-12-04 15:17:00.846057900 +0000
-+++ PCbuild/_bsddb.vcxproj	2025-12-04 15:17:19.009930900 +0000
-@@ -68,7 +68,7 @@
+diff -ur Python-2.7.18.orig/PCbuild/_bsddb.vcxproj Python-2.7.18/PCbuild/_bsddb.vcxproj
+--- Python-2.7.18.orig/PCbuild/_bsddb.vcxproj	2020-04-19 23:13:39
++++ Python-2.7.18/PCbuild/_bsddb.vcxproj	2025-12-10 21:59:50
+@@ -67,7 +67,7 @@
      </ClCompile>
      <Link>
        <AdditionalDependencies>ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -17,10 +10,11 @@ This patch must be applied AFTER patches 01-04.
      </Link>
    </ItemDefinitionGroup>
    <ItemGroup>
-
---- PCbuild/_ctypes.vcxproj.orig	2025-12-04 15:17:00.846057900 +0000
-+++ PCbuild/_ctypes.vcxproj	2025-12-04 15:17:19.009930900 +0000
-@@ -72,7 +72,7 @@
+diff -ur Python-2.7.18.orig/PCbuild/_ctypes.vcxproj Python-2.7.18/PCbuild/_ctypes.vcxproj
+--- Python-2.7.18.orig/PCbuild/_ctypes.vcxproj	2020-04-19 23:13:39
++++ Python-2.7.18/PCbuild/_ctypes.vcxproj	2025-12-10 21:59:50
+@@ -64,7 +64,7 @@
+       <AdditionalIncludeDirectories>..\Modules\_ctypes\libffi_msvc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
      </ClCompile>
      <Link>
 -      <BaseAddress>0x1D1A0000</BaseAddress>
@@ -28,11 +22,11 @@ This patch must be applied AFTER patches 01-04.
        <AdditionalOptions>/EXPORT:DllGetClassObject,PRIVATE /EXPORT:DllCanUnloadNow,PRIVATE %(AdditionalOptions)</AdditionalOptions>
      </Link>
    </ItemDefinitionGroup>
-
---- PCbuild/_elementtree.vcxproj.orig	2025-12-04 15:17:00.846057900 +0000
-+++ PCbuild/_elementtree.vcxproj	2025-12-04 15:17:19.009930900 +0000
-@@ -69,7 +69,7 @@
-       <PreprocessorDefinitions>_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;USE_PYEXPAT_CAPI;XML_STATIC;HAVE_EXPAT_CONFIG_H;XML_POOR_ENTROPY;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+diff -ur Python-2.7.18.orig/PCbuild/_elementtree.vcxproj Python-2.7.18/PCbuild/_elementtree.vcxproj
+--- Python-2.7.18.orig/PCbuild/_elementtree.vcxproj	2020-04-19 23:13:39
++++ Python-2.7.18/PCbuild/_elementtree.vcxproj	2025-12-10 21:59:50
+@@ -65,7 +65,7 @@
+       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;USE_PYEXPAT_CAPI;XML_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
      </ClCompile>
      <Link>
 -      <BaseAddress>0x1D100000</BaseAddress>
@@ -40,35 +34,23 @@ This patch must be applied AFTER patches 01-04.
      </Link>
    </ItemDefinitionGroup>
    <ItemGroup>
-
---- PCbuild/_msi.vcxproj.orig	2025-12-04 15:17:00.846057900 +0000
-+++ PCbuild/_msi.vcxproj	2025-12-04 15:17:19.009930900 +0000
-@@ -66,7 +66,7 @@
-     </ClCompile>
+diff -ur Python-2.7.18.orig/PCbuild/_msi.vcxproj Python-2.7.18/PCbuild/_msi.vcxproj
+--- Python-2.7.18.orig/PCbuild/_msi.vcxproj	2020-04-19 23:13:39
++++ Python-2.7.18/PCbuild/_msi.vcxproj	2025-12-10 21:59:50
+@@ -62,7 +62,7 @@
+   <ItemDefinitionGroup>
      <Link>
-       <AdditionalDependencies>fci.lib;msi.lib;rpcrt4.lib;%(AdditionalDependencies)</AdditionalDependencies>
+       <AdditionalDependencies>cabinet.lib;msi.lib;rpcrt4.lib;%(AdditionalDependencies)</AdditionalDependencies>
 -      <BaseAddress>0x1D160000</BaseAddress>
 +      <BaseAddress Condition="'$(Platform)' != 'ARM64'">0x1D160000</BaseAddress>
      </Link>
    </ItemDefinitionGroup>
    <ItemGroup>
-
---- PCbuild/_multiprocessing.vcxproj.orig	2025-12-04 15:17:00.846057900 +0000
-+++ PCbuild/_multiprocessing.vcxproj	2025-12-04 15:17:19.009930900 +0000
-@@ -66,7 +66,7 @@
-       <PreprocessorDefinitions>Py_BUILD_CORE_MODULE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-     </ClCompile>
-     <Link>
--      <BaseAddress>0x1e1D0000</BaseAddress>
-+      <BaseAddress Condition="'$(Platform)' != 'ARM64'">0x1e1D0000</BaseAddress>
-     </Link>
-   </ItemDefinitionGroup>
-   <ItemGroup>
-
---- PCbuild/_socket.vcxproj.orig	2025-12-04 15:17:00.846057900 +0000
-+++ PCbuild/_socket.vcxproj	2025-12-04 15:17:19.009930900 +0000
-@@ -66,7 +66,7 @@
-     </ClCompile>
+diff -ur Python-2.7.18.orig/PCbuild/_multiprocessing.vcxproj Python-2.7.18/PCbuild/_multiprocessing.vcxproj
+--- Python-2.7.18.orig/PCbuild/_multiprocessing.vcxproj	2020-04-19 23:13:39
++++ Python-2.7.18/PCbuild/_multiprocessing.vcxproj	2025-12-10 21:59:50
+@@ -62,7 +62,7 @@
+   <ItemDefinitionGroup>
      <Link>
        <AdditionalDependencies>ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
 -      <BaseAddress>0x1e1D0000</BaseAddress>
@@ -76,10 +58,22 @@ This patch must be applied AFTER patches 01-04.
      </Link>
    </ItemDefinitionGroup>
    <ItemGroup>
-
---- PCbuild/_sqlite3.vcxproj.orig	2025-12-04 15:17:00.846057900 +0000
-+++ PCbuild/_sqlite3.vcxproj	2025-12-04 15:17:19.009930900 +0000
-@@ -68,7 +68,7 @@
+diff -ur Python-2.7.18.orig/PCbuild/_socket.vcxproj Python-2.7.18/PCbuild/_socket.vcxproj
+--- Python-2.7.18.orig/PCbuild/_socket.vcxproj	2020-04-19 23:13:39
++++ Python-2.7.18/PCbuild/_socket.vcxproj	2025-12-10 21:59:50
+@@ -62,7 +62,7 @@
+   <ItemDefinitionGroup>
+     <Link>
+       <AdditionalDependencies>ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+-      <BaseAddress>0x1e1D0000</BaseAddress>
++      <BaseAddress Condition="'$(Platform)' != 'ARM64'">0x1e1D0000</BaseAddress>
+     </Link>
+   </ItemDefinitionGroup>
+   <ItemGroup>
+diff -ur Python-2.7.18.orig/PCbuild/_sqlite3.vcxproj Python-2.7.18/PCbuild/_sqlite3.vcxproj
+--- Python-2.7.18.orig/PCbuild/_sqlite3.vcxproj	2020-04-19 23:13:39
++++ Python-2.7.18/PCbuild/_sqlite3.vcxproj	2025-12-10 21:59:50
+@@ -65,7 +65,7 @@
        <PreprocessorDefinitions>MODULE_NAME="sqlite3";%(PreprocessorDefinitions)</PreprocessorDefinitions>
      </ClCompile>
      <Link>
@@ -88,23 +82,23 @@ This patch must be applied AFTER patches 01-04.
      </Link>
    </ItemDefinitionGroup>
    <ItemGroup>
-
---- PCbuild/_testcapi.vcxproj.orig	2025-12-04 15:17:00.846057900 +0000
-+++ PCbuild/_testcapi.vcxproj	2025-12-04 15:17:19.009930900 +0000
-@@ -66,7 +66,7 @@
-       <PreprocessorDefinitions>Py_BUILD_CORE_MODULE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-     </ClCompile>
+diff -ur Python-2.7.18.orig/PCbuild/_testcapi.vcxproj Python-2.7.18/PCbuild/_testcapi.vcxproj
+--- Python-2.7.18.orig/PCbuild/_testcapi.vcxproj	2020-04-19 23:13:39
++++ Python-2.7.18/PCbuild/_testcapi.vcxproj	2025-12-10 21:59:50
+@@ -62,7 +62,7 @@
+   </PropertyGroup>
+   <ItemDefinitionGroup>
      <Link>
 -      <BaseAddress>0x1e1F0000</BaseAddress>
 +      <BaseAddress Condition="'$(Platform)' != 'ARM64'">0x1e1F0000</BaseAddress>
      </Link>
    </ItemDefinitionGroup>
    <ItemGroup>
-
---- PCbuild/bz2.vcxproj.orig	2025-12-04 15:17:00.846057900 +0000
-+++ PCbuild/bz2.vcxproj	2025-12-04 15:17:19.009930900 +0000
-@@ -68,7 +68,7 @@
-       <PreprocessorDefinitions>_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+diff -ur Python-2.7.18.orig/PCbuild/bz2.vcxproj Python-2.7.18/PCbuild/bz2.vcxproj
+--- Python-2.7.18.orig/PCbuild/bz2.vcxproj	2020-04-19 23:13:39
++++ Python-2.7.18/PCbuild/bz2.vcxproj	2025-12-10 21:59:50
+@@ -67,7 +67,7 @@
+       <PreprocessorDefinitions>WIN32;_FILE_OFFSET_BITS=64;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
      </ClCompile>
      <Link>
 -      <BaseAddress>0x1D170000</BaseAddress>
@@ -112,21 +106,21 @@ This patch must be applied AFTER patches 01-04.
      </Link>
    </ItemDefinitionGroup>
    <ItemGroup>
-
---- PCbuild/python.vcxproj.orig	2025-12-04 15:17:00.846057900 +0000
-+++ PCbuild/python.vcxproj	2025-12-04 15:17:19.009930900 +0000
-@@ -72,7 +72,7 @@
-     </ResourceCompile>
+diff -ur Python-2.7.18.orig/PCbuild/python.vcxproj Python-2.7.18/PCbuild/python.vcxproj
+--- Python-2.7.18.orig/PCbuild/python.vcxproj	2020-04-19 23:13:39
++++ Python-2.7.18/PCbuild/python.vcxproj	2025-12-10 21:59:50
+@@ -66,7 +66,7 @@
      <Link>
-       <AdditionalDependencies>ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+       <SubSystem>Console</SubSystem>
+       <StackReserveSize>2000000</StackReserveSize>
 -      <BaseAddress>0x1d000000</BaseAddress>
 +      <BaseAddress Condition="'$(Platform)' != 'ARM64'">0x1d000000</BaseAddress>
-       <SubSystem>Console</SubSystem>
      </Link>
    </ItemDefinitionGroup>
-
---- PCbuild/pythoncore.vcxproj.orig	2025-12-04 15:17:00.846057900 +0000
-+++ PCbuild/pythoncore.vcxproj	2025-12-04 15:17:19.009930900 +0000
+   <ItemGroup>
+diff -ur Python-2.7.18.orig/PCbuild/pythoncore.vcxproj Python-2.7.18/PCbuild/pythoncore.vcxproj
+--- Python-2.7.18.orig/PCbuild/pythoncore.vcxproj	2020-04-19 23:13:39
++++ Python-2.7.18/PCbuild/pythoncore.vcxproj	2025-12-10 21:59:50
 @@ -74,7 +74,7 @@
      </ClCompile>
      <Link>
@@ -136,23 +130,23 @@ This patch must be applied AFTER patches 01-04.
      </Link>
    </ItemDefinitionGroup>
    <ItemGroup>
-
---- PCbuild/pythonw.vcxproj.orig	2025-12-04 15:17:00.846057900 +0000
-+++ PCbuild/pythonw.vcxproj	2025-12-04 15:17:19.009930900 +0000
-@@ -72,7 +72,7 @@
-     </ResourceCompile>
+diff -ur Python-2.7.18.orig/PCbuild/pythonw.vcxproj Python-2.7.18/PCbuild/pythonw.vcxproj
+--- Python-2.7.18.orig/PCbuild/pythonw.vcxproj	2020-04-19 23:13:39
++++ Python-2.7.18/PCbuild/pythonw.vcxproj	2025-12-10 21:59:50
+@@ -65,7 +65,7 @@
+   <ItemDefinitionGroup>
      <Link>
-       <AdditionalDependencies>ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+       <StackReserveSize>2000000</StackReserveSize>
 -      <BaseAddress>0x1d000000</BaseAddress>
 +      <BaseAddress Condition="'$(Platform)' != 'ARM64'">0x1d000000</BaseAddress>
-       <SubSystem>Windows</SubSystem>
      </Link>
    </ItemDefinitionGroup>
-
---- PCbuild/select.vcxproj.orig	2025-12-04 15:17:00.846057900 +0000
-+++ PCbuild/select.vcxproj	2025-12-04 15:17:19.009930900 +0000
-@@ -66,7 +66,7 @@
-     </ClCompile>
+   <ItemGroup>
+diff -ur Python-2.7.18.orig/PCbuild/select.vcxproj Python-2.7.18/PCbuild/select.vcxproj
+--- Python-2.7.18.orig/PCbuild/select.vcxproj	2020-04-19 23:13:39
++++ Python-2.7.18/PCbuild/select.vcxproj	2025-12-10 21:59:50
+@@ -61,7 +61,7 @@
+   <ItemDefinitionGroup>
      <Link>
        <AdditionalDependencies>ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
 -      <BaseAddress>0x1D110000</BaseAddress>
@@ -160,27 +154,15 @@ This patch must be applied AFTER patches 01-04.
      </Link>
    </ItemDefinitionGroup>
    <ItemGroup>
-
---- PCbuild/unicodedata.vcxproj.orig	2025-12-04 15:17:00.846057900 +0000
-+++ PCbuild/unicodedata.vcxproj	2025-12-04 15:17:19.009930900 +0000
-@@ -66,7 +66,7 @@
-       <PreprocessorDefinitions>Py_BUILD_CORE_MODULE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-     </ClCompile>
+diff -ur Python-2.7.18.orig/PCbuild/unicodedata.vcxproj Python-2.7.18/PCbuild/unicodedata.vcxproj
+--- Python-2.7.18.orig/PCbuild/unicodedata.vcxproj	2020-04-19 23:13:39
++++ Python-2.7.18/PCbuild/unicodedata.vcxproj	2025-12-10 21:59:50
+@@ -61,7 +61,7 @@
+   </PropertyGroup>
+   <ItemDefinitionGroup>
      <Link>
 -      <BaseAddress>0x1D120000</BaseAddress>
 +      <BaseAddress Condition="'$(Platform)' != 'ARM64'">0x1D120000</BaseAddress>
-     </Link>
-   </ItemDefinitionGroup>
-   <ItemGroup>
-
---- PCbuild/winsound.vcxproj.orig	2025-12-04 15:17:00.846057900 +0000
-+++ PCbuild/winsound.vcxproj	2025-12-04 15:17:19.009930900 +0000
-@@ -66,7 +66,7 @@
-     </ClCompile>
-     <Link>
-       <AdditionalDependencies>winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
--      <BaseAddress>0x1D160000</BaseAddress>
-+      <BaseAddress Condition="'$(Platform)' != 'ARM64'">0x1D160000</BaseAddress>
      </Link>
    </ItemDefinitionGroup>
    <ItemGroup>
