@@ -147,12 +147,6 @@ if "%TARGET_ARCH%"=="aarch64" (
             exit /b 1
         )
     )
-    echo [2/6] Adding ARM64 platform configurations to Visual Studio projects...
-    powershell -ExecutionPolicy Bypass -File "%CD%\scripts\add-arm64-configs.ps1" -SourceDir "%SOURCE_DIR%"
-    if errorlevel 1 (
-        echo ERROR: Failed to add ARM64 configurations
-        exit /b 1
-    )
 )
 
 echo [2/6] Patches applied successfully
