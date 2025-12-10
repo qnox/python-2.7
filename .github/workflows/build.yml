@@ -177,14 +177,25 @@ jobs:
           TARGET_TRIPLE: ${{ matrix.target }}
           TARGET_PLATFORM: ${{ matrix.platform }}
 
-      # Test - Unix (Linux/macOS)
-      - name: Test Python 2.7 (Unix)
+      # Test - Unix (Linux/macOS) - install_only flavor
+      - name: Test Python 2.7 install_only (Unix)
         if: matrix.platform == 'linux' || matrix.platform == 'macos'
         run: bash ${{ matrix.test_script }}
         env:
           TARGET_ARCH: ${{ matrix.arch }}
           TARGET_TRIPLE: ${{ matrix.target }}
           TARGET_PLATFORM: ${{ matrix.platform }}
+          FLAVOR: install_only
+
+      # Test - Unix (Linux/macOS) - install_only_stripped flavor
+      - name: Test Python 2.7 install_only_stripped (Unix)
+        if: matrix.platform == 'linux' || matrix.platform == 'macos'
+        run: bash ${{ matrix.test_script }}
+        env:
+          TARGET_ARCH: ${{ matrix.arch }}
+          TARGET_TRIPLE: ${{ matrix.target }}
+          TARGET_PLATFORM: ${{ matrix.platform }}
+          FLAVOR: install_only_stripped
 
       # Test - Windows
       - name: Test Python 2.7 (Windows)

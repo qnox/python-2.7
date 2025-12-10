@@ -6,22 +6,29 @@ set -euo pipefail
 
 PYTHON_VERSION="2.7.18"
 DIST_DIR="${PWD}/dist"
-ARCHIVE_NAME="python-${PYTHON_VERSION}-${TARGET_TRIPLE}-portable"
+
+# Get current date in YYYYMMDD format (should match what package.sh created)
+RELEASE_DATE=$(date +%Y%m%d)
+
+# Test flavor (can be overridden via FLAVOR env var, defaults to install_only)
+FLAVOR="${FLAVOR:-install_only}"
+
+# Follow python-build-standalone naming: cpython-VERSION+DATE-TRIPLE-FLAVOR
+ARCHIVE_NAME="cpython-${PYTHON_VERSION}+${RELEASE_DATE}-${TARGET_TRIPLE}-${FLAVOR}"
 
 echo "=== Testing Python ${PYTHON_VERSION} portable distribution ==="
 echo "Target: ${TARGET_TRIPLE}"
 echo "Platform: ${TARGET_PLATFORM:-unknown}"
+echo "Flavor: ${FLAVOR}"
 
 # Find the distribution archive
 ARCHIVE=""
-if [ -f "${DIST_DIR}/${ARCHIVE_NAME}.tar.xz" ]; then
-    ARCHIVE="${DIST_DIR}/${ARCHIVE_NAME}.tar.xz"
-    EXTRACT_CMD="tar xJf"
-elif [ -f "${DIST_DIR}/${ARCHIVE_NAME}.tar.gz" ]; then
+if [ -f "${DIST_DIR}/${ARCHIVE_NAME}.tar.gz" ]; then
     ARCHIVE="${DIST_DIR}/${ARCHIVE_NAME}.tar.gz"
     EXTRACT_CMD="tar xzf"
 else
-    echo "Error: No distribution archive found at ${DIST_DIR}/${ARCHIVE_NAME}.*"
+    echo "Error: No distribution archive found at ${DIST_DIR}/${ARCHIVE_NAME}.tar.gz"
+    echo "Available files in ${DIST_DIR}:"
     ls -la "${DIST_DIR}/" || true
     exit 1
 fi
@@ -44,9 +51,18 @@ ${EXTRACT_CMD} "${ARCHIVE}"
 echo "Contents after extraction:"
 ls -la "${TEST_DIR}"
 
-# Find the extracted directory (exclude TEST_DIR itself with -mindepth 1)
-PORTABLE_DIR=$(find "${TEST_DIR}" -mindepth 1 -maxdepth 1 -type d -name "python-*" 2>/dev/null | head -n 1)
-echo "Find result: '${PORTABLE_DIR}'"
+# The new archives extract directly to bin/, lib/, etc. (no wrapper directory)
+# Check if we have bin/ directly in TEST_DIR
+if [ -d "${TEST_DIR}/bin" ]; then
+    PORTABLE_DIR="${TEST_DIR}"
+    echo "Archive extracted to flat structure"
+else
+    # Fallback: look for a subdirectory (old format compatibility)
+    PORTABLE_DIR=$(find "${TEST_DIR}" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | head -n 1)
+    echo "Archive has directory wrapper: ${PORTABLE_DIR}"
+fi
+
+echo "Python directory: '${PORTABLE_DIR}'"
 
 if [ -z "${PORTABLE_DIR}" ]; then
     echo "Error: Could not find extracted Python directory"
@@ -213,15 +229,22 @@ for p in sys.path:
 # Test 6: Test relocatability (move to different location)
 echo ""
 echo "=== Test 6: Test relocatability ==="
-MOVED_DIR="${TEST_DIR}/moved-location"
-mkdir -p "${MOVED_DIR}"
-mv "${PORTABLE_DIR}" "${MOVED_DIR}/"
-PORTABLE_DIR="${MOVED_DIR}/$(basename ${PORTABLE_DIR})"
 
-echo "Moved to: ${PORTABLE_DIR}"
-"${PORTABLE_DIR}/bin/python" --version
-"${PORTABLE_DIR}/bin/python" -c "print('Relocatability: OK')"
+# Create a new location outside TEST_DIR
+MOVED_DIR=$(mktemp -d -t python-moved-XXXXXX)
+echo "Moving Python to new location: ${MOVED_DIR}"
+
+# Copy (not move) to preserve original for other tests
+cp -R "${PORTABLE_DIR}/." "${MOVED_DIR}/"
+
+# Test from the new location
+echo "Testing from: ${MOVED_DIR}"
+"${MOVED_DIR}/bin/python" --version
+"${MOVED_DIR}/bin/python" -c "print('Relocatability: OK')"
 echo "PASS: Python is relocatable"
+
+# Clean up moved directory
+rm -rf "${MOVED_DIR}"
 
 # Test 7: Test pip/easy_install if available
 echo ""
