@@ -108,11 +108,11 @@ Patches should be named: `NN-description.patch`
 
 ## Current Patches
 
-### macOS ARM64 (Apple Silicon)
+### macOS (All Architectures)
 
 #### `01-configure-arch-detection.patch`
 
-**Problem**: Python 2.7's configure script doesn't recognize ARM64 architecture:
+**Problem**: Python 2.7's configure script doesn't recognize ARM64 and x86_64 architectures:
 ```
 configure: error: Unexpected output of 'arch' on OSX
 ```
@@ -167,11 +167,11 @@ error MSB8020: The build tools for Visual Studio 2008 (Platform Toolset = 'v90')
 
 ```bash
 # Dry run (doesn't modify files)
-patch -p0 -N --dry-run < patches/macos/arm64/01-configure-arch-detection.patch
+patch -p0 -N --dry-run < patches/macos/01-configure-arch-detection.patch
 
 # Check if patch applies cleanly
 cd Python-2.7.18
-patch -p0 --dry-run < ../patches/macos/arm64/01-configure-arch-detection.patch
+patch -p0 --dry-run < ../patches/macos/01-configure-arch-detection.patch
 ```
 
 ### Test build with patches
