@@ -6,11 +6,22 @@ setlocal enabledelayedexpansion
 
 set PYTHON_VERSION=2.7.18
 set DIST_DIR=%CD%\dist
-set ARCHIVE_NAME=python-%PYTHON_VERSION%-%TARGET_TRIPLE%-portable
+
+REM Get current date in YYYYMMDD format
+for /f "tokens=2 delims==" %%I in ('wmic os get localdatetime /value') do set datetime=%%I
+set RELEASE_DATE=%datetime:~0,8%
+
+REM Test flavor (can be overridden via FLAVOR env var, defaults to install_only)
+if not defined FLAVOR set FLAVOR=install_only
+
+REM Follow python-build-standalone naming: cpython-VERSION+DATE-TRIPLE-FLAVOR
+set ARCHIVE_NAME=cpython-%PYTHON_VERSION%+%RELEASE_DATE%-%TARGET_TRIPLE%-%FLAVOR%
 
 echo === Testing Python %PYTHON_VERSION% portable distribution ===
 echo Target: %TARGET_TRIPLE%
 echo Platform: %TARGET_PLATFORM%
+echo Flavor: %FLAVOR%
+echo.
 
 REM Find the distribution archive
 set ARCHIVE=
@@ -18,6 +29,7 @@ if exist "%DIST_DIR%\%ARCHIVE_NAME%.zip" (
     set ARCHIVE=%DIST_DIR%\%ARCHIVE_NAME%.zip
 ) else (
     echo Error: No distribution archive found at %DIST_DIR%\%ARCHIVE_NAME%.zip
+    echo Available files in %DIST_DIR%:
     dir "%DIST_DIR%"
     exit /b 1
 )
@@ -33,8 +45,21 @@ REM Extract archive to test directory
 echo Extracting archive...
 powershell -Command "Expand-Archive -Path '%ARCHIVE%' -DestinationPath '%TEST_DIR%' -Force"
 
-REM Find the extracted directory
-for /d %%i in ("%TEST_DIR%\python-*") do set PORTABLE_DIR=%%i
+REM Debug: what did we extract?
+echo Contents after extraction:
+dir "%TEST_DIR%"
+
+REM The new archives extract directly to python.exe, Lib/, etc. (no wrapper directory)
+REM Check if we have python.exe directly in TEST_DIR
+if exist "%TEST_DIR%\python.exe" (
+    set PORTABLE_DIR=%TEST_DIR%
+    echo Archive extracted to flat structure
+) else (
+    REM Fallback: look for a subdirectory (old format compatibility)
+    for /d %%i in ("%TEST_DIR%\python-*") do set PORTABLE_DIR=%%i
+    echo Archive has directory wrapper: !PORTABLE_DIR!
+)
+
 if not defined PORTABLE_DIR (
     echo Error: Could not find extracted Python directory
     dir "%TEST_DIR%"
@@ -42,12 +67,12 @@ if not defined PORTABLE_DIR (
     exit /b 1
 )
 
-echo Extracted to: %PORTABLE_DIR%
+echo Python directory: %PORTABLE_DIR%
 
 REM Test 1: Verify directory structure
 echo.
 echo === Test 1: Verify directory structure ===
-if not exist "%PORTABLE_DIR%\bin" if not exist "%PORTABLE_DIR%\python.exe" (
+if not exist "%PORTABLE_DIR%\python.exe" (
     echo FAIL: Python executable not found
     rmdir /s /q "%TEST_DIR%"
     exit /b 1
@@ -64,113 +89,108 @@ if not exist "%PORTABLE_DIR%\include" (
 )
 echo PASS: Directory structure is correct
 
-REM Test 2: Test portable launcher
+REM Test 2: Test Python executable
 echo.
-echo === Test 2: Test portable launcher ===
-if exist "%PORTABLE_DIR%\python-portable.bat" (
-    call "%PORTABLE_DIR%\python-portable.bat" --version 2>&1 | findstr "2.7.18" >nul
-    if errorlevel 1 (
-        echo FAIL: Version check failed
-        rmdir /s /q "%TEST_DIR%"
-        exit /b 1
-    )
-
-    call "%PORTABLE_DIR%\python-portable.bat" -c "print('Portable launcher: OK')"
-    if errorlevel 1 (
-        echo FAIL: Portable launcher execution failed
-        rmdir /s /q "%TEST_DIR%"
-        exit /b 1
-    )
-
-    echo PASS: Portable launcher works
-) else (
-    echo FAIL: Portable launcher not found
-    rmdir /s /q "%TEST_DIR%"
-    exit /b 1
-)
-
-REM Test 3: Test direct binary with environment variables
-echo.
-echo === Test 3: Test direct binary with environment variables ===
+echo === Test 2: Test Python executable ===
 cd "%PORTABLE_DIR%"
 set PYTHONHOME=%PORTABLE_DIR%
 set PATH=%PORTABLE_DIR%;%PORTABLE_DIR%\DLLs;%PATH%
 
-"%PORTABLE_DIR%\python.exe" --version
+"%PORTABLE_DIR%\python.exe" --version 2>&1 | findstr "2.7.18" >nul
 if errorlevel 1 (
-    echo FAIL: Direct binary failed
+    echo FAIL: Version check failed
     cd %CD%
     rmdir /s /q "%TEST_DIR%"
     exit /b 1
 )
 
-"%PORTABLE_DIR%\python.exe" -c "print('Direct binary: OK')"
-echo PASS: Direct binary works with environment variables
+"%PORTABLE_DIR%\python.exe" -c "print('Python executable: OK')"
+if errorlevel 1 (
+    echo FAIL: Python execution failed
+    cd %CD%
+    rmdir /s /q "%TEST_DIR%"
+    exit /b 1
+)
+echo PASS: Python executable works
 
-REM Test 4: Standard library imports
+REM Test 3: Standard library imports
 echo.
-echo === Test 4: Test standard library imports ===
+echo === Test 3: Test standard library imports ===
+REM Core modules (must work)
 "%PORTABLE_DIR%\python.exe" -c "import sys; print('sys: OK')"
 "%PORTABLE_DIR%\python.exe" -c "import os; print('os: OK')"
 "%PORTABLE_DIR%\python.exe" -c "import json; print('json: OK')"
+"%PORTABLE_DIR%\python.exe" -c "import re; print('re: OK')"
+"%PORTABLE_DIR%\python.exe" -c "import io; print('io: OK')"
+"%PORTABLE_DIR%\python.exe" -c "import struct; print('struct: OK')"
+"%PORTABLE_DIR%\python.exe" -c "import array; print('array: OK')"
+"%PORTABLE_DIR%\python.exe" -c "import math; print('math: OK')"
+"%PORTABLE_DIR%\python.exe" -c "import datetime; print('datetime: OK')"
+"%PORTABLE_DIR%\python.exe" -c "import random; print('random: OK')"
+"%PORTABLE_DIR%\python.exe" -c "import hashlib; print('hashlib: OK')"
 "%PORTABLE_DIR%\python.exe" -c "import sqlite3; print('sqlite3: OK')"
 "%PORTABLE_DIR%\python.exe" -c "import zlib; print('zlib: OK')"
-"%PORTABLE_DIR%\python.exe" -c "import bz2; print('bz2: OK')"
+"%PORTABLE_DIR%\python.exe" -c "import socket; print('socket: OK')"
+"%PORTABLE_DIR%\python.exe" -c "import threading; print('threading: OK')"
 
-REM SSL/OpenSSL is platform-dependent
+REM Optional modules
+"%PORTABLE_DIR%\python.exe" -c "import bz2; print('bz2: OK')" 2>nul || echo WARNING: bz2 module not available
 "%PORTABLE_DIR%\python.exe" -c "import ssl; print('ssl: OK')" 2>nul || echo WARNING: ssl module not available
 
 echo PASS: Standard library imports successful
 
-REM Test 5: Check Python paths
+REM Test 4: Check Python paths
 echo.
-echo === Test 5: Check Python paths ===
+echo === Test 4: Check Python paths ===
 "%PORTABLE_DIR%\python.exe" -c "import sys; print('sys.executable:', sys.executable); print('sys.prefix:', sys.prefix); print('sys.exec_prefix:', sys.exec_prefix)"
 
-REM Test 6: Test relocatability (move to different location)
+REM Test 5: Test relocatability (copy to different location)
 echo.
-echo === Test 6: Test relocatability ===
-set MOVED_DIR=%TEST_DIR%\moved-location
+echo === Test 5: Test relocatability ===
+set MOVED_DIR=%TEMP%\python-moved-%RANDOM%
 mkdir "%MOVED_DIR%"
-xcopy /E /I /Y "%PORTABLE_DIR%" "%MOVED_DIR%\%ARCHIVE_NAME%" >nul
-set PORTABLE_DIR=%MOVED_DIR%\%ARCHIVE_NAME%
+echo Moving Python to new location: %MOVED_DIR%
 
-echo Moved to: %PORTABLE_DIR%
-cd "%PORTABLE_DIR%"
-set PYTHONHOME=%PORTABLE_DIR%
-set PATH=%PORTABLE_DIR%;%PORTABLE_DIR%\DLLs;%PATH%
+xcopy /E /I /Q /Y "%PORTABLE_DIR%" "%MOVED_DIR%" >nul
+if errorlevel 1 (
+    echo FAIL: Failed to copy Python to new location
+    rmdir /s /q "%MOVED_DIR%"
+    rmdir /s /q "%TEST_DIR%"
+    exit /b 1
+)
 
-"%PORTABLE_DIR%\python.exe" --version
-"%PORTABLE_DIR%\python.exe" -c "print('Relocatability: OK')"
+echo Testing from: %MOVED_DIR%
+cd "%MOVED_DIR%"
+set PYTHONHOME=%MOVED_DIR%
+set PATH=%MOVED_DIR%;%MOVED_DIR%\DLLs;%PATH%
+
+"%MOVED_DIR%\python.exe" --version
+"%MOVED_DIR%\python.exe" -c "print('Relocatability: OK')"
+if errorlevel 1 (
+    echo FAIL: Relocatability test failed
+    rmdir /s /q "%MOVED_DIR%"
+    cd %CD%
+    rmdir /s /q "%TEST_DIR%"
+    exit /b 1
+)
 echo PASS: Python is relocatable
 
-REM Test 7: Test pip/easy_install if available
-echo.
-echo === Test 7: Test package management tools ===
-if exist "%PORTABLE_DIR%\Scripts\pip.exe" (
-    "%PORTABLE_DIR%\Scripts\pip.exe" --version 2>nul || echo WARNING: pip available but not functional
-) else (
-    echo INFO: pip not included in this build
-)
+REM Clean up moved directory
+rmdir /s /q "%MOVED_DIR%"
 
-if exist "%PORTABLE_DIR%\Scripts\easy_install.exe" (
-    "%PORTABLE_DIR%\Scripts\easy_install.exe" --version 2>nul || echo WARNING: easy_install available but not functional
-) else (
-    echo INFO: easy_install not included in this build
-)
-
-REM Test 8: Test C extension build capability
+REM Test 6: Test C extension headers
 echo.
-echo === Test 8: Test C extension headers ===
+echo === Test 6: Test C extension headers ===
+cd "%PORTABLE_DIR%"
 if exist "%PORTABLE_DIR%\include\Python.h" (
     echo PASS: Python.h found - C extension development supported
 ) else (
     echo WARNING: Python.h not found - C extension development not supported
 )
 
-REM Test 9: Run a simple script
+REM Test 7: Run a simple script
 echo.
-echo === Test 9: Run a test script ===
+echo === Test 7: Run a test script ===
 (
 echo import sys
 echo import os
@@ -220,6 +240,7 @@ echo === ALL TESTS PASSED SUCCESSFULLY ===
 echo ========================================
 echo.
 echo Distribution: %ARCHIVE_NAME%
+echo Flavor: %FLAVOR%
 echo Test location: %TEST_DIR%
 "%PORTABLE_DIR%\python.exe" --version 2>&1
 echo.
