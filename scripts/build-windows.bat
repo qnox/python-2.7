@@ -141,7 +141,7 @@ if "%TARGET_ARCH%"=="aarch64" (
     REM Apply comprehensive ARM64 support changes (BaseAddress fixes, TargetMachine, Tcl/Tk)
     if exist "patches\windows\arm64\05-add-arm64-support.patch" (
         echo [2/6] Applying additional ARM64 support patch...
-        %PATCH_EXE% -d "%SOURCE_DIR%" -p0 -N --binary < patches\windows\arm64\05-add-arm64-support.patch
+        %PATCH_EXE% -d "%SOURCE_DIR%" -p1 -N --binary < patches\windows\arm64\05-add-arm64-support.patch
         if errorlevel 1 (
             echo ERROR: Failed to apply additional ARM64 support patch (05)
             exit /b 1
