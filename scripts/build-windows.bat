@@ -138,6 +138,15 @@ if "%TARGET_ARCH%"=="aarch64" (
         echo ERROR: Failed to apply pythoncore BaseAddress ARM64 patch
         exit /b 1
     )
+    REM Apply comprehensive ARM64 support changes (BaseAddress fixes, TargetMachine, Tcl/Tk)
+    if exist "patches\windows\arm64\05-add-arm64-support.patch" (
+        echo [2/6] Applying additional ARM64 support patch...
+        %PATCH_EXE% -d "%SOURCE_DIR%" -p0 -N --binary < patches\windows\arm64\05-add-arm64-support.patch
+        if errorlevel 1 (
+            echo ERROR: Failed to apply additional ARM64 support patch (05)
+            exit /b 1
+        )
+    )
     echo [2/6] Adding ARM64 platform configurations to Visual Studio projects...
     powershell -ExecutionPolicy Bypass -File "%CD%\scripts\add-arm64-configs.ps1" -SourceDir "%SOURCE_DIR%"
     if errorlevel 1 (
@@ -152,23 +161,46 @@ echo.
 echo [3/6] Configuring build environment...
 cd "%SOURCE_DIR%\PCbuild"
 
+REM Normalize and validate TARGET_ARCH, and set defaults if necessary
+REM Remove all spaces from TARGET_ARCH to avoid comparison issues
+set "TARGET_ARCH=%TARGET_ARCH: =%"
+REM Map common synonyms to our canonical names
+if /I "%TARGET_ARCH%"=="amd64" set TARGET_ARCH=x86_64
+if /I "%TARGET_ARCH%"=="x64" set TARGET_ARCH=x86_64
+if /I "%TARGET_ARCH%"=="win32" set TARGET_ARCH=x86
+if /I "%TARGET_ARCH%"=="arm64" set TARGET_ARCH=aarch64
+
 REM Set architecture based on TARGET_ARCH
-if "%TARGET_ARCH%"=="x86_64" (
+set ARCH_SET=
+if /I "%TARGET_ARCH%"=="x86_64" (
     set PLATFORM=x64
     set ARCH_DIR=amd64
+    set ARCH_SET=1
     echo [3/6] Architecture: x64 ^(amd64^)
-) else if "%TARGET_ARCH%"=="aarch64" (
+)
+if /I "%TARGET_ARCH%"=="aarch64" (
     set PLATFORM=ARM64
     set ARCH_DIR=arm64
+    set ARCH_SET=1
     echo [3/6] Architecture: ARM64 ^(aarch64^)
-) else if "%TARGET_ARCH%"=="x86" (
+)
+if /I "%TARGET_ARCH%"=="x86" (
     set PLATFORM=Win32
     set ARCH_DIR=win32
+    set ARCH_SET=1
     echo [3/6] Architecture: Win32 ^(x86^)
-) else (
+)
+if not defined ARCH_SET (
     echo ERROR: Unknown architecture: %TARGET_ARCH%
     echo Supported architectures: x86_64, aarch64, x86
     exit /b 1
+)
+
+REM If TARGET_TRIPLE is not set, derive it from TARGET_ARCH
+if "%TARGET_TRIPLE%"=="" (
+    if "%TARGET_ARCH%"=="x86_64" set TARGET_TRIPLE=x86_64-pc-windows-msvc
+    if "%TARGET_ARCH%"=="aarch64" set TARGET_TRIPLE=aarch64-pc-windows-msvc
+    if "%TARGET_ARCH%"=="x86" set TARGET_TRIPLE=i686-pc-windows-msvc
 )
 
 REM Verify MSVC environment is set up
