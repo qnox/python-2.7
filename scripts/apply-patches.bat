@@ -69,7 +69,6 @@ if exist "%PATCHES_DIR%\windows\04-upgrade-tcltk-to-8.6.12.patch" (
 REM ARM64 specific patches (if requested)
 set "_arch=%TARGET_ARCH%"
 if /I "%_arch%"=="arm64" set _arch=aarch64
-echo 2
 if /I "%_arch%"=="aarch64" (
     if exist "%PATCHES_DIR%\windows\arm64\01-python-props.patch" (
         echo Applying ARM64: 01-python-props.patch
@@ -93,7 +92,20 @@ if /I "%_arch%"=="aarch64" (
     )
     if exist "%PATCHES_DIR%\windows\arm64\05-add-arm64-support.patch" (
         echo Applying ARM64: 05-add-arm64-support.patch
-        "%PATCH_EXE%" -d "%SOURCE_DIR%" -p1 -N --binary < "%PATCHES_DIR%\windows\arm64\05-add-arm64-support.patch"
+        REM This patch is generated against Python-2.7.18/* paths. Apply from inside that dir with -p1
+        set "__PY27_DIR=%SOURCE_DIR%\Python-2.7.18"
+        if exist "%__PY27_DIR%" (
+            "%PATCH_EXE%" -d "%__PY27_DIR%" -p1 -N --binary < "%PATCHES_DIR%\windows\arm64\05-add-arm64-support.patch"
+        ) else (
+            "%PATCH_EXE%" -d "%SOURCE_DIR%" -p1 -N --binary < "%PATCHES_DIR%\windows\arm64\05-add-arm64-support.patch"
+        )
+        if errorlevel 1 exit /b 1
+    )
+    if exist "%PATCHES_DIR%\windows\arm64\06-add-arm64-configs.patch" (
+        echo Applying ARM64: 06-add-arm64-configs.patch
+        REM Normalized git-style patch: paths start with Python-2.7.18/...
+        REM Apply from repo root with -p1 so files map to %SOURCE_DIR%\Python-2.7.18\...
+        "%PATCH_EXE%" -d "%SOURCE_DIR%" -p1 -N --binary < "%PATCHES_DIR%\windows\arm64\06-add-arm64-configs.patch"
         if errorlevel 1 exit /b 1
     )
 )

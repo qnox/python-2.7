@@ -132,6 +132,8 @@ if not defined VSINSTALLDIR (
 )
 echo [3/6] MSVC Environment: %VSINSTALLDIR%
 
+REM ARM64 project configurations are provided by a static patch: patches\windows\arm64\06-add-arm64-configs.patch
+
 REM Download prebuilt Tcl/Tk binaries instead of building from source
 REM This avoids compilation issues with modern Windows SDK
 echo.
