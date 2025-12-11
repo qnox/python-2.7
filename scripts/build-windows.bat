@@ -59,99 +59,12 @@ del "Python-%PYTHON_VERSION%.tgz"
 echo [1/6] Python source ready
 
 echo.
-echo [2/6] Applying patches for VS2022 compatibility...
-
-REM Check if Git patch utility is available
-if not exist "C:\Program Files\Git\usr\bin\patch.exe" (
-    echo ERROR: Git patch utility not found at "C:\Program Files\Git\usr\bin\patch.exe"
-    echo Please install Git for Windows or ensure patch.exe is in PATH
-    exit /b 1
-)
-
-set PATCH_EXE="C:\Program Files\Git\usr\bin\patch.exe"
-
-REM Check if patches exist
-if not exist "patches\windows\01-upgrade-vs2022-toolset.patch" (
-    echo ERROR: Patch file 01-upgrade-vs2022-toolset.patch not found!
-    dir patches\windows\
-    exit /b 1
-)
-
-REM Apply VS2022 toolset upgrade patch
-echo [2/6] Applying VS2022 toolset upgrade patch...
-%PATCH_EXE% -d "%SOURCE_DIR%" -p1 -N --binary < patches\windows\01-upgrade-vs2022-toolset.patch
+echo [2/6] Applying patches...
+call scripts\apply-patches.bat "%SOURCE_DIR%"
 if errorlevel 1 (
-    echo ERROR: Failed to apply VS2022 toolset patch
+    echo ERROR: Failed to apply patches via patch harness
     exit /b 1
 )
-
-REM Apply timemodule.c fix for modern MSVC
-if exist "patches\windows\02-fix-timemodule-msvc.patch" (
-    echo [2/6] Applying timemodule.c fix for modern MSVC...
-    %PATCH_EXE% -d "%SOURCE_DIR%" -p0 -N --binary < patches\windows\02-fix-timemodule-msvc.patch
-    if errorlevel 1 (
-        echo ERROR: Failed to apply timemodule.c patch
-        exit /b 1
-    )
-)
-
-REM Apply posixmodule.c fix for modern MSVC
-if exist "patches\windows\03-fix-posixmodule-msvc.patch" (
-    echo [2/6] Applying posixmodule.c fix for modern MSVC...
-    %PATCH_EXE% -d "%SOURCE_DIR%" -p0 -N --binary < patches\windows\03-fix-posixmodule-msvc.patch
-    if errorlevel 1 (
-        echo ERROR: Failed to apply posixmodule.c patch
-        exit /b 1
-    )
-)
-
-REM Apply Tcl/Tk 8.6.12 upgrade patch
-if exist "patches\windows\04-upgrade-tcltk-to-8.6.12.patch" (
-    echo [2/6] Upgrading Tcl/Tk to 8.6.12...
-    %PATCH_EXE% -d "%SOURCE_DIR%" -p0 -N --binary < patches\windows\04-upgrade-tcltk-to-8.6.12.patch
-    if errorlevel 1 (
-        echo ERROR: Failed to apply Tcl/Tk upgrade patch
-        exit /b 1
-    )
-)
-
-REM Apply ARM64 support patches if building for ARM64
-if "%TARGET_ARCH%"=="aarch64" (
-    echo [2/6] Applying ARM64 support patches...
-    %PATCH_EXE% -d "%SOURCE_DIR%" -p0 -N --binary < patches\windows\arm64\01-python-props.patch
-    if errorlevel 1 (
-        echo ERROR: Failed to apply python.props ARM64 patch
-        exit /b 1
-    )
-    %PATCH_EXE% -d "%SOURCE_DIR%" -p0 -N --binary < patches\windows\arm64\02-pyproject-props.patch
-    if errorlevel 1 (
-        echo ERROR: Failed to apply pyproject.props ARM64 patch
-        exit /b 1
-    )
-    %PATCH_EXE% -d "%SOURCE_DIR%" -p0 -N --binary < patches\windows\arm64\03-tcltk-props.patch
-    if errorlevel 1 (
-        echo ERROR: Failed to apply tcltk.props ARM64 patch
-        exit /b 1
-    )
-    %PATCH_EXE% -d "%SOURCE_DIR%" -p0 -N --binary < patches\windows\arm64\04-pythoncore-baseaddr.patch
-    if errorlevel 1 (
-        echo ERROR: Failed to apply pythoncore BaseAddress ARM64 patch
-        exit /b 1
-    )
-    REM Apply comprehensive ARM64 support changes (BaseAddress fixes, TargetMachine, Tcl/Tk)
-    if exist "patches\windows\arm64\05-add-arm64-support.patch" (
-        echo [2/6] Applying additional ARM64 support patch...
-        %PATCH_EXE% -d "%SOURCE_DIR%" -p1 -N --binary < patches\windows\arm64\05-add-arm64-support.patch
-        set PATCH_EXIT=%ERRORLEVEL%
-        echo Patch 05 exit code: %PATCH_EXIT%
-        if %PATCH_EXIT% GTR 1 (
-            echo ERROR: Failed to apply additional ARM64 support patch (05) - exit code %PATCH_EXIT%
-            exit /b 1
-        )
-    )
-    echo [2/6] ARM64 patches completed
-)
-
 echo [2/6] Patches applied successfully
 
 echo.
@@ -331,17 +244,21 @@ if exist "%PORTABLE_DIR%" (
     rmdir /s /q "%PORTABLE_DIR%"
 )
 mkdir "%PORTABLE_DIR%"
+mkdir "%PORTABLE_DIR%\bin"
+mkdir "%PORTABLE_DIR%\DLLs"
+mkdir "%PORTABLE_DIR%\include"
+mkdir "%PORTABLE_DIR%\libs"
 echo Portable directory: %PORTABLE_DIR%
 
 echo.
 echo Copying Python executables and DLLs...
-xcopy /Y /I "%ARCH_DIR%\python.exe" "%PORTABLE_DIR%\" >nul
+xcopy /Y /I "%ARCH_DIR%\python.exe" "%PORTABLE_DIR%\bin\" >nul
 if errorlevel 1 (
     echo ERROR: Failed to copy python.exe
     exit /b 1
 )
-xcopy /Y /I "%ARCH_DIR%\pythonw.exe" "%PORTABLE_DIR%\" >nul
-xcopy /Y /I "%ARCH_DIR%\python27.dll" "%PORTABLE_DIR%\" >nul
+xcopy /Y /I "%ARCH_DIR%\pythonw.exe" "%PORTABLE_DIR%\bin\" >nul
+xcopy /Y /I "%ARCH_DIR%\python27.dll" "%PORTABLE_DIR%\DLLs\" >nul
 if errorlevel 1 (
     echo ERROR: Failed to copy python27.dll
     exit /b 1
@@ -395,14 +312,16 @@ echo @echo off
 echo REM Portable Python launcher for Windows
 echo REM Automatically sets up environment variables
 echo setlocal
-echo set PYTHON_HOME=%%~dp0
-echo set PATH=%%PYTHON_HOME%%;%%PYTHON_HOME%%\DLLs;%%PATH%%
+echo set SCRIPT_DIR=%%~dp0
+echo for %%I in ("%%SCRIPT_DIR%%.") do set PYTHON_HOME=%%~dpI\..
+echo set PYTHON_HOME=%%PYTHON_HOME:~0,-1%%
+echo set PATH=%%PYTHON_HOME%%\bin;%%PYTHON_HOME%%\DLLs;%%PATH%%
 echo set PYTHONHOME=%%PYTHON_HOME%%
 echo set TCL_LIBRARY=%%PYTHON_HOME%%\tcl\tcl8.6
 echo set TK_LIBRARY=%%PYTHON_HOME%%\tcl\tk8.6
-echo "%%PYTHON_HOME%%\python.exe" %%*
+echo "%%PYTHON_HOME%%\bin\python.exe" %%*
 echo endlocal
-) > "%PORTABLE_DIR%\python-portable.bat"
+) > "%PORTABLE_DIR%\bin\python-portable.bat"
 
 echo Creating README.txt...
 (
@@ -417,14 +336,14 @@ echo.
 echo USAGE
 echo -----
 echo 1. Extract this archive to any location
-echo 2. Use python-portable.bat to run Python with correct paths:
-echo    python-portable.bat --version
-echo    python-portable.bat script.py
+echo 2. Use bin\python-portable.bat to run Python with correct paths:
+echo    bin\python-portable.bat --version
+echo    bin\python-portable.bat script.py
 echo.
 echo 3. Or set environment variables manually:
 echo    set PYTHONHOME=^<path-to-this-directory^>
-echo    set PATH=%%PYTHONHOME%%;%%PYTHONHOME%%\DLLs;%%PATH%%
-echo    python.exe
+echo    set PATH=%%PYTHONHOME%%\bin;%%PYTHONHOME%%\DLLs;%%PATH%%
+echo    bin\python.exe
 echo.
 echo FEATURES
 echo --------
