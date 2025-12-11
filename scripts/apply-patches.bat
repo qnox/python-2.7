@@ -108,6 +108,19 @@ if /I "%_arch%"=="aarch64" (
         "%PATCH_EXE%" -d "%SOURCE_DIR%" -p1 -N --binary < "%PATCHES_DIR%\windows\arm64\06-add-arm64-configs.patch"
         if errorlevel 1 exit /b 1
     )
+    if exist "%PATCHES_DIR%\windows\arm64\07-disable-ctypes-arm64.patch" (
+        echo Applying ARM64: 07-disable-ctypes-arm64.patch
+        REM Patch generated via diff -urN with paths starting at Python-2.7.18*/...
+        REM Apply from inside the Python-2.7.18 directory with -p1 to strip the first component (Python-2.7.18.orig/)
+        set "__PY27_DIR=%SOURCE_DIR%\Python-2.7.18"
+        if exist "%__PY27_DIR%" (
+            "%PATCH_EXE%" -d "%__PY27_DIR%" -p1 -N --binary < "%PATCHES_DIR%\windows\arm64\07-disable-ctypes-arm64.patch"
+        ) else (
+            REM Fall back to applying from source root if Python-2.7.18 subdir is already the root
+            "%PATCH_EXE%" -d "%SOURCE_DIR%" -p1 -N --binary < "%PATCHES_DIR%\windows\arm64\07-disable-ctypes-arm64.patch"
+        )
+        if errorlevel 1 exit /b 1
+    )
 )
 
 echo.
