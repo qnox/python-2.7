@@ -1,0 +1,756 @@
+﻿diff --git Python-2.7.18.orig/PCbuild/_bsddb.vcxproj Python-2.7.18/PCbuild/_bsddb.vcxproj
+index 6299d00..60a630e 100644
+--- Python-2.7.18.orig/PCbuild/_bsddb.vcxproj
++++ Python-2.7.18/PCbuild/_bsddb.vcxproj
+@@ -33,6 +33,23 @@
+       <Configuration>Release</Configuration>
+       <Platform>x64</Platform>
+     </ProjectConfiguration>
++  
++    <ProjectConfiguration Include="Debug|ARM64">
++      <Configuration>Debug</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="Release|ARM64">
++      <Configuration>Release</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="PGInstrument|ARM64">
++      <Configuration>PGInstrument</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="PGUpdate|ARM64">
++      <Configuration>PGUpdate</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
+   </ItemGroup>
+   <PropertyGroup Label="Globals">
+     <ProjectGuid>{B4D38F3F-68FB-42EC-A45D-E00657BB3627}</ProjectGuid>
+diff --git Python-2.7.18.orig/PCbuild/_ctypes.vcxproj Python-2.7.18/PCbuild/_ctypes.vcxproj
+index 39f0d7b..e6caf6f 100644
+--- Python-2.7.18.orig/PCbuild/_ctypes.vcxproj
++++ Python-2.7.18/PCbuild/_ctypes.vcxproj
+@@ -33,6 +33,23 @@
+       <Configuration>Release</Configuration>
+       <Platform>x64</Platform>
+     </ProjectConfiguration>
++  
++    <ProjectConfiguration Include="Debug|ARM64">
++      <Configuration>Debug</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="Release|ARM64">
++      <Configuration>Release</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="PGInstrument|ARM64">
++      <Configuration>PGInstrument</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="PGUpdate|ARM64">
++      <Configuration>PGUpdate</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
+   </ItemGroup>
+   <PropertyGroup Label="Globals">
+     <ProjectGuid>{0E9791DB-593A-465F-98BC-681011311618}</ProjectGuid>
+diff --git Python-2.7.18.orig/PCbuild/_ctypes_test.vcxproj Python-2.7.18/PCbuild/_ctypes_test.vcxproj
+index 7e13908..914c53b 100644
+--- Python-2.7.18.orig/PCbuild/_ctypes_test.vcxproj
++++ Python-2.7.18/PCbuild/_ctypes_test.vcxproj
+@@ -33,6 +33,23 @@
+       <Configuration>Release</Configuration>
+       <Platform>x64</Platform>
+     </ProjectConfiguration>
++  
++    <ProjectConfiguration Include="Debug|ARM64">
++      <Configuration>Debug</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="Release|ARM64">
++      <Configuration>Release</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="PGInstrument|ARM64">
++      <Configuration>PGInstrument</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="PGUpdate|ARM64">
++      <Configuration>PGUpdate</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
+   </ItemGroup>
+   <PropertyGroup Label="Globals">
+     <ProjectGuid>{9EC7190A-249F-4180-A900-548FDCF3055F}</ProjectGuid>
+diff --git Python-2.7.18.orig/PCbuild/_elementtree.vcxproj Python-2.7.18/PCbuild/_elementtree.vcxproj
+index 5003f41..6827bad 100644
+--- Python-2.7.18.orig/PCbuild/_elementtree.vcxproj
++++ Python-2.7.18/PCbuild/_elementtree.vcxproj
+@@ -33,6 +33,23 @@
+       <Configuration>Release</Configuration>
+       <Platform>x64</Platform>
+     </ProjectConfiguration>
++  
++    <ProjectConfiguration Include="Debug|ARM64">
++      <Configuration>Debug</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="Release|ARM64">
++      <Configuration>Release</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="PGInstrument|ARM64">
++      <Configuration>PGInstrument</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="PGUpdate|ARM64">
++      <Configuration>PGUpdate</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
+   </ItemGroup>
+   <PropertyGroup Label="Globals">
+     <ProjectGuid>{17E1E049-C309-4D79-843F-AE483C264AEA}</ProjectGuid>
+diff --git Python-2.7.18.orig/PCbuild/_hashlib.vcxproj Python-2.7.18/PCbuild/_hashlib.vcxproj
+index 262a9ac..e7537d8 100644
+--- Python-2.7.18.orig/PCbuild/_hashlib.vcxproj
++++ Python-2.7.18/PCbuild/_hashlib.vcxproj
+@@ -33,6 +33,23 @@
+       <Configuration>Release</Configuration>
+       <Platform>x64</Platform>
+     </ProjectConfiguration>
++  
++    <ProjectConfiguration Include="Debug|ARM64">
++      <Configuration>Debug</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="Release|ARM64">
++      <Configuration>Release</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="PGInstrument|ARM64">
++      <Configuration>PGInstrument</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="PGUpdate|ARM64">
++      <Configuration>PGUpdate</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
+   </ItemGroup>
+   <PropertyGroup Label="Globals">
+     <ProjectGuid>{447F05A8-F581-4CAC-A466-5AC7936E207E}</ProjectGuid>
+diff --git Python-2.7.18.orig/PCbuild/_msi.vcxproj Python-2.7.18/PCbuild/_msi.vcxproj
+index d58e6fe..490c549 100644
+--- Python-2.7.18.orig/PCbuild/_msi.vcxproj
++++ Python-2.7.18/PCbuild/_msi.vcxproj
+@@ -33,6 +33,23 @@
+       <Configuration>Release</Configuration>
+       <Platform>x64</Platform>
+     </ProjectConfiguration>
++  
++    <ProjectConfiguration Include="Debug|ARM64">
++      <Configuration>Debug</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="Release|ARM64">
++      <Configuration>Release</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="PGInstrument|ARM64">
++      <Configuration>PGInstrument</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="PGUpdate|ARM64">
++      <Configuration>PGUpdate</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
+   </ItemGroup>
+   <PropertyGroup Label="Globals">
+     <ProjectGuid>{31FFC478-7B4A-43E8-9954-8D03E2187E9C}</ProjectGuid>
+diff --git Python-2.7.18.orig/PCbuild/_multiprocessing.vcxproj Python-2.7.18/PCbuild/_multiprocessing.vcxproj
+index bc99fae..4fbfe77 100644
+--- Python-2.7.18.orig/PCbuild/_multiprocessing.vcxproj
++++ Python-2.7.18/PCbuild/_multiprocessing.vcxproj
+@@ -33,6 +33,23 @@
+       <Configuration>Release</Configuration>
+       <Platform>x64</Platform>
+     </ProjectConfiguration>
++  
++    <ProjectConfiguration Include="Debug|ARM64">
++      <Configuration>Debug</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="Release|ARM64">
++      <Configuration>Release</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="PGInstrument|ARM64">
++      <Configuration>PGInstrument</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="PGUpdate|ARM64">
++      <Configuration>PGUpdate</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
+   </ItemGroup>
+   <PropertyGroup Label="Globals">
+     <ProjectGuid>{9E48B300-37D1-11DD-8C41-005056C00008}</ProjectGuid>
+diff --git Python-2.7.18.orig/PCbuild/_socket.vcxproj Python-2.7.18/PCbuild/_socket.vcxproj
+index e1af948..d1bef71 100644
+--- Python-2.7.18.orig/PCbuild/_socket.vcxproj
++++ Python-2.7.18/PCbuild/_socket.vcxproj
+@@ -33,6 +33,23 @@
+       <Configuration>Release</Configuration>
+       <Platform>x64</Platform>
+     </ProjectConfiguration>
++  
++    <ProjectConfiguration Include="Debug|ARM64">
++      <Configuration>Debug</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="Release|ARM64">
++      <Configuration>Release</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="PGInstrument|ARM64">
++      <Configuration>PGInstrument</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="PGUpdate|ARM64">
++      <Configuration>PGUpdate</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
+   </ItemGroup>
+   <PropertyGroup Label="Globals">
+     <ProjectGuid>{86937F53-C189-40EF-8CE8-8759D8E7D480}</ProjectGuid>
+diff --git Python-2.7.18.orig/PCbuild/_sqlite3.vcxproj Python-2.7.18/PCbuild/_sqlite3.vcxproj
+index 417b7be..a87dbc4 100644
+--- Python-2.7.18.orig/PCbuild/_sqlite3.vcxproj
++++ Python-2.7.18/PCbuild/_sqlite3.vcxproj
+@@ -33,6 +33,23 @@
+       <Configuration>Release</Configuration>
+       <Platform>x64</Platform>
+     </ProjectConfiguration>
++  
++    <ProjectConfiguration Include="Debug|ARM64">
++      <Configuration>Debug</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="Release|ARM64">
++      <Configuration>Release</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="PGInstrument|ARM64">
++      <Configuration>PGInstrument</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="PGUpdate|ARM64">
++      <Configuration>PGUpdate</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
+   </ItemGroup>
+   <PropertyGroup Label="Globals">
+     <ProjectGuid>{13CECB97-4119-4316-9D42-8534019A5A44}</ProjectGuid>
+diff --git Python-2.7.18.orig/PCbuild/_ssl.vcxproj Python-2.7.18/PCbuild/_ssl.vcxproj
+index fc5501f..f189292 100644
+--- Python-2.7.18.orig/PCbuild/_ssl.vcxproj
++++ Python-2.7.18/PCbuild/_ssl.vcxproj
+@@ -33,6 +33,23 @@
+       <Configuration>Release</Configuration>
+       <Platform>x64</Platform>
+     </ProjectConfiguration>
++  
++    <ProjectConfiguration Include="Debug|ARM64">
++      <Configuration>Debug</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="Release|ARM64">
++      <Configuration>Release</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="PGInstrument|ARM64">
++      <Configuration>PGInstrument</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="PGUpdate|ARM64">
++      <Configuration>PGUpdate</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
+   </ItemGroup>
+   <PropertyGroup Label="Globals">
+     <ProjectGuid>{C6E20F84-3247-4AD6-B051-B073268F73BA}</ProjectGuid>
+diff --git Python-2.7.18.orig/PCbuild/_testcapi.vcxproj Python-2.7.18/PCbuild/_testcapi.vcxproj
+index 007f515..05c993e 100644
+--- Python-2.7.18.orig/PCbuild/_testcapi.vcxproj
++++ Python-2.7.18/PCbuild/_testcapi.vcxproj
+@@ -33,6 +33,23 @@
+       <Configuration>Release</Configuration>
+       <Platform>x64</Platform>
+     </ProjectConfiguration>
++  
++    <ProjectConfiguration Include="Debug|ARM64">
++      <Configuration>Debug</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="Release|ARM64">
++      <Configuration>Release</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="PGInstrument|ARM64">
++      <Configuration>PGInstrument</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="PGUpdate|ARM64">
++      <Configuration>PGUpdate</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
+   </ItemGroup>
+   <PropertyGroup Label="Globals">
+     <ProjectGuid>{6901D91C-6E48-4BB7-9FEC-700C8131DF1D}</ProjectGuid>
+diff --git Python-2.7.18.orig/PCbuild/_tkinter.vcxproj Python-2.7.18/PCbuild/_tkinter.vcxproj
+index e6a1216..ed4c597 100644
+--- Python-2.7.18.orig/PCbuild/_tkinter.vcxproj
++++ Python-2.7.18/PCbuild/_tkinter.vcxproj
+@@ -33,6 +33,23 @@
+       <Configuration>Release</Configuration>
+       <Platform>x64</Platform>
+     </ProjectConfiguration>
++  
++    <ProjectConfiguration Include="Debug|ARM64">
++      <Configuration>Debug</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="Release|ARM64">
++      <Configuration>Release</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="PGInstrument|ARM64">
++      <Configuration>PGInstrument</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="PGUpdate|ARM64">
++      <Configuration>PGUpdate</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
+   </ItemGroup>
+   <PropertyGroup Label="Globals">
+     <ProjectGuid>{4946ECAC-2E69-4BF8-A90A-F5136F5094DF}</ProjectGuid>
+diff --git Python-2.7.18.orig/PCbuild/bz2.vcxproj Python-2.7.18/PCbuild/bz2.vcxproj
+index d91703f..19960e2 100644
+--- Python-2.7.18.orig/PCbuild/bz2.vcxproj
++++ Python-2.7.18/PCbuild/bz2.vcxproj
+@@ -33,6 +33,23 @@
+       <Configuration>Release</Configuration>
+       <Platform>x64</Platform>
+     </ProjectConfiguration>
++  
++    <ProjectConfiguration Include="Debug|ARM64">
++      <Configuration>Debug</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="Release|ARM64">
++      <Configuration>Release</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="PGInstrument|ARM64">
++      <Configuration>PGInstrument</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="PGUpdate|ARM64">
++      <Configuration>PGUpdate</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
+   </ItemGroup>
+   <PropertyGroup Label="Globals">
+     <ProjectGuid>{73FCD2BD-F133-46B7-8EC1-144CD82A59D5}</ProjectGuid>
+diff --git Python-2.7.18.orig/PCbuild/libeay.vcxproj Python-2.7.18/PCbuild/libeay.vcxproj
+index 4e46ede..1e884e5 100644
+--- Python-2.7.18.orig/PCbuild/libeay.vcxproj
++++ Python-2.7.18/PCbuild/libeay.vcxproj
+@@ -33,6 +33,23 @@
+       <Configuration>Release</Configuration>
+       <Platform>x64</Platform>
+     </ProjectConfiguration>
++  
++    <ProjectConfiguration Include="Debug|ARM64">
++      <Configuration>Debug</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="Release|ARM64">
++      <Configuration>Release</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="PGInstrument|ARM64">
++      <Configuration>PGInstrument</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="PGUpdate|ARM64">
++      <Configuration>PGUpdate</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
+   </ItemGroup>
+   <PropertyGroup Label="Globals">
+     <ProjectGuid>{E5B04CC0-EB4C-42AB-B4DC-18EF95F864B0}</ProjectGuid>
+diff --git Python-2.7.18.orig/PCbuild/pyexpat.vcxproj Python-2.7.18/PCbuild/pyexpat.vcxproj
+index 275b8b3..f9e8f28 100644
+--- Python-2.7.18.orig/PCbuild/pyexpat.vcxproj
++++ Python-2.7.18/PCbuild/pyexpat.vcxproj
+@@ -33,6 +33,23 @@
+       <Configuration>Release</Configuration>
+       <Platform>x64</Platform>
+     </ProjectConfiguration>
++  
++    <ProjectConfiguration Include="Debug|ARM64">
++      <Configuration>Debug</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="Release|ARM64">
++      <Configuration>Release</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="PGInstrument|ARM64">
++      <Configuration>PGInstrument</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="PGUpdate|ARM64">
++      <Configuration>PGUpdate</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
+   </ItemGroup>
+   <PropertyGroup Label="Globals">
+     <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
+diff --git Python-2.7.18.orig/PCbuild/python.vcxproj Python-2.7.18/PCbuild/python.vcxproj
+index 093e9f0..ee24454 100644
+--- Python-2.7.18.orig/PCbuild/python.vcxproj
++++ Python-2.7.18/PCbuild/python.vcxproj
+@@ -33,6 +33,23 @@
+       <Configuration>Release</Configuration>
+       <Platform>x64</Platform>
+     </ProjectConfiguration>
++  
++    <ProjectConfiguration Include="Debug|ARM64">
++      <Configuration>Debug</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="Release|ARM64">
++      <Configuration>Release</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="PGInstrument|ARM64">
++      <Configuration>PGInstrument</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="PGUpdate|ARM64">
++      <Configuration>PGUpdate</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
+   </ItemGroup>
+   <PropertyGroup Label="Globals">
+     <ProjectGuid>{B11D750F-CD1F-4A96-85CE-E69A5C5259F9}</ProjectGuid>
+diff --git Python-2.7.18.orig/PCbuild/pythoncore.vcxproj Python-2.7.18/PCbuild/pythoncore.vcxproj
+index 893e8fd..addb13c 100644
+--- Python-2.7.18.orig/PCbuild/pythoncore.vcxproj
++++ Python-2.7.18/PCbuild/pythoncore.vcxproj
+@@ -33,6 +33,23 @@
+       <Configuration>Release</Configuration>
+       <Platform>x64</Platform>
+     </ProjectConfiguration>
++  
++    <ProjectConfiguration Include="Debug|ARM64">
++      <Configuration>Debug</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="Release|ARM64">
++      <Configuration>Release</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="PGInstrument|ARM64">
++      <Configuration>PGInstrument</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="PGUpdate|ARM64">
++      <Configuration>PGUpdate</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
+   </ItemGroup>
+   <PropertyGroup Label="Globals">
+     <ProjectGuid>{CF7AC3D1-E2DF-41D2-BEA6-1E2556CDEA26}</ProjectGuid>
+diff --git Python-2.7.18.orig/PCbuild/pythonw.vcxproj Python-2.7.18/PCbuild/pythonw.vcxproj
+index 53f6115..906955b 100644
+--- Python-2.7.18.orig/PCbuild/pythonw.vcxproj
++++ Python-2.7.18/PCbuild/pythonw.vcxproj
+@@ -33,6 +33,23 @@
+       <Configuration>Release</Configuration>
+       <Platform>x64</Platform>
+     </ProjectConfiguration>
++  
++    <ProjectConfiguration Include="Debug|ARM64">
++      <Configuration>Debug</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="Release|ARM64">
++      <Configuration>Release</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="PGInstrument|ARM64">
++      <Configuration>PGInstrument</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="PGUpdate|ARM64">
++      <Configuration>PGUpdate</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
+   </ItemGroup>
+   <PropertyGroup Label="Globals">
+     <ProjectGuid>{F4229CC3-873C-49AE-9729-DD308ED4CD4A}</ProjectGuid>
+diff --git Python-2.7.18.orig/PCbuild/select.vcxproj Python-2.7.18/PCbuild/select.vcxproj
+index 6f44140..568e567 100644
+--- Python-2.7.18.orig/PCbuild/select.vcxproj
++++ Python-2.7.18/PCbuild/select.vcxproj
+@@ -33,6 +33,23 @@
+       <Configuration>Release</Configuration>
+       <Platform>x64</Platform>
+     </ProjectConfiguration>
++  
++    <ProjectConfiguration Include="Debug|ARM64">
++      <Configuration>Debug</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="Release|ARM64">
++      <Configuration>Release</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="PGInstrument|ARM64">
++      <Configuration>PGInstrument</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="PGUpdate|ARM64">
++      <Configuration>PGUpdate</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
+   </ItemGroup>
+   <PropertyGroup Label="Globals">
+     <ProjectGuid>{18CAE28C-B454-46C1-87A0-493D91D97F03}</ProjectGuid>
+diff --git Python-2.7.18.orig/PCbuild/sqlite3.vcxproj Python-2.7.18/PCbuild/sqlite3.vcxproj
+index 49f3cc0..8612905 100644
+--- Python-2.7.18.orig/PCbuild/sqlite3.vcxproj
++++ Python-2.7.18/PCbuild/sqlite3.vcxproj
+@@ -33,6 +33,23 @@
+       <Configuration>Release</Configuration>
+       <Platform>x64</Platform>
+     </ProjectConfiguration>
++  
++    <ProjectConfiguration Include="Debug|ARM64">
++      <Configuration>Debug</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="Release|ARM64">
++      <Configuration>Release</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="PGInstrument|ARM64">
++      <Configuration>PGInstrument</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="PGUpdate|ARM64">
++      <Configuration>PGUpdate</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
+   </ItemGroup>
+   <PropertyGroup Label="Globals">
+     <ProjectGuid>{A1A295E5-463C-437F-81CA-1F32367685DA}</ProjectGuid>
+diff --git Python-2.7.18.orig/PCbuild/ssleay.vcxproj Python-2.7.18/PCbuild/ssleay.vcxproj
+index 0f24a5d..db70c9b 100644
+--- Python-2.7.18.orig/PCbuild/ssleay.vcxproj
++++ Python-2.7.18/PCbuild/ssleay.vcxproj
+@@ -33,6 +33,23 @@
+       <Configuration>Release</Configuration>
+       <Platform>x64</Platform>
+     </ProjectConfiguration>
++  
++    <ProjectConfiguration Include="Debug|ARM64">
++      <Configuration>Debug</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="Release|ARM64">
++      <Configuration>Release</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="PGInstrument|ARM64">
++      <Configuration>PGInstrument</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="PGUpdate|ARM64">
++      <Configuration>PGUpdate</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
+   </ItemGroup>
+   <PropertyGroup Label="Globals">
+     <ProjectGuid>{10615B24-73BF-4EFA-93AA-236916321317}</ProjectGuid>
+diff --git Python-2.7.18.orig/PCbuild/tcl.vcxproj Python-2.7.18/PCbuild/tcl.vcxproj
+index 7568429..a2b0a8e 100644
+--- Python-2.7.18.orig/PCbuild/tcl.vcxproj
++++ Python-2.7.18/PCbuild/tcl.vcxproj
+@@ -33,6 +33,23 @@
+       <Configuration>Release</Configuration>
+       <Platform>x64</Platform>
+     </ProjectConfiguration>
++  
++    <ProjectConfiguration Include="Debug|ARM64">
++      <Configuration>Debug</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="Release|ARM64">
++      <Configuration>Release</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="PGInstrument|ARM64">
++      <Configuration>PGInstrument</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="PGUpdate|ARM64">
++      <Configuration>PGUpdate</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
+   </ItemGroup>
+   <PropertyGroup Label="Globals">
+     <ProjectGuid>{B5FD6F1D-129E-4BFF-9340-03606FAC7283}</ProjectGuid>
+diff --git Python-2.7.18.orig/PCbuild/tix.vcxproj Python-2.7.18/PCbuild/tix.vcxproj
+index 983cc7b..cfd6f9d 100644
+--- Python-2.7.18.orig/PCbuild/tix.vcxproj
++++ Python-2.7.18/PCbuild/tix.vcxproj
+@@ -33,6 +33,23 @@
+       <Configuration>Release</Configuration>
+       <Platform>x64</Platform>
+     </ProjectConfiguration>
++  
++    <ProjectConfiguration Include="Debug|ARM64">
++      <Configuration>Debug</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="Release|ARM64">
++      <Configuration>Release</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="PGInstrument|ARM64">
++      <Configuration>PGInstrument</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="PGUpdate|ARM64">
++      <Configuration>PGUpdate</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
+   </ItemGroup>
+   <PropertyGroup Label="Globals">
+     <ProjectGuid>{C5A3E7FB-9695-4B2E-960B-1D9F43F1E555}</ProjectGuid>
+diff --git Python-2.7.18.orig/PCbuild/tk.vcxproj Python-2.7.18/PCbuild/tk.vcxproj
+index a932b57..627f54d 100644
+--- Python-2.7.18.orig/PCbuild/tk.vcxproj
++++ Python-2.7.18/PCbuild/tk.vcxproj
+@@ -33,6 +33,23 @@
+       <Configuration>Release</Configuration>
+       <Platform>x64</Platform>
+     </ProjectConfiguration>
++  
++    <ProjectConfiguration Include="Debug|ARM64">
++      <Configuration>Debug</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="Release|ARM64">
++      <Configuration>Release</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="PGInstrument|ARM64">
++      <Configuration>PGInstrument</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="PGUpdate|ARM64">
++      <Configuration>PGUpdate</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
+   </ItemGroup>
+   <PropertyGroup Label="Globals">
+     <ProjectGuid>{7E85ECCF-A72C-4DA4-9E52-884508E80BA1}</ProjectGuid>
+diff --git Python-2.7.18.orig/PCbuild/unicodedata.vcxproj Python-2.7.18/PCbuild/unicodedata.vcxproj
+index 90c6a46..5c92d3d 100644
+--- Python-2.7.18.orig/PCbuild/unicodedata.vcxproj
++++ Python-2.7.18/PCbuild/unicodedata.vcxproj
+@@ -33,6 +33,23 @@
+       <Configuration>Release</Configuration>
+       <Platform>x64</Platform>
+     </ProjectConfiguration>
++  
++    <ProjectConfiguration Include="Debug|ARM64">
++      <Configuration>Debug</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="Release|ARM64">
++      <Configuration>Release</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="PGInstrument|ARM64">
++      <Configuration>PGInstrument</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="PGUpdate|ARM64">
++      <Configuration>PGUpdate</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
+   </ItemGroup>
+   <PropertyGroup Label="Globals">
+     <ProjectGuid>{ECC7CEAC-A5E5-458E-BB9E-2413CC847881}</ProjectGuid>
+diff --git Python-2.7.18.orig/PCbuild/w9xpopen.vcxproj Python-2.7.18/PCbuild/w9xpopen.vcxproj
+index 4a2ee0c..e517648 100644
+--- Python-2.7.18.orig/PCbuild/w9xpopen.vcxproj
++++ Python-2.7.18/PCbuild/w9xpopen.vcxproj
+@@ -33,6 +33,23 @@
+       <Configuration>Release</Configuration>
+       <Platform>x64</Platform>
+     </ProjectConfiguration>
++  
++    <ProjectConfiguration Include="Debug|ARM64">
++      <Configuration>Debug</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="Release|ARM64">
++      <Configuration>Release</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="PGInstrument|ARM64">
++      <Configuration>PGInstrument</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="PGUpdate|ARM64">
++      <Configuration>PGUpdate</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
+   </ItemGroup>
+   <PropertyGroup Label="Globals">
+     <ProjectGuid>{E9E0A1F6-0009-4E8C-B8F8-1B8F5D49A058}</ProjectGuid>
+diff --git Python-2.7.18.orig/PCbuild/winsound.vcxproj Python-2.7.18/PCbuild/winsound.vcxproj
+index 8f7987a..6303980 100644
+--- Python-2.7.18.orig/PCbuild/winsound.vcxproj
++++ Python-2.7.18/PCbuild/winsound.vcxproj
+@@ -33,6 +33,23 @@
+       <Configuration>Release</Configuration>
+       <Platform>x64</Platform>
+     </ProjectConfiguration>
++  
++    <ProjectConfiguration Include="Debug|ARM64">
++      <Configuration>Debug</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="Release|ARM64">
++      <Configuration>Release</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="PGInstrument|ARM64">
++      <Configuration>PGInstrument</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
++    <ProjectConfiguration Include="PGUpdate|ARM64">
++      <Configuration>PGUpdate</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
+   </ItemGroup>
+   <PropertyGroup Label="Globals">
+     <ProjectGuid>{28B5D777-DDF2-4B6B-B34F-31D938813856}</ProjectGuid>
