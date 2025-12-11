@@ -1,0 +1,56 @@
+diff -urN Python-2.7.18.orig/PCbuild/_ctypes.vcxproj Python-2.7.18/PCbuild/_ctypes.vcxproj
+--- Python-2.7.18.orig/PCbuild/_ctypes.vcxproj	2025-12-11 19:42:01.486545800 +0100
++++ Python-2.7.18/PCbuild/_ctypes.vcxproj	2025-12-11 19:45:42.790877900 +0100
+@@ -62,6 +62,11 @@
+     <ConfigurationType>DynamicLibrary</ConfigurationType>
+     <CharacterSet>NotSet</CharacterSet>
+   </PropertyGroup>
++  <!-- On ARM64, do not build _ctypes (legacy libffi_msvc backend has no ARM64 support). -->
++  <PropertyGroup Condition="'$(Platform)'=='ARM64'" Label="Configuration">
++    <!-- Utility prevents compilation/linking for this project on ARM64 -->
++    <ConfigurationType>Utility</ConfigurationType>
++  </PropertyGroup>
+   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+   <PropertyGroup>
+     <TargetExt>.pyd</TargetExt>
+@@ -98,17 +103,23 @@
+     <ClCompile Include="..\Modules\_ctypes\callbacks.c" />
+     <ClCompile Include="..\Modules\_ctypes\callproc.c" />
+     <ClCompile Include="..\Modules\_ctypes\cfield.c" />
+-    <ClCompile Include="..\Modules\_ctypes\libffi_msvc\ffi.c" />
++    <ClCompile Include="..\Modules\_ctypes\libffi_msvc\ffi.c">
++      <ExcludedFromBuild Condition="'$(Platform)'=='ARM64'">true</ExcludedFromBuild>
++    </ClCompile>
+     <ClCompile Include="..\Modules\_ctypes\malloc_closure.c" />
+-    <ClCompile Include="..\Modules\_ctypes\libffi_msvc\prep_cif.c" />
++    <ClCompile Include="..\Modules\_ctypes\libffi_msvc\prep_cif.c">
++      <ExcludedFromBuild Condition="'$(Platform)'=='ARM64'">true</ExcludedFromBuild>
++    </ClCompile>
+     <ClCompile Include="..\Modules\_ctypes\stgdict.c" />
+     <ClCompile Include="..\Modules\_ctypes\libffi_msvc\win32.c">
+       <ExcludedFromBuild Condition="'$(Platform)'=='x64'">true</ExcludedFromBuild>
++      <ExcludedFromBuild Condition="'$(Platform)'=='ARM64'">true</ExcludedFromBuild>
+     </ClCompile>
+   </ItemGroup>
+   <ItemGroup>
+     <CustomBuild Include="..\Modules\_ctypes\libffi_msvc\win64.asm">
+       <ExcludedFromBuild Condition="'$(Platform)'=='Win32'">true</ExcludedFromBuild>
++      <ExcludedFromBuild Condition="'$(Platform)'=='ARM64'">true</ExcludedFromBuild>
+       <Command>ml64 /nologo /c /Zi /Fo "$(IntDir)win64.obj" "%(FullPath)"</Command>
+       <Outputs>$(IntDir)win64.obj;%(Outputs)</Outputs>
+     </CustomBuild>
+diff -urN Python-2.7.18.orig/PCbuild/_ctypes_test.vcxproj Python-2.7.18/PCbuild/_ctypes_test.vcxproj
+--- Python-2.7.18.orig/PCbuild/_ctypes_test.vcxproj	2025-12-11 19:42:01.489072000 +0100
++++ Python-2.7.18/PCbuild/_ctypes_test.vcxproj	2025-12-11 19:46:22.616870600 +0100
+@@ -63,6 +63,11 @@
+     <ConfigurationType>DynamicLibrary</ConfigurationType>
+     <CharacterSet>NotSet</CharacterSet>
+   </PropertyGroup>
++  <!-- On ARM64, disable building _ctypes_test as _ctypes is not built. -->
++  <PropertyGroup Condition="'$(Platform)'=='ARM64'" Label="Configuration">
++    <!-- Make project a no-op on ARM64 to avoid link failures. -->
++    <ConfigurationType>Utility</ConfigurationType>
++  </PropertyGroup>
+   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+   <PropertyGroup>
+     <TargetExt>.pyd</TargetExt>
