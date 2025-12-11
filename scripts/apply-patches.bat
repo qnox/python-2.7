@@ -5,7 +5,7 @@ REM Applies patches based on platform, architecture, and environment
 setlocal enabledelayedexpansion
 
 set PATCHES_DIR=%CD%\patches
-set SOURCE_DIR=%1
+set SOURCE_DIR=%~1
 
 if "%SOURCE_DIR%"=="" (
     echo Error: Source directory not specified
@@ -20,55 +20,86 @@ if not exist "%SOURCE_DIR%" (
 
 echo === Python 2.7 Patch Harness ===
 echo Source directory: %SOURCE_DIR%
-echo Target platform: %TARGET_PLATFORM%
 echo Target arch: %TARGET_ARCH%
 
-REM Function to apply patches from a directory
-set "APPLY_FAILED=0"
+REM Detect Git patch utility
+set "PATCH_EXE=C:\Program Files\Git\usr\bin\patch.exe"
+if not exist "%PATCH_EXE%" (
+    echo ERROR: patch.exe not found at "%PATCH_EXE%"
+    echo Please install Git for Windows or ensure patch.exe is in PATH.
+    exit /b 1
+)
 
-REM Apply common patches
-call :apply_patches_from_dir "%PATCHES_DIR%\common" "common patches"
+REM Apply common patches (p1)
+if exist "%PATCHES_DIR%\common" (
+    echo.
+    echo Applying common patches...
+    for %%f in ("%PATCHES_DIR%\common\*.patch") do (
+        echo   - %%~nxf
+        "%PATCH_EXE%" -d "%SOURCE_DIR%" -p1 -N --binary < "%%f"
+        if errorlevel 1 (
+            echo ERROR: Failed to apply patch %%~nxf
+            exit /b 1
+        )
+    )
+)
 
-REM Apply Windows patches
-call :apply_patches_from_dir "%PATCHES_DIR%\windows" "Windows patches"
+REM Apply Windows patches (most are p0)
+if exist "%PATCHES_DIR%\windows\01-upgrade-vs2022-toolset.patch" (
+    echo Applying Windows: 01-upgrade-vs2022-toolset.patch
+    "%PATCH_EXE%" -d "%SOURCE_DIR%" -p1 -N --binary < "%PATCHES_DIR%\windows\01-upgrade-vs2022-toolset.patch"
+    if errorlevel 1 exit /b 1
+)
+if exist "%PATCHES_DIR%\windows\02-fix-timemodule-msvc.patch" (
+    echo Applying Windows: 02-fix-timemodule-msvc.patch
+    "%PATCH_EXE%" -d "%SOURCE_DIR%" -p0 -N --binary < "%PATCHES_DIR%\windows\02-fix-timemodule-msvc.patch"
+    if errorlevel 1 exit /b 1
+)
+if exist "%PATCHES_DIR%\windows\03-fix-posixmodule-msvc.patch" (
+    echo Applying Windows: 03-fix-posixmodule-msvc.patch
+    "%PATCH_EXE%" -d "%SOURCE_DIR%" -p0 -N --binary < "%PATCHES_DIR%\windows\03-fix-posixmodule-msvc.patch"
+    if errorlevel 1 exit /b 1
+)
+if exist "%PATCHES_DIR%\windows\04-upgrade-tcltk-to-8.6.12.patch" (
+    echo Applying Windows: 04-upgrade-tcltk-to-8.6.12.patch
+    "%PATCH_EXE%" -d "%SOURCE_DIR%" -p0 -N --binary < "%PATCHES_DIR%\windows\04-upgrade-tcltk-to-8.6.12.patch"
+    if errorlevel 1 exit /b 1
+)
+
+REM ARM64 specific patches (if requested)
+set "_arch=%TARGET_ARCH%"
+if /I "%_arch%"=="arm64" set _arch=aarch64
+echo 2
+if /I "%_arch%"=="aarch64" (
+    if exist "%PATCHES_DIR%\windows\arm64\01-python-props.patch" (
+        echo Applying ARM64: 01-python-props.patch
+        "%PATCH_EXE%" -d "%SOURCE_DIR%" -p0 -N --binary < "%PATCHES_DIR%\windows\arm64\01-python-props.patch"
+        if errorlevel 1 exit /b 1
+    )
+    if exist "%PATCHES_DIR%\windows\arm64\02-pyproject-props.patch" (
+        echo Applying ARM64: 02-pyproject-props.patch
+        "%PATCH_EXE%" -d "%SOURCE_DIR%" -p0 -N --binary < "%PATCHES_DIR%\windows\arm64\02-pyproject-props.patch"
+        if errorlevel 1 exit /b 1
+    )
+    if exist "%PATCHES_DIR%\windows\arm64\03-tcltk-props.patch" (
+        echo Applying ARM64: 03-tcltk-props.patch
+        "%PATCH_EXE%" -d "%SOURCE_DIR%" -p0 -N --binary < "%PATCHES_DIR%\windows\arm64\03-tcltk-props.patch"
+        if errorlevel 1 exit /b 1
+    )
+    if exist "%PATCHES_DIR%\windows\arm64\04-pythoncore-baseaddr.patch" (
+        echo Applying ARM64: 04-pythoncore-baseaddr.patch
+        "%PATCH_EXE%" -d "%SOURCE_DIR%" -p0 -N --binary < "%PATCHES_DIR%\windows\arm64\04-pythoncore-baseaddr.patch"
+        if errorlevel 1 exit /b 1
+    )
+    if exist "%PATCHES_DIR%\windows\arm64\05-add-arm64-support.patch" (
+        echo Applying ARM64: 05-add-arm64-support.patch
+        "%PATCH_EXE%" -d "%SOURCE_DIR%" -p1 -N --binary < "%PATCHES_DIR%\windows\arm64\05-add-arm64-support.patch"
+        if errorlevel 1 exit /b 1
+    )
+)
 
 echo.
 echo === Patch application complete ===
 
-if "%APPLY_FAILED%"=="1" (
-    echo Warning: Some patches failed to apply
-)
-
 endlocal
 exit /b 0
-
-:apply_patches_from_dir
-    set "patch_dir=%~1"
-    set "description=%~2"
-
-    if not exist "%patch_dir%" (
-        exit /b 0
-    )
-
-    set "found_patches=0"
-    for %%f in ("%patch_dir%\*.patch") do (
-        set "found_patches=1"
-    )
-
-    if "%found_patches%"=="0" (
-        exit /b 0
-    )
-
-    echo.
-    echo Applying %description%...
-
-    for %%f in ("%patch_dir%\*.patch") do (
-        echo   - %%~nxf
-
-        REM Try to apply patch using PowerShell
-        REM Windows doesn't have native patch utility, use alternatives
-        echo     Note: Patch file found, manual application may be needed
-        echo     File: %%f
-    )
-
-    exit /b 0

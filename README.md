@@ -26,6 +26,7 @@ Automated builds of portable Python 2.7.18 for multiple platforms, architectures
 ### Windows
 - **x86_64-pc-windows-msvc**: 64-bit Windows
 - **i686-pc-windows-msvc**: 32-bit Windows
+- **aarch64-pc-windows-msvc**: ARM64 Windows 10/11 (experimental)
 
 ## Download
 
@@ -127,10 +128,14 @@ bash scripts/package.sh
 
 #### Windows
 ```cmd
-set TARGET_ARCH=x86_64           REM or x86
+REM Supported: x86_64, x86, aarch64 (ARM64)
+set TARGET_ARCH=x86_64
 set TARGET_TRIPLE=x86_64-pc-windows-msvc
 scripts\build-windows.bat
 scripts\package.bat
+
+REM After build, run portable launcher:
+build\python-2.7.18-%TARGET_TRIPLE%\bin\python-portable.bat --version
 ```
 
 ## GitHub Actions Workflow
