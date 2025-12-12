@@ -65,6 +65,11 @@ if exist "%PATCHES_DIR%\windows\04-upgrade-tcltk-to-8.6.12.patch" (
     "%PATCH_EXE%" -d "%SOURCE_DIR%" -p0 -N --binary < "%PATCHES_DIR%\windows\04-upgrade-tcltk-to-8.6.12.patch"
     if errorlevel 1 exit /b 1
 )
+if exist "%PATCHES_DIR%\windows\arm64\09-disable-tcltk-arm64.patch" (
+    echo Applying Windows: 09-disable-tcltk-arm64.patch
+    "%PATCH_EXE%" -d "%SOURCE_DIR%" -p1 -N --binary < "%PATCHES_DIR%\windows\arm64\09-disable-tcltk-arm64.patch"
+    if errorlevel 1 exit /b 1
+)
 
 REM ARM64 specific patches (if requested)
 set "_arch=%TARGET_ARCH%"
@@ -124,11 +129,6 @@ if /I "%_arch%"=="aarch64" (
     if exist "%PATCHES_DIR%\windows\arm64\08-openssl-1.1.1w-for-arm64.patch" (
         echo Applying ARM64: 08-openssl-1.1.1w-for-arm64.patch
         "%PATCH_EXE%" -d "%SOURCE_DIR%" -p1 -N --binary < "%PATCHES_DIR%\windows\arm64\08-openssl-1.1.1w-for-arm64.patch"
-        if errorlevel 1 exit /b 1
-    )
-    if exist "%PATCHES_DIR%\windows\arm64\09-disable-tcltk-arm64.patch" (
-        echo Applying ARM64: 09-disable-tcltk-arm64.patch
-        "%PATCH_EXE%" -d "%SOURCE_DIR%" -p1 -N --binary < "%PATCHES_DIR%\windows\arm64\09-disable-tcltk-arm64.patch"
         if errorlevel 1 exit /b 1
     )
 )

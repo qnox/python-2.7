@@ -12,7 +12,7 @@
    <PropertyGroup>
      <TargetExt>.pyd</TargetExt>
 --- Python-2.7.18-orig/PCbuild/tcl.vcxproj	2025-12-12 22:26:48.414995000 +0100
-+++ Python-2.7.18-mod/PCbuild/tcl.vcxproj	2025-12-12 23:01:13.179488900 +0100
++++ Python-2.7.18-mod/PCbuild/tcl.vcxproj	2025-12-12 23:36:30.210365000 +0100
 @@ -65,6 +65,10 @@
      <TargetPath>$(OutDir)bin\$(tclDLLName)</TargetPath>
    </PropertyGroup>
@@ -24,20 +24,27 @@
    <ItemGroup>
      <ExpectedOutputs Include="
          $(OutDir)\bin\$(tclDLLName);
-@@ -91,6 +95,11 @@
- nmake -f makefile.vc MACHINE=$(TclMachine) OPTS=$(TclOpts) $(TclDirs) $(DebugFlags) core shell dlls
- nmake -f makefile.vc MACHINE=$(TclMachine) OPTS=$(TclOpts) $(TclDirs) $(DebugFlags) install-binaries install-libraries
- </NMakeBuildCommandLine>
-+    <NMakeCleanCommandLine>rmdir /q/s "$(OutDir.TrimEnd(``))"</NMakeCleanCommandLine>
-+  </PropertyGroup>
-+  <PropertyGroup Condition="'$(Platform)'=='ARM64'">
-+    <NMakeBuildCommandLine>echo Skipping tcl build for ARM64</NMakeBuildCommandLine>
-+    <NMakeCleanCommandLine>echo Skipping tcl clean for ARM64</NMakeCleanCommandLine>
+@@ -81,16 +85,8 @@
+     <TclOpts Condition="$(Configuration) == 'Debug'">symbols</TclOpts>
+     <TclDirs>INSTALLDIR="$(OutDir.TrimEnd(`\`))" INSTALL_DIR="$(OutDir.TrimEnd(`\`))"</TclDirs>
+     <DebugFlags Condition="'$(Configuration)' == 'Debug'">DEBUGFLAGS="-wd4456 -wd4457 -wd4458 -wd4459 -wd4996"</DebugFlags>
+-    <NMakeBuildCommandLine>setlocal
+-@(ExpectedOutputs->'if not exist "%(FullPath)" goto build','
+-')
+-goto :eof
+-:build
+-set VCINSTALLDIR=$(VCInstallDir)
+-cd /D "$(tclDir)win"
+-nmake -f makefile.vc MACHINE=$(TclMachine) OPTS=$(TclOpts) $(TclDirs) $(DebugFlags) core shell dlls
+-nmake -f makefile.vc MACHINE=$(TclMachine) OPTS=$(TclOpts) $(TclDirs) $(DebugFlags) install-binaries install-libraries
+-</NMakeBuildCommandLine>
++    <NMakeBuildCommandLine>echo Using prebuilt Tcl/Tk binaries - skipping source build</NMakeBuildCommandLine>
++    <NMakeCleanCommandLine>echo Skipping tcl clean</NMakeCleanCommandLine>
    </PropertyGroup>
  
    <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 --- Python-2.7.18-orig/PCbuild/tix.vcxproj	2025-12-12 22:26:48.434512800 +0100
-+++ Python-2.7.18-mod/PCbuild/tix.vcxproj	2025-12-12 23:01:13.196488800 +0100
++++ Python-2.7.18-mod/PCbuild/tix.vcxproj	2025-12-12 23:36:30.214312400 +0100
 @@ -65,6 +65,10 @@
      <OutDir>$(tcltkDir)</OutDir>
      <TargetPath>$(tixDLLPath)</TargetPath>
@@ -49,19 +56,27 @@
  
    <ItemGroup>
      <ExpectedOutputs Include="$(TargetPath)" />
-@@ -89,6 +93,10 @@
- </NMakeBuildCommandLine>
-     <NMakeCleanCommandLine>rmdir /q/s "$(OutDir.TrimEnd(`\`))"</NMakeCleanCommandLine>
+@@ -78,16 +82,8 @@
+     <TixDirs>BUILDDIRTOP="$(BuildDirTop)" TCL_DIR="$(tclDir.TrimEnd(`\`))" TK_DIR="$(tkDir.TrimEnd(`\`))" INSTALL_DIR="$(OutDir.TrimEnd(`\`))"</TixDirs>
+     <DebugFlags Condition="'$(Configuration)' == 'Debug'">DEBUG=1 NODEBUG=0 TCL_DBGX=g DEBUGFLAGS="-wd4456 -wd4457 -wd4458 -wd4459 -wd4996"</DebugFlags>
+     <DebugFlags Condition="'$(Configuration)' != 'Debug'">DEBUG=0 NODEBUG=1</DebugFlags>
+-    <NMakeBuildCommandLine>setlocal
+-@(ExpectedOutputs->'if not exist "%(FullPath)" goto build','
+-')
+-goto :eof
+-:build
+-set VCINSTALLDIR=$(VCInstallDir)
+-cd /D "$(tixDir)win"
+-nmake /nologo -f makefile.vc MACHINE=$(TclMachine) $(DebugFlags) $(TclShortVersions) $(TixDirs) all install
+-</NMakeBuildCommandLine>
+-    <NMakeCleanCommandLine>rmdir /q/s "$(OutDir.TrimEnd(`\`))"</NMakeCleanCommandLine>
++    <NMakeBuildCommandLine>echo Using prebuilt Tcl/Tk binaries - skipping source build</NMakeBuildCommandLine>
++    <NMakeCleanCommandLine>echo Skipping tix clean</NMakeCleanCommandLine>
    </PropertyGroup>
-+  <PropertyGroup Condition="'$(Platform)'=='ARM64'">
-+    <NMakeBuildCommandLine>echo Skipping tix build for ARM64</NMakeBuildCommandLine>
-+    <NMakeCleanCommandLine>echo Skipping tix clean for ARM64</NMakeCleanCommandLine>
-+  </PropertyGroup>
  
    <ItemGroup>
-     <ProjectReference Include="tcl.vcxproj">
 --- Python-2.7.18-orig/PCbuild/tk.vcxproj	2025-12-12 22:26:48.452520200 +0100
-+++ Python-2.7.18-mod/PCbuild/tk.vcxproj	2025-12-12 23:01:13.208524000 +0100
++++ Python-2.7.18-mod/PCbuild/tk.vcxproj	2025-12-12 23:36:30.217317200 +0100
 @@ -65,6 +65,10 @@
      <OutDir>$(tcltkDir)</OutDir>
      <TargetPath>$(OutDir)bin\$(tkDLLName)</TargetPath>
@@ -73,14 +88,22 @@
  
    <ItemGroup>
      <ExpectedOutputs Include="
-@@ -92,6 +96,10 @@
- nmake /nologo -f makefile.vc RC=rc MACHINE=$(TclMachine) OPTS=$(TkOpts) $(TkDirs) $(DebugFlags) install-binaries install-libraries
- </NMakeBuildCommandLine>
+@@ -81,16 +85,8 @@
+     <TkOpts Condition="$(Configuration) == 'Debug'">symbols,msvcrt</TkOpts>
+     <TkDirs>TCLDIR="$(tclDir.TrimEnd(`\`))" INSTALLDIR="$(OutDir.TrimEnd(`\`))"</TkDirs>
+     <DebugFlags Condition="'$(Configuration)' == 'Debug'">DEBUGFLAGS="-wd4456 -wd4457 -wd4458 -wd4459 -wd4996"</DebugFlags>
+-    <NMakeBuildCommandLine>setlocal
+-@(ExpectedOutputs->'if not exist "%(FullPath)" goto build','
+-')
+-goto :eof
+-:build
+-set VCINSTALLDIR=$(VCInstallDir)
+-cd /D "$(tkDir)win"
+-nmake /nologo -f makefile.vc RC=rc MACHINE=$(TclMachine) OPTS=$(TkOpts) $(TkDirs) $(DebugFlags) all
+-nmake /nologo -f makefile.vc RC=rc MACHINE=$(TclMachine) OPTS=$(TkOpts) $(TkDirs) $(DebugFlags) install-binaries install-libraries
+-</NMakeBuildCommandLine>
++    <NMakeBuildCommandLine>echo Using prebuilt Tcl/Tk binaries - skipping source build</NMakeBuildCommandLine>
++    <NMakeCleanCommandLine>echo Skipping tk clean</NMakeCleanCommandLine>
    </PropertyGroup>
-+  <PropertyGroup Condition="'$(Platform)'=='ARM64'">
-+    <NMakeBuildCommandLine>echo Skipping tk build for ARM64</NMakeBuildCommandLine>
-+    <NMakeCleanCommandLine>echo Skipping tk clean for ARM64</NMakeCleanCommandLine>
-+  </PropertyGroup>
    <ItemGroup>
      <ProjectReference Include="tcl.vcxproj">
-       <Project>{b5fd6f1d-129e-4bff-9340-03606fac7283}</Project>
