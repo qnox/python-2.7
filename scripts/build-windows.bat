@@ -175,6 +175,11 @@ if not exist "%TCLTK_DIR%\bin\%TCLTK_CHECK_DLL%" (
     for /d %%D in ("%SOURCE_DIR%\externals\cpython-bin-deps-*") do (
         if exist "%%D\%ARCH_DIR%" (
             xcopy /E /I /Y "%%D\%ARCH_DIR%" "%TCLTK_DIR%\"
+            REM Copy DLLs without 't' suffix for compatibility with legacy build system
+            if exist "%TCLTK_DIR%\bin\tcl86t.dll" copy /Y "%TCLTK_DIR%\bin\tcl86t.dll" "%TCLTK_DIR%\bin\tcl86.dll"
+            if exist "%TCLTK_DIR%\bin\tk86t.dll" copy /Y "%TCLTK_DIR%\bin\tk86t.dll" "%TCLTK_DIR%\bin\tk86.dll"
+            if exist "%TCLTK_DIR%\lib\tcl86t.lib" copy /Y "%TCLTK_DIR%\lib\tcl86t.lib" "%TCLTK_DIR%\lib\tcl86.lib"
+            if exist "%TCLTK_DIR%\lib\tk86t.lib" copy /Y "%TCLTK_DIR%\lib\tk86t.lib" "%TCLTK_DIR%\lib\tk86.lib"
         )
     )
     echo Tcl/Tk binaries ready
@@ -248,7 +253,7 @@ REM Build external dependencies
 echo.
 echo [5/6] Building external dependencies...
 echo This may take several minutes...
-REM ARM64: Conditionally skip bsddb if build failed
+REM Skip bsddb for all platforms (old bsddb 4.7.25 has build issues with modern toolchains)
 if "%ARCH_DIR%"=="arm64" (
     if "%BDB_FAILED%"=="1" (
         echo Skipping bsddb module ^(Berkeley DB build failed^)
@@ -257,7 +262,8 @@ if "%ARCH_DIR%"=="arm64" (
         call "%SOURCE_DIR%\PCbuild\build.bat" -e -p %PLATFORM%
     )
 ) else (
-    call "%SOURCE_DIR%\PCbuild\build.bat" -e -p %PLATFORM%
+    echo Skipping bsddb module for %ARCH_DIR% ^(legacy bsddb has compatibility issues^)
+    call "%SOURCE_DIR%\PCbuild\build.bat" -e -p %PLATFORM% --no-bsddb
 )
 if errorlevel 1 (
     echo ERROR: Failed to build external dependencies
@@ -269,7 +275,7 @@ REM Build Python with Release configuration
 echo.
 echo [6/6] Building Python %PYTHON_VERSION% ^(Release configuration^)...
 echo This may take several minutes...
-REM ARM64: Conditionally skip bsddb if build failed
+REM Skip bsddb for all platforms (old bsddb 4.7.25 has build issues with modern toolchains)
 if "%ARCH_DIR%"=="arm64" (
     if "%BDB_FAILED%"=="1" (
         echo Skipping bsddb module ^(Berkeley DB build failed^)
@@ -278,7 +284,7 @@ if "%ARCH_DIR%"=="arm64" (
         call "%SOURCE_DIR%\PCbuild\build.bat" -p %PLATFORM% -c Release
     )
 ) else (
-    call "%SOURCE_DIR%\PCbuild\build.bat" -p %PLATFORM% -c Release
+    call "%SOURCE_DIR%\PCbuild\build.bat" -p %PLATFORM% -c Release --no-bsddb
 )
 if errorlevel 1 (
     echo ERROR: Failed to build Python
