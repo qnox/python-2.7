@@ -6,8 +6,9 @@ REM Based on python-build-standalone architecture
 setlocal enabledelayedexpansion
 
 set PYTHON_VERSION=2.7.18
-set BUILD_DIR=%CD%\build
-set SOURCE_DIR=%CD%\Python-%PYTHON_VERSION%
+set PROJECT_ROOT=%CD%
+set BUILD_DIR=%PROJECT_ROOT%\build
+set SOURCE_DIR=%PROJECT_ROOT%\Python-%PYTHON_VERSION%
 
 REM Detect architecture if not set
 if "%TARGET_ARCH%"=="" (
@@ -181,11 +182,83 @@ if not exist "%TCLTK_DIR%\bin\%TCLTK_CHECK_DLL%" (
     echo Using existing Tcl/Tk binaries
 )
 
+REM Build Berkeley DB for ARM64 from source
+if "%ARCH_DIR%"=="arm64" (
+    echo.
+    echo [4.4/6] Building Berkeley DB from source for ARM64...
+    call "%PROJECT_ROOT%\scripts\deps\build-bdb-arm64.bat"
+    if errorlevel 1 (
+        echo WARNING: Failed to build Berkeley DB for ARM64
+        echo Continuing without bsddb module support
+        set BDB_FAILED=1
+    ) else (
+        echo [4.4/6] Berkeley DB built successfully for ARM64
+
+        REM Copy Berkeley DB libraries to externals directory
+        set BDB_INSTALL=%PROJECT_ROOT%\build\bdb-arm64-install
+        set BDB_EXTERNALS=%SOURCE_DIR%\externals\db-6.0.19
+        if not exist "!BDB_EXTERNALS!" mkdir "!BDB_EXTERNALS!"
+        if not exist "!BDB_EXTERNALS!\include" mkdir "!BDB_EXTERNALS!\include"
+        if not exist "!BDB_EXTERNALS!\lib" mkdir "!BDB_EXTERNALS!\lib"
+
+        REM Copy include files
+        xcopy /Y "!BDB_INSTALL!\include\*.h" "!BDB_EXTERNALS!\include\"
+
+        REM Copy library files
+        xcopy /Y "!BDB_INSTALL!\lib\*.lib" "!BDB_EXTERNALS!\lib\"
+
+        echo Berkeley DB libraries copied to Python externals directory
+        set BDB_FAILED=0
+    )
+)
+
+REM Build OpenSSL for ARM64 from source using Perl Configure
+if "%ARCH_DIR%"=="arm64" (
+    echo.
+    echo [4.5/6] Building OpenSSL from source for ARM64...
+    call "%PROJECT_ROOT%\scripts\deps\build-openssl-arm64.bat"
+    if errorlevel 1 (
+        echo ERROR: Failed to build OpenSSL for ARM64
+        exit /b 1
+    )
+    echo [4.5/6] OpenSSL built successfully for ARM64
+
+    REM Copy OpenSSL libraries from build directory to externals
+    set OPENSSL_BUILD=%PROJECT_ROOT%\build\openssl-arm64\openssl-1.1.1w
+    set OPENSSL_EXTERNALS=%SOURCE_DIR%\externals\openssl-1.1.1w
+    if not exist "!OPENSSL_EXTERNALS!" mkdir "!OPENSSL_EXTERNALS!"
+    if not exist "!OPENSSL_EXTERNALS!\inc32" mkdir "!OPENSSL_EXTERNALS!\inc32"
+    if not exist "!OPENSSL_EXTERNALS!\out32" mkdir "!OPENSSL_EXTERNALS!\out32"
+
+    REM Copy include files from build directory
+    xcopy /E /I /Y "!OPENSSL_BUILD!\include\openssl" "!OPENSSL_EXTERNALS!\inc32\openssl"
+
+    REM Copy library files from build directory
+    xcopy /Y "!OPENSSL_BUILD!\libcrypto.lib" "!OPENSSL_EXTERNALS!\out32\"
+    xcopy /Y "!OPENSSL_BUILD!\libssl.lib" "!OPENSSL_EXTERNALS!\out32\"
+
+    REM Copy with old OpenSSL 1.0.2 names for compatibility
+    copy /Y "!OPENSSL_BUILD!\libcrypto.lib" "!OPENSSL_EXTERNALS!\out32\libeay.lib"
+    copy /Y "!OPENSSL_BUILD!\libssl.lib" "!OPENSSL_EXTERNALS!\out32\ssleay.lib"
+
+    echo OpenSSL libraries copied to Python externals directory
+)
+
 REM Build external dependencies
 echo.
 echo [5/6] Building external dependencies...
 echo This may take several minutes...
-call "%SOURCE_DIR%\PCbuild\build.bat" -e -p %PLATFORM%
+REM ARM64: Conditionally skip bsddb if build failed
+if "%ARCH_DIR%"=="arm64" (
+    if "%BDB_FAILED%"=="1" (
+        echo Skipping bsddb module ^(Berkeley DB build failed^)
+        call "%SOURCE_DIR%\PCbuild\build.bat" -e -p %PLATFORM% --no-bsddb
+    ) else (
+        call "%SOURCE_DIR%\PCbuild\build.bat" -e -p %PLATFORM%
+    )
+) else (
+    call "%SOURCE_DIR%\PCbuild\build.bat" -e -p %PLATFORM%
+)
 if errorlevel 1 (
     echo ERROR: Failed to build external dependencies
     exit /b 1
@@ -196,7 +269,17 @@ REM Build Python with Release configuration
 echo.
 echo [6/6] Building Python %PYTHON_VERSION% ^(Release configuration^)...
 echo This may take several minutes...
-call "%SOURCE_DIR%\PCbuild\build.bat" -p %PLATFORM% -c Release
+REM ARM64: Conditionally skip bsddb if build failed
+if "%ARCH_DIR%"=="arm64" (
+    if "%BDB_FAILED%"=="1" (
+        echo Skipping bsddb module ^(Berkeley DB build failed^)
+        call "%SOURCE_DIR%\PCbuild\build.bat" -p %PLATFORM% -c Release --no-bsddb
+    ) else (
+        call "%SOURCE_DIR%\PCbuild\build.bat" -p %PLATFORM% -c Release
+    )
+) else (
+    call "%SOURCE_DIR%\PCbuild\build.bat" -p %PLATFORM% -c Release
+)
 if errorlevel 1 (
     echo ERROR: Failed to build Python
     exit /b 1
@@ -285,16 +368,16 @@ if exist "%TCLTK_DIR%\bin\*.dll" (
 )
 
 echo Copying standard library...
-xcopy /E /I /Y "..\..\Lib\*" "%PORTABLE_DIR%\Lib\" >nul
+xcopy /E /I /Y "%SOURCE_DIR%\Lib\*" "%PORTABLE_DIR%\Lib\" >nul
 if errorlevel 1 (
     echo ERROR: Failed to copy standard library
     exit /b 1
 )
 
 echo Copying development headers...
-xcopy /E /I /Y "..\..\Include\*" "%PORTABLE_DIR%\include\" >nul
-xcopy /Y /I "..\..\PC\pyconfig.h" "%PORTABLE_DIR%\include\" >nul
-if errorlevel 1 (
+xcopy /E /I /Y "%SOURCE_DIR%\Include\*" "%PORTABLE_DIR%\include\" >nul
+xcopy /Y /I "%SOURCE_DIR%\PC\pyconfig.h" "%PORTABLE_DIR%\include\" >nul
+if errorlevel 1 (x
     echo ERROR: Failed to copy development headers
     exit /b 1
 )
@@ -314,14 +397,14 @@ echo @echo off
 echo REM Portable Python launcher for Windows
 echo REM Automatically sets up environment variables
 echo setlocal
-echo set SCRIPT_DIR=%%~dp0
-echo for %%I in ("%%SCRIPT_DIR%%.") do set PYTHON_HOME=%%~dpI\..
-echo set PYTHON_HOME=%%PYTHON_HOME:~0,-1%%
-echo set PATH=%%PYTHON_HOME%%\bin;%%PYTHON_HOME%%\DLLs;%%PATH%%
-echo set PYTHONHOME=%%PYTHON_HOME%%
-echo set TCL_LIBRARY=%%PYTHON_HOME%%\tcl\tcl8.6
-echo set TK_LIBRARY=%%PYTHON_HOME%%\tcl\tk8.6
-echo "%%PYTHON_HOME%%\bin\python.exe" %%*
+echo set SCRIPT_DIR=%%%%~dp0
+echo for %%%%I in ^("%%%%SCRIPT_DIR%%%%."^) do set PYTHON_HOME=%%%%~dpI\..
+echo set PYTHON_HOME=%%%%PYTHON_HOME:~0,-1%%%%
+echo set PATH=%%%%PYTHON_HOME%%%%\bin;%%%%PYTHON_HOME%%%%\DLLs;%%%%PATH%%%%
+echo set PYTHONHOME=%%%%PYTHON_HOME%%%%
+echo set TCL_LIBRARY=%%%%PYTHON_HOME%%%%\tcl\tcl8.6
+echo set TK_LIBRARY=%%%%PYTHON_HOME%%%%\tcl\tk8.6
+echo "%%%%PYTHON_HOME%%%%\bin\python.exe" %%%%*
 echo endlocal
 ) > "%PORTABLE_DIR%\bin\python-portable.bat"
 

@@ -121,6 +121,16 @@ if /I "%_arch%"=="aarch64" (
         )
         if errorlevel 1 exit /b 1
     )
+    if exist "%PATCHES_DIR%\windows\arm64\08-openssl-1.1.1w-for-arm64.patch" (
+        echo Applying ARM64: 08-openssl-1.1.1w-for-arm64.patch
+        "%PATCH_EXE%" -d "%SOURCE_DIR%" -p1 -N --binary < "%PATCHES_DIR%\windows\arm64\08-openssl-1.1.1w-for-arm64.patch"
+        if errorlevel 1 exit /b 1
+    )
+    if exist "%PATCHES_DIR%\windows\arm64\09-disable-tcltk-arm64.patch" (
+        echo Applying ARM64: 09-disable-tcltk-arm64.patch
+        "%PATCH_EXE%" -d "%SOURCE_DIR%" -p1 -N --binary < "%PATCHES_DIR%\windows\arm64\09-disable-tcltk-arm64.patch"
+        if errorlevel 1 exit /b 1
+    )
 )
 
 echo.
