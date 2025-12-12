@@ -17,8 +17,8 @@
      <TargetPath>$(OutDir)bin\$(tclDLLName)</TargetPath>
    </PropertyGroup>
  
-+  <!-- On ARM64, disable tcl as tcl/tk ARM64 support is not yet configured -->
-+  <PropertyGroup Condition="'$(Platform)'=='ARM64'" Label="Configuration">
++  <!-- Disable tcl for all platforms - using prebuilt Tcl/Tk binaries -->
++  <PropertyGroup Label="Configuration">
 +    <ConfigurationType>Utility</ConfigurationType>
 +  </PropertyGroup>
    <ItemGroup>
@@ -49,8 +49,8 @@
      <OutDir>$(tcltkDir)</OutDir>
      <TargetPath>$(tixDLLPath)</TargetPath>
    </PropertyGroup>
-+  <!-- On ARM64, disable tix as tcl/tk ARM64 support is not yet configured -->
-+  <PropertyGroup Condition="'$(Platform)'=='ARM64'" Label="Configuration">
++  <!-- Disable tix for all platforms - using prebuilt Tcl/Tk binaries -->
++  <PropertyGroup Label="Configuration">
 +    <ConfigurationType>Utility</ConfigurationType>
 +  </PropertyGroup>
  
@@ -81,8 +81,8 @@
      <OutDir>$(tcltkDir)</OutDir>
      <TargetPath>$(OutDir)bin\$(tkDLLName)</TargetPath>
    </PropertyGroup>
-+  <!-- On ARM64, disable tk as tcl/tk ARM64 support is not yet configured -->
-+  <PropertyGroup Condition="'$(Platform)'=='ARM64'" Label="Configuration">
++  <!-- Disable tk for all platforms - using prebuilt Tcl/Tk binaries -->
++  <PropertyGroup Label="Configuration">
 +    <ConfigurationType>Utility</ConfigurationType>
 +  </PropertyGroup>
  
