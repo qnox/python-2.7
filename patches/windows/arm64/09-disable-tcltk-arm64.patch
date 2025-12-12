@@ -21,9 +21,21 @@
 +  <PropertyGroup Condition="'$(Platform)'=='ARM64'" Label="Configuration">
 +    <ConfigurationType>Utility</ConfigurationType>
 +  </PropertyGroup>
- 
+
    <ItemGroup>
      <ExpectedOutputs Include="
+@@ -75,6 +79,11 @@
+ nmake -f makefile.vc MACHINE=$(TclMachine) OPTS=$(TclOpts) $(TclDirs) $(DebugFlags) install-binaries install-libraries
+ </NMakeBuildCommandLine>
+   </PropertyGroup>
++  <PropertyGroup Condition="'$(Platform)'=='ARM64'">
++    <NMakeBuildCommandLine>echo Skipping tcl build for ARM64</NMakeBuildCommandLine>
++    <NMakeCleanCommandLine>echo Skipping tcl clean for ARM64</NMakeCleanCommandLine>
++  </PropertyGroup>
++
+   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+
+   <Target Name="CopyDll" Inputs="$(OutDir)\bin\$(tclDLLName)" Outputs="$(BuildPath)$(tclDLLName)" AfterTargets="Build">
 --- Python-2.7.18-orig/PCbuild/tix.vcxproj	2025-12-12 20:03:35.244188500 +0100
 +++ Python-2.7.18-mod/PCbuild/tix.vcxproj	2025-12-12 21:55:16.750871100 +0100
 @@ -65,6 +65,10 @@
@@ -34,9 +46,22 @@
 +  <PropertyGroup Condition="'$(Platform)'=='ARM64'" Label="Configuration">
 +    <ConfigurationType>Utility</ConfigurationType>
 +  </PropertyGroup>
- 
+
    <ItemGroup>
      <ExpectedOutputs Include="$(TargetPath)" />
+@@ -73,6 +77,11 @@
+ nmake /nologo -f makefile.vc MACHINE=$(TclMachine) $(DebugFlags) $(TclShortVersions) $(TixDirs) all install
+ </NMakeBuildCommandLine>
+     <NMakeCleanCommandLine>rmdir /q/s "$(OutDir.TrimEnd(`\`))"</NMakeCleanCommandLine>
+   </PropertyGroup>
++  <PropertyGroup Condition="'$(Platform)'=='ARM64'">
++    <NMakeBuildCommandLine>echo Skipping tix build for ARM64</NMakeBuildCommandLine>
++    <NMakeCleanCommandLine>echo Skipping tix clean for ARM64</NMakeCleanCommandLine>
++  </PropertyGroup>
++
+   <ItemGroup>
+     <ProjectReference Include="tcl.vcxproj">
+       <Project>{b5fd6f1d-129e-4bff-9340-03606fac7283}</Project>
 --- Python-2.7.18-orig/PCbuild/tk.vcxproj	2025-12-12 20:03:35.260187800 +0100
 +++ Python-2.7.18-mod/PCbuild/tk.vcxproj	2025-12-12 21:55:19.517831800 +0100
 @@ -65,6 +65,10 @@
@@ -47,6 +72,18 @@
 +  <PropertyGroup Condition="'$(Platform)'=='ARM64'" Label="Configuration">
 +    <ConfigurationType>Utility</ConfigurationType>
 +  </PropertyGroup>
- 
+
    <ItemGroup>
      <ExpectedOutputs Include="
+@@ -76,6 +80,11 @@
+ nmake /nologo -f makefile.vc RC=rc MACHINE=$(TclMachine) OPTS=$(TkOpts) $(TkDirs) $(DebugFlags) install-binaries install-libraries
+ </NMakeBuildCommandLine>
+   </PropertyGroup>
++  <PropertyGroup Condition="'$(Platform)'=='ARM64'">
++    <NMakeBuildCommandLine>echo Skipping tk build for ARM64</NMakeBuildCommandLine>
++    <NMakeCleanCommandLine>echo Skipping tk clean for ARM64</NMakeCleanCommandLine>
++  </PropertyGroup>
++
+   <ItemGroup>
+     <ProjectReference Include="tcl.vcxproj">
+       <Project>{b5fd6f1d-129e-4bff-9340-03606fac7283}</Project>
