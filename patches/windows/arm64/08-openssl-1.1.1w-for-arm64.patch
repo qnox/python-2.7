@@ -1,0 +1,157 @@
+diff -Naur Python-2.7.18-orig/PCbuild/_hashlib.vcxproj Python-2.7.18-mod/PCbuild/_hashlib.vcxproj
+--- Python-2.7.18-orig/PCbuild/_hashlib.vcxproj	2025-12-12 20:03:34.991187500 +0100
++++ Python-2.7.18-mod/PCbuild/_hashlib.vcxproj	2025-12-12 21:47:38.015687000 +0100
+@@ -81,7 +81,7 @@
+       <AdditionalIncludeDirectories>$(opensslIncludeDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+     </ClCompile>
+     <Link>
+-      <AdditionalDependencies>ws2_32.lib;$(OutDir)libeay$(PyDebugExt).lib;$(OutDir)ssleay$(PyDebugExt).lib;%(AdditionalDependencies)</AdditionalDependencies>
++      <AdditionalDependencies>ws2_32.lib;crypt32.lib;$(opensslOutDir)libeay$(PyDebugExt).lib;$(opensslOutDir)ssleay$(PyDebugExt).lib;%(AdditionalDependencies)</AdditionalDependencies>
+     </Link>
+   </ItemDefinitionGroup>
+   <ItemGroup>
+@@ -92,11 +92,11 @@
+       <Project>{cf7ac3d1-e2df-41d2-bea6-1e2556cdea26}</Project>
+       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+     </ProjectReference>
+-    <ProjectReference Include="ssleay.vcxproj">
++    <ProjectReference Condition="'$(Platform)' != 'ARM64'" Include="ssleay.vcxproj">
+       <Project>{10615b24-73bf-4efa-93aa-236916321317}</Project>
+       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+     </ProjectReference>
+-    <ProjectReference Include="libeay.vcxproj">
++    <ProjectReference Condition="'$(Platform)' != 'ARM64'" Include="libeay.vcxproj">
+       <Project>{e5b04cc0-eb4c-42ab-b4dc-18ef95f864b0}</Project>
+       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+     </ProjectReference>
+diff -Naur Python-2.7.18-orig/PCbuild/_ssl.vcxproj Python-2.7.18-mod/PCbuild/_ssl.vcxproj
+--- Python-2.7.18-orig/PCbuild/_ssl.vcxproj	2025-12-12 20:03:35.086189100 +0100
++++ Python-2.7.18-mod/PCbuild/_ssl.vcxproj	2025-12-12 21:43:34.556738700 +0100
+@@ -81,7 +81,7 @@
+       <AdditionalIncludeDirectories>$(opensslIncludeDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+     </ClCompile>
+     <Link>
+-      <AdditionalDependencies>ws2_32.lib;crypt32.lib;$(OutDir)libeay$(PyDebugExt).lib;$(OutDir)ssleay$(PyDebugExt).lib;%(AdditionalDependencies)</AdditionalDependencies>
++      <AdditionalDependencies>ws2_32.lib;crypt32.lib;$(opensslOutDir)libeay$(PyDebugExt).lib;$(opensslOutDir)ssleay$(PyDebugExt).lib;%(AdditionalDependencies)</AdditionalDependencies>
+     </Link>
+   </ItemDefinitionGroup>
+   <ItemGroup>
+@@ -92,11 +92,11 @@
+       <Project>{cf7ac3d1-e2df-41d2-bea6-1e2556cdea26}</Project>
+       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+     </ProjectReference>
+-    <ProjectReference Include="libeay.vcxproj">
++    <ProjectReference Condition="'$(Platform)' != 'ARM64'" Include="libeay.vcxproj">
+       <Project>{e5b04cc0-eb4c-42ab-b4dc-18ef95f864b0}</Project>
+       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+     </ProjectReference>
+-    <ProjectReference Include="ssleay.vcxproj">
++    <ProjectReference Condition="'$(Platform)' != 'ARM64'" Include="ssleay.vcxproj">
+       <Project>{10615b24-73bf-4efa-93aa-236916321317}</Project>
+       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+     </ProjectReference>
+diff -Naur Python-2.7.18-orig/PCbuild/libeay.vcxproj Python-2.7.18-mod/PCbuild/libeay.vcxproj
+--- Python-2.7.18-orig/PCbuild/libeay.vcxproj	2025-12-12 20:03:35.124189100 +0100
++++ Python-2.7.18-mod/PCbuild/libeay.vcxproj	2025-12-12 21:23:49.477468700 +0100
+@@ -62,6 +62,9 @@
+   <PropertyGroup Label="Configuration">
+     <ConfigurationType>StaticLibrary</ConfigurationType>
+   </PropertyGroup>
++  <PropertyGroup Condition="$(Platform) == 'ARM64'">
++    <ExcludeFromBuild>true</ExcludeFromBuild>
++  </PropertyGroup>
+ 
+   <Import Project="openssl.props" />
+   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+@@ -915,6 +918,7 @@
+   </ItemGroup>
+ 
+   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
++  <Target Name="Build" Condition="'$(Platform)' == 'ARM64'" />
+   <Target Name="Clean" />
+   <Target Name="CleanAll">
+     <Delete Files="$(TargetPath)" />
+diff -Naur Python-2.7.18-orig/PCbuild/pcbuild.sln Python-2.7.18-mod/PCbuild/pcbuild.sln
+--- Python-2.7.18-orig/PCbuild/pcbuild.sln	2025-12-12 20:02:28.023169300 +0100
++++ Python-2.7.18-mod/PCbuild/pcbuild.sln	2025-12-12 21:30:46.612508400 +0100
+@@ -57,10 +57,6 @@
+ EndProject
+ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tk", "tk.vcxproj", "{7E85ECCF-A72C-4DA4-9E52-884508E80BA1}"
+ EndProject
+-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libeay", "libeay.vcxproj", "{E5B04CC0-EB4C-42AB-B4DC-18EF95F864B0}"
+-EndProject
+-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ssleay", "ssleay.vcxproj", "{10615B24-73BF-4EFA-93AA-236916321317}"
+-EndProject
+ Global
+ 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+ 		Debug|Win32 = Debug|Win32
+@@ -497,38 +493,6 @@
+ 		{7E85ECCF-A72C-4DA4-9E52-884508E80BA1}.Release|Win32.Build.0 = Release|Win32
+ 		{7E85ECCF-A72C-4DA4-9E52-884508E80BA1}.Release|x64.ActiveCfg = Release|x64
+ 		{7E85ECCF-A72C-4DA4-9E52-884508E80BA1}.Release|x64.Build.0 = Release|x64
+-		{E5B04CC0-EB4C-42AB-B4DC-18EF95F864B0}.Debug|Win32.ActiveCfg = Debug|Win32
+-		{E5B04CC0-EB4C-42AB-B4DC-18EF95F864B0}.Debug|Win32.Build.0 = Debug|Win32
+-		{E5B04CC0-EB4C-42AB-B4DC-18EF95F864B0}.Debug|x64.ActiveCfg = Debug|x64
+-		{E5B04CC0-EB4C-42AB-B4DC-18EF95F864B0}.Debug|x64.Build.0 = Debug|x64
+-		{E5B04CC0-EB4C-42AB-B4DC-18EF95F864B0}.PGInstrument|Win32.ActiveCfg = Release|Win32
+-		{E5B04CC0-EB4C-42AB-B4DC-18EF95F864B0}.PGInstrument|Win32.Build.0 = Release|Win32
+-		{E5B04CC0-EB4C-42AB-B4DC-18EF95F864B0}.PGInstrument|x64.ActiveCfg = Release|x64
+-		{E5B04CC0-EB4C-42AB-B4DC-18EF95F864B0}.PGInstrument|x64.Build.0 = Release|x64
+-		{E5B04CC0-EB4C-42AB-B4DC-18EF95F864B0}.PGUpdate|Win32.ActiveCfg = Release|Win32
+-		{E5B04CC0-EB4C-42AB-B4DC-18EF95F864B0}.PGUpdate|Win32.Build.0 = Release|Win32
+-		{E5B04CC0-EB4C-42AB-B4DC-18EF95F864B0}.PGUpdate|x64.ActiveCfg = Release|x64
+-		{E5B04CC0-EB4C-42AB-B4DC-18EF95F864B0}.PGUpdate|x64.Build.0 = Release|x64
+-		{E5B04CC0-EB4C-42AB-B4DC-18EF95F864B0}.Release|Win32.ActiveCfg = Release|Win32
+-		{E5B04CC0-EB4C-42AB-B4DC-18EF95F864B0}.Release|Win32.Build.0 = Release|Win32
+-		{E5B04CC0-EB4C-42AB-B4DC-18EF95F864B0}.Release|x64.ActiveCfg = Release|x64
+-		{E5B04CC0-EB4C-42AB-B4DC-18EF95F864B0}.Release|x64.Build.0 = Release|x64
+-		{10615B24-73BF-4EFA-93AA-236916321317}.Debug|Win32.ActiveCfg = Debug|Win32
+-		{10615B24-73BF-4EFA-93AA-236916321317}.Debug|Win32.Build.0 = Debug|Win32
+-		{10615B24-73BF-4EFA-93AA-236916321317}.Debug|x64.ActiveCfg = Debug|x64
+-		{10615B24-73BF-4EFA-93AA-236916321317}.Debug|x64.Build.0 = Debug|x64
+-		{10615B24-73BF-4EFA-93AA-236916321317}.PGInstrument|Win32.ActiveCfg = Release|Win32
+-		{10615B24-73BF-4EFA-93AA-236916321317}.PGInstrument|Win32.Build.0 = Release|Win32
+-		{10615B24-73BF-4EFA-93AA-236916321317}.PGInstrument|x64.ActiveCfg = Release|x64
+-		{10615B24-73BF-4EFA-93AA-236916321317}.PGInstrument|x64.Build.0 = Release|x64
+-		{10615B24-73BF-4EFA-93AA-236916321317}.PGUpdate|Win32.ActiveCfg = Release|Win32
+-		{10615B24-73BF-4EFA-93AA-236916321317}.PGUpdate|Win32.Build.0 = Release|Win32
+-		{10615B24-73BF-4EFA-93AA-236916321317}.PGUpdate|x64.ActiveCfg = Release|x64
+-		{10615B24-73BF-4EFA-93AA-236916321317}.PGUpdate|x64.Build.0 = Release|x64
+-		{10615B24-73BF-4EFA-93AA-236916321317}.Release|Win32.ActiveCfg = Release|Win32
+-		{10615B24-73BF-4EFA-93AA-236916321317}.Release|Win32.Build.0 = Release|Win32
+-		{10615B24-73BF-4EFA-93AA-236916321317}.Release|x64.ActiveCfg = Release|x64
+-		{10615B24-73BF-4EFA-93AA-236916321317}.Release|x64.Build.0 = Release|x64
+ 	EndGlobalSection
+ 	GlobalSection(SolutionProperties) = preSolution
+ 		HideSolutionNode = FALSE
+diff -Naur Python-2.7.18-orig/PCbuild/python.props Python-2.7.18-mod/PCbuild/python.props
+--- Python-2.7.18-orig/PCbuild/python.props	2025-12-12 20:03:25.881122200 +0100
++++ Python-2.7.18-mod/PCbuild/python.props	2025-12-12 20:03:53.347187100 +0100
+@@ -36,9 +36,13 @@
+     <sqlite3Dir>$(ExternalsDir)sqlite-3.28.0.0\</sqlite3Dir>
+     <bz2Dir>$(ExternalsDir)bzip2-1.0.6\</bz2Dir>
+     <bsddbDir>$(ExternalsDir)bsddb-4.7.25.0</bsddbDir>
+-    <opensslDir>$(ExternalsDir)openssl-1.0.2t\</opensslDir>
++    <opensslDir Condition="'$(ArchName)' == 'arm64'">$(ExternalsDir)openssl-1.1.1w\</opensslDir>
++    <opensslDir Condition="'$(ArchName)' != 'arm64'">$(ExternalsDir)openssl-1.0.2t\</opensslDir>
+     <opensslIncludeDir>$(opensslDir)include32</opensslIncludeDir>
+     <opensslIncludeDir Condition="'$(ArchName)' == 'amd64'">$(opensslDir)include64</opensslIncludeDir>
++    <opensslIncludeDir Condition="'$(ArchName)' == 'arm64'">$(opensslDir)inc32</opensslIncludeDir>
++    <opensslOutDir Condition="'$(ArchName)' == 'arm64'">$(opensslDir)out32\</opensslOutDir>
++    <opensslOutDir Condition="'$(ArchName)' != 'arm64'">$(OutDir)</opensslOutDir>
+     <nasmDir>$(ExternalsDir)\nasm-2.11.06\</nasmDir>
+ 
+     <!-- Suffix for all binaries when building for debug -->
+diff -Naur Python-2.7.18-orig/PCbuild/ssleay.vcxproj Python-2.7.18-mod/PCbuild/ssleay.vcxproj
+--- Python-2.7.18-orig/PCbuild/ssleay.vcxproj	2025-12-12 20:03:35.196186700 +0100
++++ Python-2.7.18-mod/PCbuild/ssleay.vcxproj	2025-12-12 21:20:31.981145600 +0100
+@@ -62,6 +62,9 @@
+   <PropertyGroup Label="Configuration">
+     <ConfigurationType>StaticLibrary</ConfigurationType>
+   </PropertyGroup>
++  <PropertyGroup Condition="$(Platform) == 'ARM64'">
++    <ExcludeFromBuild>true</ExcludeFromBuild>
++  </PropertyGroup>
+ 
+   <Import Project="openssl.props" />
+   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
