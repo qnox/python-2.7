@@ -1,5 +1,5 @@
 --- Python-2.7.18-orig/PCbuild/_tkinter.vcxproj	2025-12-12 22:26:48.262472400 +0100
-+++ Python-2.7.18-mod/PCbuild/_tkinter.vcxproj	2025-12-12 22:29:34.269917900 +0100
++++ Python-2.7.18-mod/PCbuild/_tkinter.vcxproj	2025-12-12 23:01:13.218498700 +0100
 @@ -62,6 +62,10 @@
      <ConfigurationType>DynamicLibrary</ConfigurationType>
      <CharacterSet>NotSet</CharacterSet>
@@ -12,233 +12,32 @@
    <PropertyGroup>
      <TargetExt>.pyd</TargetExt>
 --- Python-2.7.18-orig/PCbuild/tcl.vcxproj	2025-12-12 22:26:48.414995000 +0100
-+++ Python-2.7.18-mod/PCbuild/tcl.vcxproj	2025-12-12 22:55:38.042026700 +0100
-@@ -1,107 +1,116 @@
--﻿<?xml version="1.0" encoding="utf-8"?>
--<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
--  <ItemGroup Label="ProjectConfigurations">
--    <ProjectConfiguration Include="Debug|Win32">
--      <Configuration>Debug</Configuration>
--      <Platform>Win32</Platform>
--    </ProjectConfiguration>
--    <ProjectConfiguration Include="Release|Win32">
--      <Configuration>Release</Configuration>
--      <Platform>Win32</Platform>
--    </ProjectConfiguration>
--    <ProjectConfiguration Include="PGInstrument|Win32">
--      <Configuration>PGInstrument</Configuration>
--      <Platform>Win32</Platform>
--    </ProjectConfiguration>
--    <ProjectConfiguration Include="PGInstrument|x64">
--      <Configuration>PGInstrument</Configuration>
--      <Platform>x64</Platform>
--    </ProjectConfiguration>
--    <ProjectConfiguration Include="PGUpdate|Win32">
--      <Configuration>PGUpdate</Configuration>
--      <Platform>Win32</Platform>
--    </ProjectConfiguration>
--    <ProjectConfiguration Include="PGUpdate|x64">
--      <Configuration>PGUpdate</Configuration>
--      <Platform>x64</Platform>
--    </ProjectConfiguration>
--    <ProjectConfiguration Include="Debug|x64">
--      <Configuration>Debug</Configuration>
--      <Platform>x64</Platform>
--    </ProjectConfiguration>
--    <ProjectConfiguration Include="Release|x64">
--      <Configuration>Release</Configuration>
--      <Platform>x64</Platform>
--    </ProjectConfiguration>
--  
--    <ProjectConfiguration Include="Debug|ARM64">
--      <Configuration>Debug</Configuration>
--      <Platform>ARM64</Platform>
--    </ProjectConfiguration>
--    <ProjectConfiguration Include="Release|ARM64">
--      <Configuration>Release</Configuration>
--      <Platform>ARM64</Platform>
--    </ProjectConfiguration>
--    <ProjectConfiguration Include="PGInstrument|ARM64">
--      <Configuration>PGInstrument</Configuration>
--      <Platform>ARM64</Platform>
--    </ProjectConfiguration>
--    <ProjectConfiguration Include="PGUpdate|ARM64">
--      <Configuration>PGUpdate</Configuration>
--      <Platform>ARM64</Platform>
--    </ProjectConfiguration>
--  </ItemGroup>
--  <PropertyGroup Label="Globals">
--    <ProjectGuid>{B5FD6F1D-129E-4BFF-9340-03606FAC7283}</ProjectGuid>
--  </PropertyGroup>
--
--  <Import Project="python.props" />
--  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
--  <Import Project="tcltk.props" />
--
--  <PropertyGroup Label="Configuration">
--    <ConfigurationType>Makefile</ConfigurationType>
--    <OutDir>$(tcltkDir)</OutDir>
--    <TargetPath>$(OutDir)bin\$(tclDLLName)</TargetPath>
--  </PropertyGroup>
--
--  <ItemGroup>
--    <ExpectedOutputs Include="
--        $(OutDir)\bin\$(tclDLLName);
--        $(OutDir)\bin\$(tclShExeName);
--        $(OutDir)\include\tcl.h;
--        $(OutDir)\lib\tcl$(TclMajorVersion);
--        $(OutDir)\lib\tcl$(TclMajorVersion).$(TclMinorVersion);
--        $(OutDir)\lib\$(tclLibName)" />
--  </ItemGroup>
--
--  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
--
--  <PropertyGroup>
--    <TclOpts Condition="$(Configuration) == 'Debug'">symbols</TclOpts>
--    <TclDirs>INSTALLDIR="$(OutDir.TrimEnd(`\`))" INSTALL_DIR="$(OutDir.TrimEnd(`\`))"</TclDirs>
--    <DebugFlags Condition="'$(Configuration)' == 'Debug'">DEBUGFLAGS="-wd4456 -wd4457 -wd4458 -wd4459 -wd4996"</DebugFlags>
--    <NMakeBuildCommandLine>setlocal
--@(ExpectedOutputs->'if not exist "%(FullPath)" goto build','
--')
--goto :eof
--:build
--set VCINSTALLDIR=$(VCInstallDir)
--cd /D "$(tclDir)win"
--nmake -f makefile.vc MACHINE=$(TclMachine) OPTS=$(TclOpts) $(TclDirs) $(DebugFlags) core shell dlls
--nmake -f makefile.vc MACHINE=$(TclMachine) OPTS=$(TclOpts) $(TclDirs) $(DebugFlags) install-binaries install-libraries
--</NMakeBuildCommandLine>
--  </PropertyGroup>
--
--  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
--
--  <Target Name="CopyDll" Inputs="$(OutDir)\bin\$(tclDLLName)" Outputs="$(BuildPath)$(tclDLLName)" AfterTargets="Build">
--    <Copy SourceFiles="$(OutDir)\bin\$(tclDLLName)" DestinationFiles="$(BuildPath)$(tclDLLName)" />
--  </Target>
--
--  <Target Name="Clean" />
--  <Target Name="CleanAll">
--    <Delete Files="$(TargetPath);$(BuildPath)$(tclDLLName)" />
--    <RemoveDir Directories="$(IntDir)" />
--  </Target>
--</Project>
-+﻿<?xml version="1.0" encoding="utf-8"?>
-+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-+  <ItemGroup Label="ProjectConfigurations">
-+    <ProjectConfiguration Include="Debug|Win32">
-+      <Configuration>Debug</Configuration>
-+      <Platform>Win32</Platform>
-+    </ProjectConfiguration>
-+    <ProjectConfiguration Include="Release|Win32">
-+      <Configuration>Release</Configuration>
-+      <Platform>Win32</Platform>
-+    </ProjectConfiguration>
-+    <ProjectConfiguration Include="PGInstrument|Win32">
-+      <Configuration>PGInstrument</Configuration>
-+      <Platform>Win32</Platform>
-+    </ProjectConfiguration>
-+    <ProjectConfiguration Include="PGInstrument|x64">
-+      <Configuration>PGInstrument</Configuration>
-+      <Platform>x64</Platform>
-+    </ProjectConfiguration>
-+    <ProjectConfiguration Include="PGUpdate|Win32">
-+      <Configuration>PGUpdate</Configuration>
-+      <Platform>Win32</Platform>
-+    </ProjectConfiguration>
-+    <ProjectConfiguration Include="PGUpdate|x64">
-+      <Configuration>PGUpdate</Configuration>
-+      <Platform>x64</Platform>
-+    </ProjectConfiguration>
-+    <ProjectConfiguration Include="Debug|x64">
-+      <Configuration>Debug</Configuration>
-+      <Platform>x64</Platform>
-+    </ProjectConfiguration>
-+    <ProjectConfiguration Include="Release|x64">
-+      <Configuration>Release</Configuration>
-+      <Platform>x64</Platform>
-+    </ProjectConfiguration>
-+  
-+    <ProjectConfiguration Include="Debug|ARM64">
-+      <Configuration>Debug</Configuration>
-+      <Platform>ARM64</Platform>
-+    </ProjectConfiguration>
-+    <ProjectConfiguration Include="Release|ARM64">
-+      <Configuration>Release</Configuration>
-+      <Platform>ARM64</Platform>
-+    </ProjectConfiguration>
-+    <ProjectConfiguration Include="PGInstrument|ARM64">
-+      <Configuration>PGInstrument</Configuration>
-+      <Platform>ARM64</Platform>
-+    </ProjectConfiguration>
-+    <ProjectConfiguration Include="PGUpdate|ARM64">
-+      <Configuration>PGUpdate</Configuration>
-+      <Platform>ARM64</Platform>
-+    </ProjectConfiguration>
-+  </ItemGroup>
-+  <PropertyGroup Label="Globals">
-+    <ProjectGuid>{B5FD6F1D-129E-4BFF-9340-03606FAC7283}</ProjectGuid>
-+  </PropertyGroup>
-+
-+  <Import Project="python.props" />
-+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-+  <Import Project="tcltk.props" />
-+
-+  <PropertyGroup Label="Configuration">
-+    <ConfigurationType>Makefile</ConfigurationType>
-+    <OutDir>$(tcltkDir)</OutDir>
-+    <TargetPath>$(OutDir)bin\$(tclDLLName)</TargetPath>
-+  </PropertyGroup>
-+
++++ Python-2.7.18-mod/PCbuild/tcl.vcxproj	2025-12-12 23:01:13.179488900 +0100
+@@ -65,6 +65,10 @@
+     <TargetPath>$(OutDir)bin\$(tclDLLName)</TargetPath>
+   </PropertyGroup>
+ 
 +  <!-- On ARM64, disable tcl as tcl/tk ARM64 support is not yet configured -->
 +  <PropertyGroup Condition="'$(Platform)'=='ARM64'" Label="Configuration">
 +    <ConfigurationType>Utility</ConfigurationType>
 +  </PropertyGroup>
-+  <ItemGroup>
-+    <ExpectedOutputs Include="
-+        $(OutDir)\bin\$(tclDLLName);
-+        $(OutDir)\bin\$(tclShExeName);
-+        $(OutDir)\include\tcl.h;
-+        $(OutDir)\lib\tcl$(TclMajorVersion);
-+        $(OutDir)\lib\tcl$(TclMajorVersion).$(TclMinorVersion);
-+        $(OutDir)\lib\$(tclLibName)" />
-+  </ItemGroup>
-+
-+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
-+
-+  <PropertyGroup>
-+    <TclOpts Condition="$(Configuration) == 'Debug'">symbols</TclOpts>
-+    <TclDirs>INSTALLDIR="$(OutDir.TrimEnd(`\`))" INSTALL_DIR="$(OutDir.TrimEnd(`\`))"</TclDirs>
-+    <DebugFlags Condition="'$(Configuration)' == 'Debug'">DEBUGFLAGS="-wd4456 -wd4457 -wd4458 -wd4459 -wd4996"</DebugFlags>
-+    <NMakeBuildCommandLine>setlocal
-+@(ExpectedOutputs->'if not exist "%(FullPath)" goto build','
-+')
-+goto :eof
-+:build
-+set VCINSTALLDIR=$(VCInstallDir)
-+cd /D "$(tclDir)win"
-+nmake -f makefile.vc MACHINE=$(TclMachine) OPTS=$(TclOpts) $(TclDirs) $(DebugFlags) core shell dlls
-+nmake -f makefile.vc MACHINE=$(TclMachine) OPTS=$(TclOpts) $(TclDirs) $(DebugFlags) install-binaries install-libraries
-+</NMakeBuildCommandLine>
+   <ItemGroup>
+     <ExpectedOutputs Include="
+         $(OutDir)\bin\$(tclDLLName);
+@@ -91,6 +95,11 @@
+ nmake -f makefile.vc MACHINE=$(TclMachine) OPTS=$(TclOpts) $(TclDirs) $(DebugFlags) core shell dlls
+ nmake -f makefile.vc MACHINE=$(TclMachine) OPTS=$(TclOpts) $(TclDirs) $(DebugFlags) install-binaries install-libraries
+ </NMakeBuildCommandLine>
 +    <NMakeCleanCommandLine>rmdir /q/s "$(OutDir.TrimEnd(``))"</NMakeCleanCommandLine>
 +  </PropertyGroup>
 +  <PropertyGroup Condition="'$(Platform)'=='ARM64'">
 +    <NMakeBuildCommandLine>echo Skipping tcl build for ARM64</NMakeBuildCommandLine>
 +    <NMakeCleanCommandLine>echo Skipping tcl clean for ARM64</NMakeCleanCommandLine>
-+  </PropertyGroup>
-+
-+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
-+
-+  <Target Name="CopyDll" Inputs="$(OutDir)\bin\$(tclDLLName)" Outputs="$(BuildPath)$(tclDLLName)" AfterTargets="Build">
-+    <Copy SourceFiles="$(OutDir)\bin\$(tclDLLName)" DestinationFiles="$(BuildPath)$(tclDLLName)" />
-+  </Target>
-+
-+  <Target Name="Clean" />
-+  <Target Name="CleanAll">
-+    <Delete Files="$(TargetPath);$(BuildPath)$(tclDLLName)" />
-+    <RemoveDir Directories="$(IntDir)" />
-+  </Target>
-+</Project>
+   </PropertyGroup>
+ 
+   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 --- Python-2.7.18-orig/PCbuild/tix.vcxproj	2025-12-12 22:26:48.434512800 +0100
-+++ Python-2.7.18-mod/PCbuild/tix.vcxproj	2025-12-12 22:27:41.441049400 +0100
++++ Python-2.7.18-mod/PCbuild/tix.vcxproj	2025-12-12 23:01:13.196488800 +0100
 @@ -65,6 +65,10 @@
      <OutDir>$(tcltkDir)</OutDir>
      <TargetPath>$(tixDLLPath)</TargetPath>
@@ -262,7 +61,7 @@
    <ItemGroup>
      <ProjectReference Include="tcl.vcxproj">
 --- Python-2.7.18-orig/PCbuild/tk.vcxproj	2025-12-12 22:26:48.452520200 +0100
-+++ Python-2.7.18-mod/PCbuild/tk.vcxproj	2025-12-12 22:29:18.054906400 +0100
++++ Python-2.7.18-mod/PCbuild/tk.vcxproj	2025-12-12 23:01:13.208524000 +0100
 @@ -65,6 +65,10 @@
      <OutDir>$(tcltkDir)</OutDir>
      <TargetPath>$(OutDir)bin\$(tkDLLName)</TargetPath>
