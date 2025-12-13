@@ -8,8 +8,13 @@ PYTHON_VERSION="2.7.18"
 BUILD_DIR="${PWD}/build"
 INSTALL_PREFIX="${BUILD_DIR}/python-install"
 SOURCE_DIR="${PWD}/Python-${PYTHON_VERSION}"
+DEPS_DIR="${BUILD_DIR}/deps"
 
 echo "=== Building Python ${PYTHON_VERSION} for ${TARGET_TRIPLE} ==="
+
+# Build libffi first
+echo "Building libffi dependency..."
+bash scripts/deps/build-libffi.sh
 
 # Download Python source if not present
 if [ ! -d "${SOURCE_DIR}" ]; then
@@ -28,8 +33,17 @@ cd "${SOURCE_DIR}"
 # Apply portable configuration
 # This makes Python relocatable by using relative paths
 # Use $$ to escape $ for make, \$$ for shell
-export LDFLAGS='-Wl,-rpath,\$$ORIGIN/../lib'
-export CFLAGS="-fPIC"
+
+# Use bundled libffi from deps
+LIBFFI_PREFIX="${DEPS_DIR}/libffi"
+
+# Set up compiler and linker flags with libffi
+export CFLAGS="-fPIC -I${LIBFFI_PREFIX}/lib/libffi-3.4.6/include"
+export LDFLAGS="-Wl,-rpath,\$$ORIGIN/../lib -L${LIBFFI_PREFIX}/lib"
+export CPPFLAGS="${CFLAGS}"
+
+# Set PKG_CONFIG_PATH for libffi (required for _ctypes module)
+export PKG_CONFIG_PATH="${LIBFFI_PREFIX}/lib/pkgconfig"
 
 if [ "${TARGET_LIBC}" = "musl" ]; then
     # Check if we're on a true musl system (Alpine) or using musl-clang wrapper
@@ -63,7 +77,7 @@ if [ "${TARGET_LIBC}" = "musl" ]; then
     fi
 elif [ "${TARGET_ARCH}" = "i686" ]; then
     export CFLAGS="${CFLAGS} -m32"
-    export LDFLAGS="${LDFLAGS} -m32"
+    export LDFLAGS="-m32 -Wl,-rpath,\$$ORIGIN/../lib -L${LIBFFI_PREFIX}/lib"
     # Find Python for cross-compilation
     if command -v python2.7 >/dev/null 2>&1; then
         PYTHON_FOR_BUILD="python2.7"
@@ -88,6 +102,7 @@ fi
     --prefix="/python" \
     --enable-shared \
     --enable-unicode=ucs4 \
+    --with-system-ffi \
     ${EXTRA_CONFIG_ARGS:-}
 
 # Build

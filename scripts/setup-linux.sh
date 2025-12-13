@@ -19,7 +19,6 @@ sudo apt-get install -y \
     lcov \
     pkg-config \
     libbz2-dev \
-    libffi-dev \
     libgdbm-dev \
     libgdbm-compat-dev \
     liblzma-dev \

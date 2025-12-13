@@ -8,8 +8,13 @@ PYTHON_VERSION="2.7.18"
 BUILD_DIR="${PWD}/build"
 INSTALL_PREFIX="${BUILD_DIR}/python-install"
 SOURCE_DIR="${PWD}/Python-${PYTHON_VERSION}"
+DEPS_DIR="${BUILD_DIR}/deps"
 
 echo "=== Building Python ${PYTHON_VERSION} for ${TARGET_TRIPLE} ==="
+
+# Build libffi first
+echo "Building libffi dependency..."
+bash scripts/deps/build-libffi.sh
 
 # Download Python source if not present
 if [ ! -d "${SOURCE_DIR}" ]; then
@@ -46,11 +51,17 @@ if [ ! -d "${ZLIB_PREFIX}" ]; then
     ZLIB_PREFIX="/opt/homebrew/opt/zlib"
 fi
 
+# Use bundled libffi from deps
+LIBFFI_PREFIX="${DEPS_DIR}/libffi"
+
 # Configure compiler flags for portable build
 export MACOSX_DEPLOYMENT_TARGET="10.9"
-export CFLAGS="-I${OPENSSL_PREFIX}/include -I${READLINE_PREFIX}/include -I${SQLITE_PREFIX}/include -I${ZLIB_PREFIX}/include"
-export LDFLAGS="-L${OPENSSL_PREFIX}/lib -L${READLINE_PREFIX}/lib -L${SQLITE_PREFIX}/lib -L${ZLIB_PREFIX}/lib -Wl,-rpath,@loader_path/../lib"
+export CFLAGS="-I${OPENSSL_PREFIX}/include -I${READLINE_PREFIX}/include -I${SQLITE_PREFIX}/include -I${ZLIB_PREFIX}/include -I${LIBFFI_PREFIX}/lib/libffi-3.4.6/include"
+export LDFLAGS="-L${OPENSSL_PREFIX}/lib -L${READLINE_PREFIX}/lib -L${SQLITE_PREFIX}/lib -L${ZLIB_PREFIX}/lib -L${LIBFFI_PREFIX}/lib -Wl,-rpath,@loader_path/../lib"
 export CPPFLAGS="${CFLAGS}"
+
+# Set PKG_CONFIG_PATH for libffi (required for _ctypes module)
+export PKG_CONFIG_PATH="${LIBFFI_PREFIX}/lib/pkgconfig"
 
 # Architecture-specific settings
 if [ "${TARGET_ARCH}" = "arm64" ]; then
@@ -72,7 +83,8 @@ export LDFLAGS="${LDFLAGS} ${ARCH_FLAGS}"
     --enable-framework=no \
     --enable-shared \
     --enable-unicode=ucs2 \
-    --with-ensurepip=no
+    --with-ensurepip=no \
+    --with-system-ffi
 
 # Build
 make -j$(sysctl -n hw.ncpu)
