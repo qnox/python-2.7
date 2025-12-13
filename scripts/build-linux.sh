@@ -39,7 +39,7 @@ LIBFFI_PREFIX="${DEPS_DIR}/libffi"
 
 # Set up compiler and linker flags with libffi
 export CFLAGS="-fPIC -I${LIBFFI_PREFIX}/lib/libffi-3.4.6/include"
-export LDFLAGS="-Wl,-rpath,\$\$ORIGIN/../lib -L${LIBFFI_PREFIX}/lib"
+export LDFLAGS="-Wl,-rpath,'\$\$ORIGIN/../lib' -L${LIBFFI_PREFIX}/lib"
 export CPPFLAGS="${CFLAGS}"
 
 # Set PKG_CONFIG_PATH for libffi (required for _ctypes module)
@@ -77,7 +77,7 @@ if [ "${TARGET_LIBC}" = "musl" ]; then
     fi
 elif [ "${TARGET_ARCH}" = "i686" ]; then
     export CFLAGS="${CFLAGS} -m32"
-    export LDFLAGS="-m32 -Wl,-rpath,\$\$ORIGIN/../lib -L${LIBFFI_PREFIX}/lib"
+    export LDFLAGS="-m32 -Wl,-rpath,'\$\$ORIGIN/../lib' -L${LIBFFI_PREFIX}/lib"
     # Find Python for cross-compilation
     if command -v python2.7 >/dev/null 2>&1; then
         PYTHON_FOR_BUILD="python2.7"
