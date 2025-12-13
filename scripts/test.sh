@@ -211,6 +211,28 @@ echo "=== Test 4: Test standard library imports ==="
 "${PORTABLE_DIR}/bin/python" -c "import ssl; print('ssl: OK')" || echo "WARNING: ssl module not available"
 "${PORTABLE_DIR}/bin/python" -c "import readline; print('readline: OK')" || echo "WARNING: readline module not available"
 
+# Test _ctypes and ctypes (critical for many Python packages)
+echo ""
+echo "Testing _ctypes module (required for ctypes)..."
+"${PORTABLE_DIR}/bin/python" -c "import _ctypes; print('_ctypes: OK')" || {
+    echo "FAIL: _ctypes module not available - this breaks ctypes functionality"
+    exit 1
+}
+"${PORTABLE_DIR}/bin/python" -c "import ctypes; print('ctypes: OK')" || {
+    echo "FAIL: ctypes module not available"
+    exit 1
+}
+# Test basic ctypes functionality
+"${PORTABLE_DIR}/bin/python" -c "
+import ctypes
+c_int = ctypes.c_int(42)
+assert c_int.value == 42, 'ctypes.c_int failed'
+print('ctypes functionality: OK')
+" || {
+    echo "FAIL: ctypes functionality test failed"
+    exit 1
+}
+
 echo "PASS: Standard library imports successful"
 
 # Test 5: Check Python paths
