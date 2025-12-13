@@ -8,7 +8,7 @@ PYTHON_VERSION="2.7.18"
 DIST_DIR="${PWD}/dist"
 
 # Get current date in YYYYMMDD format (should match what package.sh created)
-RELEASE_DATE=$(date +%Y%m%d)
+RELEASE_DATE="${RELEASE_DATE:-$(date +%Y%m%d)}"
 
 # Test flavor (can be overridden via FLAVOR env var, defaults to install_only)
 FLAVOR="${FLAVOR:-install_only}"
@@ -110,6 +110,33 @@ echo "PASS: Directory structure is correct"
 # Test 2: Test python binary
 echo ""
 echo "=== Test 2: Test python binary ==="
+
+# Pre-check: Verify library install names are relocatable (macOS only)
+if command -v otool >/dev/null 2>&1; then
+    echo "Checking libpython2.7.dylib install name..."
+    if [ -f "${PORTABLE_DIR}/lib/libpython2.7.dylib" ]; then
+        INSTALL_NAME=$(otool -D "${PORTABLE_DIR}/lib/libpython2.7.dylib" | tail -n 1)
+        echo "Library install name: ${INSTALL_NAME}"
+        if [[ "${INSTALL_NAME}" == /* ]] && [[ "${INSTALL_NAME}" != "@"* ]]; then
+            echo "FAIL: libpython2.7.dylib has absolute install name: ${INSTALL_NAME}"
+            echo "This will cause 'Library not loaded' errors when relocated"
+            echo "Expected: @rpath/libpython2.7.dylib or similar"
+            exit 1
+        fi
+        echo "PASS: Library install name is relocatable"
+    fi
+
+    echo "Checking python binary library references..."
+    PYTHON_LIB_REF=$(otool -L "${PORTABLE_DIR}/bin/python" | grep libpython | head -1)
+    echo "Python binary references: ${PYTHON_LIB_REF}"
+    if echo "${PYTHON_LIB_REF}" | grep -q "^[[:space:]]*/"; then
+        echo "FAIL: Python binary has absolute path reference to libpython"
+        echo "Expected: @rpath/libpython2.7.dylib"
+        exit 1
+    fi
+    echo "PASS: Python binary uses relocatable library reference"
+fi
+
 # Version check
 echo "Running: ${PORTABLE_DIR}/bin/python --version"
 VERSION_OUTPUT=$("${PORTABLE_DIR}/bin/python" --version 2>&1) || {
@@ -121,6 +148,8 @@ VERSION_OUTPUT=$("${PORTABLE_DIR}/bin/python" --version 2>&1) || {
     echo "Checking library dependencies:"
     if command -v otool >/dev/null 2>&1; then
         otool -L "${PORTABLE_DIR}/bin/python" || true
+        echo "Checking libpython install name:"
+        otool -D "${PORTABLE_DIR}/lib/libpython2.7.dylib" || true
     elif command -v ldd >/dev/null 2>&1; then
         ldd "${PORTABLE_DIR}/bin/python" || true
     fi

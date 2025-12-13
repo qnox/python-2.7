@@ -109,7 +109,17 @@ else
 fi
 
 # Fix library paths to be relocatable using install_name_tool
-# Only change paths to libpython, not system libraries
+# First, fix libpython2.7.dylib's install name (what it identifies itself as)
+echo "=== Fixing libpython2.7.dylib install name ==="
+if [ -f "${PORTABLE_DIR}/lib/libpython2.7.dylib" ]; then
+    echo "BEFORE:"
+    otool -D "${PORTABLE_DIR}/lib/libpython2.7.dylib"
+    install_name_tool -id "@rpath/libpython2.7.dylib" "${PORTABLE_DIR}/lib/libpython2.7.dylib"
+    echo "AFTER:"
+    otool -D "${PORTABLE_DIR}/lib/libpython2.7.dylib"
+fi
+
+# Then fix references in other libraries (change paths to libpython, not system libraries)
 find "${PORTABLE_DIR}" \( -name "*.so" -o -name "*.dylib" \) | while read lib; do
     # Get current library paths and only fix libpython references
     # Use || true to prevent grep from failing the script when no matches are found
