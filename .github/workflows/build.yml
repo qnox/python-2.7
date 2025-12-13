@@ -235,6 +235,14 @@ jobs:
       contents: write
 
     steps:
+      - name: Prepare release name
+        id: release_name
+        run: |
+          TAG_NAME="${{ github.ref_name }}"
+          RELEASE_NAME="${TAG_NAME#v}"
+          echo "name=${RELEASE_NAME}" >> $GITHUB_OUTPUT
+          echo "tag=${TAG_NAME}" >> $GITHUB_OUTPUT
+
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
@@ -243,12 +251,12 @@ jobs:
       - name: Check if release exists
         id: check_release
         run: |
-          if gh release view ${{ github.ref_name }} --repo ${{ github.repository }} > /dev/null 2>&1; then
+          if gh release view ${{ steps.release_name.outputs.tag }} --repo ${{ github.repository }} > /dev/null 2>&1; then
             echo "exists=true" >> $GITHUB_OUTPUT
-            echo "Release ${{ github.ref_name }} already exists"
+            echo "Release ${{ steps.release_name.outputs.tag }} already exists"
           else
             echo "exists=false" >> $GITHUB_OUTPUT
-            echo "Release ${{ github.ref_name }} does not exist"
+            echo "Release ${{ steps.release_name.outputs.tag }} does not exist"
           fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -256,14 +264,16 @@ jobs:
       - name: Delete existing release if present
         if: steps.check_release.outputs.exists == 'true'
         run: |
-          echo "Deleting existing release ${{ github.ref_name }}"
-          gh release delete ${{ github.ref_name }} --repo ${{ github.repository }} --yes
+          echo "Deleting existing release ${{ steps.release_name.outputs.tag }}"
+          gh release delete ${{ steps.release_name.outputs.tag }} --repo ${{ github.repository }} --yes
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create release
         uses: softprops/action-gh-release@v1
         with:
+          tag_name: ${{ steps.release_name.outputs.tag }}
+          name: ${{ steps.release_name.outputs.name }}
           files: dist/**/*
           draft: false
           prerelease: false
