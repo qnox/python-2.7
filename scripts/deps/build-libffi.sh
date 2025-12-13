@@ -422,6 +422,12 @@ if [ "${APPLE_MIN_DEPLOYMENT_TARGET:-}" = "10.9" ]; then
     EXTRA_CONFIGURE="ac_cv_func_mkostemp=no"
 fi
 
+# On macOS, ensure exec-static-tramp is explicitly enabled
+# This is critical for ARM64 where MAP_JIT restrictions apply
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    EXTRA_CONFIGURE="${EXTRA_CONFIGURE} --enable-exec-static-tramp"
+fi
+
 echo "Configuring libffi..."
 CFLAGS="${ARCH_FLAGS} -fPIC" \
 CPPFLAGS="${ARCH_FLAGS} -fPIC" \

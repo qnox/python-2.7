@@ -69,11 +69,9 @@ apply_patches_from_dir() {
     done
 }
 
-# Apply patches in order of specificity
-# 1. Common patches (all platforms)
-apply_patches_from_dir "${PATCHES_DIR}/common" "common patches"
-
-# 2. Platform-specific patches
+# Apply patches in order
+# Platform-specific patches FIRST (pyenv patches modify setup.py for macOS)
+# Then common patches
 case "${TARGET_PLATFORM:-unknown}" in
     linux)
         apply_patches_from_dir "${PATCHES_DIR}/linux" "Linux patches"
@@ -101,6 +99,9 @@ case "${TARGET_PLATFORM:-unknown}" in
         echo "Warning: Unknown platform: ${TARGET_PLATFORM:-unknown}"
         ;;
 esac
+
+# Common patches applied AFTER platform patches
+apply_patches_from_dir "${PATCHES_DIR}/common" "common patches"
 
 echo ""
 echo "=== Patch application complete ==="

@@ -12,9 +12,10 @@ DEPS_DIR="${BUILD_DIR}/deps"
 
 echo "=== Building Python ${PYTHON_VERSION} for ${TARGET_TRIPLE} ==="
 
-# Build libffi first
-echo "Building libffi dependency..."
-bash scripts/deps/build-libffi.sh
+# On macOS 10.15+ (Catalina), use system libffi which has proper support for
+# closures on ARM64 via libffi-trampolines.dylib. This is what pyenv does.
+# The pyenv patches (0004 and 0006) configure Python to use system libffi automatically.
+echo "Note: Using system libffi on macOS (not building custom libffi)"
 
 # Download Python source if not present
 if [ ! -d "${SOURCE_DIR}" ]; then
@@ -51,17 +52,12 @@ if [ ! -d "${ZLIB_PREFIX}" ]; then
     ZLIB_PREFIX="/opt/homebrew/opt/zlib"
 fi
 
-# Use bundled libffi from deps
-LIBFFI_PREFIX="${DEPS_DIR}/libffi"
-
 # Configure compiler flags for portable build
+# Note: NOT setting libffi paths - using system libffi on macOS 10.15+
 export MACOSX_DEPLOYMENT_TARGET="10.9"
-export CFLAGS="-I${OPENSSL_PREFIX}/include -I${READLINE_PREFIX}/include -I${SQLITE_PREFIX}/include -I${ZLIB_PREFIX}/include -I${LIBFFI_PREFIX}/lib/libffi-3.4.6/include"
-export LDFLAGS="-L${OPENSSL_PREFIX}/lib -L${READLINE_PREFIX}/lib -L${SQLITE_PREFIX}/lib -L${ZLIB_PREFIX}/lib -L${LIBFFI_PREFIX}/lib -Wl,-rpath,@loader_path/../lib"
+export CFLAGS="-I${OPENSSL_PREFIX}/include -I${READLINE_PREFIX}/include -I${SQLITE_PREFIX}/include -I${ZLIB_PREFIX}/include"
+export LDFLAGS="-L${OPENSSL_PREFIX}/lib -L${READLINE_PREFIX}/lib -L${SQLITE_PREFIX}/lib -L${ZLIB_PREFIX}/lib -Wl,-rpath,@loader_path/../lib"
 export CPPFLAGS="${CFLAGS}"
-
-# Set PKG_CONFIG_PATH for libffi (required for _ctypes module)
-export PKG_CONFIG_PATH="${LIBFFI_PREFIX}/lib/pkgconfig"
 
 # Architecture-specific settings
 if [ "${TARGET_ARCH}" = "arm64" ]; then
