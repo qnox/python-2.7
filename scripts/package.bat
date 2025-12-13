@@ -4,14 +4,16 @@ REM Supports creating multiple flavors: install_only and install_only_stripped
 
 setlocal enabledelayedexpansion
 
+REM Trim whitespace from TARGET_TRIPLE
+set "TARGET_TRIPLE=%TARGET_TRIPLE: =%"
+
 set PYTHON_VERSION=2.7.18
 set BUILD_DIR=%CD%\build
 set DIST_DIR=%CD%\dist
 set PORTABLE_DIR=%BUILD_DIR%\python-%PYTHON_VERSION%-%TARGET_TRIPLE%
 
 REM Get current date in YYYYMMDD format
-for /f "tokens=2 delims==" %%I in ('wmic os get localdatetime /value') do set datetime=%%I
-set RELEASE_DATE=%datetime:~0,8%
+for /f %%i in ('powershell -Command "Get-Date -Format yyyyMMdd"') do set RELEASE_DATE=%%i
 
 echo ========================================
 echo === Packaging Python Distribution ===

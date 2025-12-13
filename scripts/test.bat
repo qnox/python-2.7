@@ -4,15 +4,18 @@ REM This script unpacks the distribution to a temporary directory and runs tests
 
 setlocal enabledelayedexpansion
 
+REM Trim whitespace from TARGET_TRIPLE and FLAVOR
+set "TARGET_TRIPLE=%TARGET_TRIPLE: =%"
+
 set PYTHON_VERSION=2.7.18
 set DIST_DIR=%CD%\dist
 
 REM Get current date in YYYYMMDD format
-for /f "tokens=2 delims==" %%I in ('wmic os get localdatetime /value') do set datetime=%%I
-set RELEASE_DATE=%datetime:~0,8%
+for /f %%i in ('powershell -Command "Get-Date -Format yyyyMMdd"') do set RELEASE_DATE=%%i
 
 REM Test flavor (can be overridden via FLAVOR env var, defaults to install_only)
 if not defined FLAVOR set FLAVOR=install_only
+set "FLAVOR=%FLAVOR: =%"
 
 REM Follow python-build-standalone naming: cpython-VERSION+DATE-TRIPLE-FLAVOR
 set ARCHIVE_NAME=cpython-%PYTHON_VERSION%+%RELEASE_DATE%-%TARGET_TRIPLE%-%FLAVOR%
@@ -54,6 +57,10 @@ REM Check if we have python.exe directly in TEST_DIR
 if exist "%TEST_DIR%\python.exe" (
     set PORTABLE_DIR=%TEST_DIR%
     echo Archive extracted to flat structure
+) else if exist "%TEST_DIR%\bin\python.exe" (
+    REM Windows install layout: python.exe is in bin/
+    set PORTABLE_DIR=%TEST_DIR%
+    echo Archive extracted with bin/ subdirectory
 ) else (
     REM Fallback: look for a subdirectory (old format compatibility)
     for /d %%i in ("%TEST_DIR%\python-*") do set PORTABLE_DIR=%%i
@@ -72,7 +79,12 @@ echo Python directory: %PORTABLE_DIR%
 REM Test 1: Verify directory structure
 echo.
 echo === Test 1: Verify directory structure ===
-if not exist "%PORTABLE_DIR%\python.exe" (
+REM Check for python.exe in root or bin/ subdirectory
+if exist "%PORTABLE_DIR%\python.exe" (
+    set "PYTHON_EXE=%PORTABLE_DIR%\python.exe"
+) else if exist "%PORTABLE_DIR%\bin\python.exe" (
+    set "PYTHON_EXE=%PORTABLE_DIR%\bin\python.exe"
+) else (
     echo FAIL: Python executable not found
     rmdir /s /q "%TEST_DIR%"
     exit /b 1
@@ -94,9 +106,9 @@ echo.
 echo === Test 2: Test Python executable ===
 cd "%PORTABLE_DIR%"
 set PYTHONHOME=%PORTABLE_DIR%
-set PATH=%PORTABLE_DIR%;%PORTABLE_DIR%\DLLs;%PATH%
+set PATH=%PORTABLE_DIR%;%PORTABLE_DIR%\bin;%PORTABLE_DIR%\DLLs;%PATH%
 
-"%PORTABLE_DIR%\python.exe" --version 2>&1 | findstr "2.7.18" >nul
+"%PYTHON_EXE%" --version 2>&1 | findstr "2.7.18" >nul
 if errorlevel 1 (
     echo FAIL: Version check failed
     cd %CD%
@@ -104,7 +116,7 @@ if errorlevel 1 (
     exit /b 1
 )
 
-"%PORTABLE_DIR%\python.exe" -c "print('Python executable: OK')"
+"%PYTHON_EXE%" -c "print('Python executable: OK')"
 if errorlevel 1 (
     echo FAIL: Python execution failed
     cd %CD%
@@ -117,32 +129,32 @@ REM Test 3: Standard library imports
 echo.
 echo === Test 3: Test standard library imports ===
 REM Core modules (must work)
-"%PORTABLE_DIR%\python.exe" -c "import sys; print('sys: OK')"
-"%PORTABLE_DIR%\python.exe" -c "import os; print('os: OK')"
-"%PORTABLE_DIR%\python.exe" -c "import json; print('json: OK')"
-"%PORTABLE_DIR%\python.exe" -c "import re; print('re: OK')"
-"%PORTABLE_DIR%\python.exe" -c "import io; print('io: OK')"
-"%PORTABLE_DIR%\python.exe" -c "import struct; print('struct: OK')"
-"%PORTABLE_DIR%\python.exe" -c "import array; print('array: OK')"
-"%PORTABLE_DIR%\python.exe" -c "import math; print('math: OK')"
-"%PORTABLE_DIR%\python.exe" -c "import datetime; print('datetime: OK')"
-"%PORTABLE_DIR%\python.exe" -c "import random; print('random: OK')"
-"%PORTABLE_DIR%\python.exe" -c "import hashlib; print('hashlib: OK')"
-"%PORTABLE_DIR%\python.exe" -c "import sqlite3; print('sqlite3: OK')"
-"%PORTABLE_DIR%\python.exe" -c "import zlib; print('zlib: OK')"
-"%PORTABLE_DIR%\python.exe" -c "import socket; print('socket: OK')"
-"%PORTABLE_DIR%\python.exe" -c "import threading; print('threading: OK')"
+"%PYTHON_EXE%" -c "import sys; print('sys: OK')"
+"%PYTHON_EXE%" -c "import os; print('os: OK')"
+"%PYTHON_EXE%" -c "import json; print('json: OK')"
+"%PYTHON_EXE%" -c "import re; print('re: OK')"
+"%PYTHON_EXE%" -c "import io; print('io: OK')"
+"%PYTHON_EXE%" -c "import struct; print('struct: OK')"
+"%PYTHON_EXE%" -c "import array; print('array: OK')"
+"%PYTHON_EXE%" -c "import math; print('math: OK')"
+"%PYTHON_EXE%" -c "import datetime; print('datetime: OK')"
+"%PYTHON_EXE%" -c "import random; print('random: OK')"
+"%PYTHON_EXE%" -c "import hashlib; print('hashlib: OK')"
+"%PYTHON_EXE%" -c "import sqlite3; print('sqlite3: OK')"
+"%PYTHON_EXE%" -c "import zlib; print('zlib: OK')"
+"%PYTHON_EXE%" -c "import socket; print('socket: OK')"
+"%PYTHON_EXE%" -c "import threading; print('threading: OK')"
 
 REM Optional modules
-"%PORTABLE_DIR%\python.exe" -c "import bz2; print('bz2: OK')" 2>nul || echo WARNING: bz2 module not available
-"%PORTABLE_DIR%\python.exe" -c "import ssl; print('ssl: OK')" 2>nul || echo WARNING: ssl module not available
+"%PYTHON_EXE%" -c "import bz2; print('bz2: OK')" 2>nul || echo WARNING: bz2 module not available
+"%PYTHON_EXE%" -c "import ssl; print('ssl: OK')" 2>nul || echo WARNING: ssl module not available
 
 echo PASS: Standard library imports successful
 
 REM Test 4: Check Python paths
 echo.
 echo === Test 4: Check Python paths ===
-"%PORTABLE_DIR%\python.exe" -c "import sys; print('sys.executable:', sys.executable); print('sys.prefix:', sys.prefix); print('sys.exec_prefix:', sys.exec_prefix)"
+"%PYTHON_EXE%" -c "import sys; print('sys.executable:', sys.executable); print('sys.prefix:', sys.prefix); print('sys.exec_prefix:', sys.exec_prefix)"
 
 REM Test 5: Test relocatability (copy to different location)
 echo.
@@ -162,10 +174,17 @@ if errorlevel 1 (
 echo Testing from: %MOVED_DIR%
 cd "%MOVED_DIR%"
 set PYTHONHOME=%MOVED_DIR%
-set PATH=%MOVED_DIR%;%MOVED_DIR%\DLLs;%PATH%
+set PATH=%MOVED_DIR%;%MOVED_DIR%\bin;%MOVED_DIR%\DLLs;%PATH%
 
-"%MOVED_DIR%\python.exe" --version
-"%MOVED_DIR%\python.exe" -c "print('Relocatability: OK')"
+REM Determine python.exe location in moved directory
+if exist "%MOVED_DIR%\python.exe" (
+    set "MOVED_PYTHON_EXE=%MOVED_DIR%\python.exe"
+) else (
+    set "MOVED_PYTHON_EXE=%MOVED_DIR%\bin\python.exe"
+)
+
+"%MOVED_PYTHON_EXE%" --version
+"%MOVED_PYTHON_EXE%" -c "print('Relocatability: OK')"
 if errorlevel 1 (
     echo FAIL: Relocatability test failed
     rmdir /s /q "%MOVED_DIR%"
@@ -178,10 +197,14 @@ echo PASS: Python is relocatable
 REM Clean up moved directory
 rmdir /s /q "%MOVED_DIR%"
 
+REM Reset environment back to original portable directory
+cd "%PORTABLE_DIR%"
+set PYTHONHOME=%PORTABLE_DIR%
+set PATH=%PORTABLE_DIR%;%PORTABLE_DIR%\bin;%PORTABLE_DIR%\DLLs;%PATH%
+
 REM Test 6: Test C extension headers
 echo.
 echo === Test 6: Test C extension headers ===
-cd "%PORTABLE_DIR%"
 if exist "%PORTABLE_DIR%\include\Python.h" (
     echo PASS: Python.h found - C extension development supported
 ) else (
@@ -222,9 +245,10 @@ echo     return 0
 echo.
 echo if __name__ == "__main__":
 echo     sys.exit(main(^)^)
-) > "%TEST_DIR%\test_script.py"
+) > "%PORTABLE_DIR%\test_script.py"
 
-"%PORTABLE_DIR%\python.exe" "%TEST_DIR%\test_script.py"
+cd "%PORTABLE_DIR%"
+"%PYTHON_EXE%" "%PORTABLE_DIR%\test_script.py"
 if errorlevel 1 (
     echo FAIL: Test script execution failed
     cd %CD%
@@ -242,7 +266,7 @@ echo.
 echo Distribution: %ARCHIVE_NAME%
 echo Flavor: %FLAVOR%
 echo Test location: %TEST_DIR%
-"%PORTABLE_DIR%\python.exe" --version 2>&1
+"%PYTHON_EXE%" --version 2>&1
 echo.
 echo The portable Python distribution is working correctly!
 
