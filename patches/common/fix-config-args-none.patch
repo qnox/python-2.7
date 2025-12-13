@@ -1,0 +1,11 @@
+--- a/setup.py
++++ b/setup.py
+@@ -30,7 +30,7 @@ def get_platform():
+ host_platform = get_platform()
+
+ # Were we compiled --with-pydebug or with #define Py_DEBUG?
+-COMPILED_WITH_PYDEBUG = ('--with-pydebug' in sysconfig.get_config_var("CONFIG_ARGS"))
++COMPILED_WITH_PYDEBUG = ('--with-pydebug' in (sysconfig.get_config_var("CONFIG_ARGS") or ''))
+
+ # This global variable is used to hold the list of modules to be disabled.
+ disabled_module_list = []
