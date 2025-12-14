@@ -74,10 +74,11 @@ export CFLAGS="${CFLAGS} ${ARCH_FLAGS}"
 export LDFLAGS="${LDFLAGS} ${ARCH_FLAGS}"
 
 # Configure Python for portable installation
+# Note: NOT using --enable-shared to avoid virtualenv issues
+# Python 2.7's virtualenv always copies binaries, which breaks with shared libpython
 ./configure \
     --prefix="/python" \
     --enable-framework=no \
-    --enable-shared \
     --enable-unicode=ucs2 \
     --with-ensurepip=no \
     --with-system-ffi
@@ -108,79 +109,8 @@ else
     exit 1
 fi
 
-# Fix library paths to be relocatable using install_name_tool
-# First, fix libpython2.7.dylib's install name (what it identifies itself as)
-echo "=== Fixing libpython2.7.dylib install name ==="
-if [ -f "${PORTABLE_DIR}/lib/libpython2.7.dylib" ]; then
-    echo "BEFORE:"
-    otool -D "${PORTABLE_DIR}/lib/libpython2.7.dylib"
-    install_name_tool -id "@rpath/libpython2.7.dylib" "${PORTABLE_DIR}/lib/libpython2.7.dylib"
-    echo "AFTER:"
-    otool -D "${PORTABLE_DIR}/lib/libpython2.7.dylib"
-fi
-
-# Then fix references in other libraries (change paths to libpython, not system libraries)
-find "${PORTABLE_DIR}" \( -name "*.so" -o -name "*.dylib" \) | while read lib; do
-    # Get current library paths and only fix libpython references
-    # Use || true to prevent grep from failing the script when no matches are found
-    otool -L "$lib" 2>/dev/null | grep "libpython" | grep -o "/.*\.dylib" | while read dep; do
-        depname=$(basename "$dep")
-        # Change absolute paths to relative paths
-        install_name_tool -change "$dep" "@loader_path/../lib/$depname" "$lib" 2>/dev/null || true
-    done || true
-done
-
-# Fix Python binary - change libpython path and add rpath
-# Need to fix ALL python binaries because they are hardlinks, not symlinks
-# When tar creates archives, it preserves hardlinks so they all need fixing
-echo "=== Fixing Python binary library paths ==="
-echo "Checking for python binaries in ${PORTABLE_DIR}/bin/"
-ls -la "${PORTABLE_DIR}/bin/python"* || echo "ERROR: No python binaries found!"
-
-# Function to fix a binary
-fix_binary() {
-    local BINARY_PATH="$1"
-    local BINARY_NAME=$(basename "$BINARY_PATH")
-
-    echo ""
-    echo "--- Fixing $BINARY_NAME ---"
-    echo "BEFORE fix:"
-    otool -L "$BINARY_PATH" | head -5
-
-    # Change libpython path to use @rpath
-    PYTHON_LIB=$(otool -L "$BINARY_PATH" | grep "libpython" | grep -o "/.*\.dylib" | head -1) || true
-    if [ -n "$PYTHON_LIB" ]; then
-        echo "Changing: $PYTHON_LIB -> @rpath/$(basename $PYTHON_LIB)"
-        install_name_tool -change "$PYTHON_LIB" "@rpath/$(basename $PYTHON_LIB)" "$BINARY_PATH" || exit 1
-    fi
-
-    # Add rpath if not exists
-    if ! otool -l "$BINARY_PATH" | grep -q "@loader_path/../lib"; then
-        install_name_tool -add_rpath "@loader_path/../lib" "$BINARY_PATH" || exit 1
-    fi
-
-    echo "AFTER fix:"
-    otool -L "$BINARY_PATH" | head -5
-
-    # Verify
-    FINAL_LIB=$(otool -L "$BINARY_PATH" | grep "libpython" | head -1)
-    if echo "$FINAL_LIB" | grep -q "@rpath"; then
-        echo "✓ $BINARY_NAME: SUCCESS"
-    else
-        echo "✗ ERROR: $BINARY_NAME failed: $FINAL_LIB"
-        exit 1
-    fi
-}
-
-# Fix all python binaries (they are hardlinks, all need fixing)
-for BINARY in python python2 python2.7; do
-    if [ -f "${PORTABLE_DIR}/bin/$BINARY" ]; then
-        fix_binary "${PORTABLE_DIR}/bin/$BINARY"
-    fi
-done
-
-echo ""
-echo "=== All Python binaries fixed ==="
+# Note: No dylib fixup needed since we're building without --enable-shared
+# The Python binary is statically linked and doesn't require libpython2.7.dylib
 
 # Create README for portable usage
 cat > "${PORTABLE_DIR}/README.txt" << EOF
@@ -195,9 +125,10 @@ Usage:
 
 Features:
 - Relocatable installation
-- Shared libraries with @rpath for portability
+- Statically linked binary (no external dependencies)
 - Standard library included
 - Full development headers included
+- Compatible with virtualenv
 - pip included
 
 Build info:
