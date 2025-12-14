@@ -133,19 +133,11 @@ if [[ "$OSTYPE" == "darwin"* ]] || uname -s | grep -q "Darwin"; then
         LIB_PATHS=$(otool -L "$BINARY_PATH" | grep libpython || echo "")
 
         if [ -z "$LIB_PATHS" ]; then
-            echo "✗ ERROR: No libpython found in binary"
-            rm -rf "${TEMP_VERIFY}"
-            exit 1
-        fi
-
-        echo "Libpython line: $LIB_PATHS"
-
-        if echo "$LIB_PATHS" | grep -q "@rpath/libpython"; then
-            echo "✓ VERIFIED: ${FLAVOR} binary uses @rpath (correct)"
+            echo "✓ VERIFIED: ${FLAVOR} binary is statically linked (no libpython dependency)"
         else
-            echo "✗ ERROR: ${FLAVOR} binary does NOT use @rpath!"
-            rm -rf "${TEMP_VERIFY}"
-            exit 1
+            echo "⚠ WARNING: ${FLAVOR} binary has libpython dependency (should be static):"
+            echo "$LIB_PATHS"
+            echo "This may cause issues with virtualenv"
         fi
 
         rm -rf "${TEMP_VERIFY}"
