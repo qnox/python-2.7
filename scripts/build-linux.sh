@@ -39,7 +39,7 @@ LIBFFI_PREFIX="${DEPS_DIR}/libffi"
 
 # Set up compiler and linker flags with libffi
 export CFLAGS="-fPIC -I${LIBFFI_PREFIX}/lib/libffi-3.4.6/include"
-export LDFLAGS="-Wl,-rpath,'\$\$ORIGIN/../lib' -L${LIBFFI_PREFIX}/lib"
+export LDFLAGS="-L${LIBFFI_PREFIX}/lib"
 export CPPFLAGS="${CFLAGS}"
 
 # Set PKG_CONFIG_PATH for libffi (required for _ctypes module)
@@ -77,7 +77,7 @@ if [ "${TARGET_LIBC}" = "musl" ]; then
     fi
 elif [ "${TARGET_ARCH}" = "i686" ]; then
     export CFLAGS="${CFLAGS} -m32"
-    export LDFLAGS="-m32 -Wl,-rpath,'\$\$ORIGIN/../lib' -L${LIBFFI_PREFIX}/lib"
+    export LDFLAGS="-m32 -L${LIBFFI_PREFIX}/lib"
     # Find Python for cross-compilation
     if command -v python2.7 >/dev/null 2>&1; then
         PYTHON_FOR_BUILD="python2.7"
@@ -98,9 +98,10 @@ else
 fi
 
 # Configure Python for portable installation
+# Note: NOT using --enable-shared to avoid issues with library paths and relocatability
+# Static linking ensures the binary works reliably across different environments
 ./configure \
     --prefix="/python" \
-    --enable-shared \
     --enable-unicode=ucs4 \
     --with-system-ffi \
     ${EXTRA_CONFIG_ARGS:-}
@@ -125,18 +126,8 @@ mkdir -p "${PORTABLE_DIR}"
 # Copy installed files
 cp -r "${INSTALL_PREFIX}/python"/* "${PORTABLE_DIR}/"
 
-# Create portable launcher script
-cat > "${PORTABLE_DIR}/bin/python-portable" << 'EOF'
-#!/bin/bash
-# Portable Python launcher
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PYTHON_HOME="$(dirname "${SCRIPT_DIR}")"
-export LD_LIBRARY_PATH="${PYTHON_HOME}/lib:${LD_LIBRARY_PATH:-}"
-export PYTHONHOME="${PYTHON_HOME}"
-exec "${PYTHON_HOME}/bin/python" "$@"
-EOF
-
-chmod +x "${PORTABLE_DIR}/bin/python-portable"
+# Note: No portable launcher needed since we're building without --enable-shared
+# The Python binary is statically linked and doesn't require LD_LIBRARY_PATH
 
 # Create README for portable usage
 cat > "${PORTABLE_DIR}/README.txt" << EOF
@@ -147,15 +138,11 @@ This is a portable Python installation that can be placed in any directory.
 
 Usage:
 1. Extract this archive to any location
-2. Use ./bin/python-portable to run Python with correct paths
-3. Or set environment variables:
-   export PYTHONHOME="\$(pwd)"
-   export LD_LIBRARY_PATH="\${PYTHONHOME}/lib:\${LD_LIBRARY_PATH}"
-   ./bin/python
+2. Run ./bin/python directly
 
 Features:
 - Relocatable installation
-- Shared library included
+- Statically linked binary (no external dependencies)
 - Standard library included
 - Full development headers included
 

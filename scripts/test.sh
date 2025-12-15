@@ -111,13 +111,24 @@ echo "PASS: Directory structure is correct"
 echo ""
 echo "=== Test 2: Test python binary ==="
 
-# Pre-check: Verify Python binary is statically linked (macOS only)
+# Pre-check: Verify Python binary is statically linked
 if command -v otool >/dev/null 2>&1; then
-    echo "Checking Python binary linking..."
+    # macOS
+    echo "Checking Python binary linking (macOS)..."
     if otool -L "${PORTABLE_DIR}/bin/python" | grep -q "libpython"; then
         echo "WARNING: Python binary references libpython (dynamically linked)"
         otool -L "${PORTABLE_DIR}/bin/python" | grep libpython
         echo "This may cause issues with virtualenv"
+    else
+        echo "PASS: Python binary is statically linked (no libpython dependency)"
+    fi
+elif command -v ldd >/dev/null 2>&1; then
+    # Linux
+    echo "Checking Python binary linking (Linux)..."
+    if ldd "${PORTABLE_DIR}/bin/python" 2>&1 | grep -q "libpython"; then
+        echo "WARNING: Python binary references libpython (dynamically linked)"
+        ldd "${PORTABLE_DIR}/bin/python" | grep libpython
+        echo "This may cause issues with relocatability"
     else
         echo "PASS: Python binary is statically linked (no libpython dependency)"
     fi
