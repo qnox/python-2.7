@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-# Python 2.7 portable build script for Linux
+# Python 2.7 build script for Linux
 # Supports both glibc and musl, x86_64 and i686
 
 PYTHON_VERSION="2.7.18"
@@ -116,32 +116,32 @@ rm -rf "${INSTALL_PREFIX}"
 make -j$(nproc) sharedinstall DESTDIR="${INSTALL_PREFIX}"
 make -j$(nproc) install DESTDIR="${INSTALL_PREFIX}"
 
-echo "=== Creating portable Python distribution ==="
+echo "=== Creating Python distribution ==="
 
-# Create portable structure
-PORTABLE_DIR="${BUILD_DIR}/python-${PYTHON_VERSION}-${TARGET_TRIPLE}"
-rm -rf "${PORTABLE_DIR}"
-mkdir -p "${PORTABLE_DIR}"
+# Create distribution structure
+PYTHON_DIST_DIR="${BUILD_DIR}/python-${PYTHON_VERSION}-${TARGET_TRIPLE}"
+rm -rf "${PYTHON_DIST_DIR}"
+mkdir -p "${PYTHON_DIST_DIR}"
 
 # Copy installed files
-cp -r "${INSTALL_PREFIX}/python"/* "${PORTABLE_DIR}/"
+cp -r "${INSTALL_PREFIX}/python"/* "${PYTHON_DIST_DIR}/"
 
-# Note: No portable launcher needed since we're building without --enable-shared
+# Note: No special launcher needed since we're building without --enable-shared
 # The Python binary is statically linked and doesn't require LD_LIBRARY_PATH
 
-# Create README for portable usage
-cat > "${PORTABLE_DIR}/README.txt" << EOF
-Python ${PYTHON_VERSION} Portable Build
+# Create README for usage
+cat > "${PYTHON_DIST_DIR}/README.txt" << EOF
+Python ${PYTHON_VERSION} Build
 Target: ${TARGET_TRIPLE}
 
-This is a portable Python installation that can be placed in any directory.
+This is a self-contained Python installation that can be placed in any directory (portable).
 
 Usage:
 1. Extract this archive to any location
 2. Run ./bin/python directly
 
 Features:
-- Relocatable installation
+- Self-contained and relocatable
 - Statically linked binary (no external dependencies)
 - Standard library included
 - Full development headers included
@@ -153,4 +153,4 @@ Build info:
 EOF
 
 echo "=== Build complete ==="
-echo "Portable Python location: ${PORTABLE_DIR}"
+echo "Python distribution location: ${PYTHON_DIST_DIR}"

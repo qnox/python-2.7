@@ -1,13 +1,13 @@
 #!/bin/bash
 set -euo pipefail
 
-# Package Python portable distribution
+# Package Python distribution
 # Supports creating multiple flavors: install_only and install_only_stripped
 
 PYTHON_VERSION="2.7.18"
 BUILD_DIR="${PWD}/build"
 DIST_DIR="${PWD}/dist"
-PORTABLE_DIR="${BUILD_DIR}/python-${PYTHON_VERSION}-${TARGET_TRIPLE}"
+PYTHON_DIR="${BUILD_DIR}/python-${PYTHON_VERSION}-${TARGET_TRIPLE}"
 
 # Get script directory (must be before any cd commands)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -85,7 +85,7 @@ strip_binaries() {
 # Create install_only flavor (unstripped)
 echo ""
 echo "=== Creating install_only flavor ==="
-create_archive "install_only" "${PORTABLE_DIR}"
+create_archive "install_only" "${PYTHON_DIR}"
 
 # Create install_only_stripped flavor
 echo ""
@@ -95,7 +95,7 @@ echo "=== Creating install_only_stripped flavor ==="
 STRIPPED_DIR="${BUILD_DIR}/python-${PYTHON_VERSION}-${TARGET_TRIPLE}-stripped"
 echo "Creating stripped copy at: ${STRIPPED_DIR}"
 rm -rf "${STRIPPED_DIR}"
-cp -R "${PORTABLE_DIR}" "${STRIPPED_DIR}"
+cp -R "${PYTHON_DIR}" "${STRIPPED_DIR}"
 
 # Strip the binaries
 strip_binaries "${STRIPPED_DIR}"

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Test Python portable distribution.
+Test Python distribution.
 Based on python-build-standalone's testing approach.
 Works across Linux, macOS, and Windows.
 """
@@ -15,22 +15,22 @@ import tempfile
 
 
 class DistributionTester:
-    def __init__(self, portable_dir):
-        self.portable_dir = portable_dir
+    def __init__(self, python_dir):
+        self.python_dir = python_dir
         self.is_windows = platform.system() == 'Windows'
         self.passed_tests = 0
         self.total_tests = 0
 
         # Determine Python executable path
         if self.is_windows:
-            if os.path.exists(os.path.join(portable_dir, 'python.exe')):
-                self.python_exe = os.path.join(portable_dir, 'python.exe')
-            elif os.path.exists(os.path.join(portable_dir, 'bin', 'python.exe')):
-                self.python_exe = os.path.join(portable_dir, 'bin', 'python.exe')
+            if os.path.exists(os.path.join(python_dir, 'python.exe')):
+                self.python_exe = os.path.join(python_dir, 'python.exe')
+            elif os.path.exists(os.path.join(python_dir, 'bin', 'python.exe')):
+                self.python_exe = os.path.join(python_dir, 'bin', 'python.exe')
             else:
-                raise FileNotFoundError("python.exe not found in portable directory")
+                raise FileNotFoundError("python.exe not found in directory")
         else:
-            self.python_exe = os.path.join(portable_dir, 'bin', 'python')
+            self.python_exe = os.path.join(python_dir, 'bin', 'python')
             if not os.path.exists(self.python_exe):
                 raise FileNotFoundError(f"python binary not found at {self.python_exe}")
 
@@ -75,7 +75,7 @@ class DistributionTester:
         for name, dirname in required_dirs.items():
             if dirname is None:
                 continue
-            path = os.path.join(self.portable_dir, dirname)
+            path = os.path.join(self.python_dir, dirname)
             if not os.path.isdir(path):
                 raise AssertionError(f"{name} directory not found at {path}")
 
@@ -98,7 +98,7 @@ class DistributionTester:
             print("Skipping symlink test on Windows")
             return
 
-        python2_path = os.path.join(self.portable_dir, 'bin', 'python2')
+        python2_path = os.path.join(self.python_dir, 'bin', 'python2')
         if os.path.exists(python2_path):
             result = subprocess.run(
                 [python2_path, '--version'],
@@ -195,11 +195,11 @@ for p in sys.path:
             if self.is_windows:
                 # Use shutil.copytree on Windows
                 dest = os.path.join(moved_dir, 'python')
-                shutil.copytree(self.portable_dir, dest)
+                shutil.copytree(self.python_dir, dest)
             else:
                 # Use shutil.copytree on Unix too
                 dest = os.path.join(moved_dir, 'python')
-                shutil.copytree(self.portable_dir, dest)
+                shutil.copytree(self.python_dir, dest)
 
             # Determine Python executable in new location
             if self.is_windows:
@@ -273,9 +273,9 @@ for p in sys.path:
     def test_c_headers(self):
         """Test that C extension development headers are present."""
         if self.is_windows:
-            header_path = os.path.join(self.portable_dir, 'include', 'Python.h')
+            header_path = os.path.join(self.python_dir, 'include', 'Python.h')
         else:
-            header_path = os.path.join(self.portable_dir, 'include', 'python2.7', 'Python.h')
+            header_path = os.path.join(self.python_dir, 'include', 'python2.7', 'Python.h')
 
         if os.path.exists(header_path):
             print(f"Python.h found at {header_path}")
@@ -360,8 +360,8 @@ if __name__ == "__main__":
             print("=== ALL TESTS PASSED SUCCESSFULLY ===")
             print("=" * 50)
             print(f"\nPassed: {self.passed_tests}/{self.total_tests}")
-            print(f"Python directory: {self.portable_dir}")
-            print("\nThe portable Python distribution is working correctly!")
+            print(f"Python directory: {self.python_dir}")
+            print("\nThe Python distribution is working correctly!")
             return 0
         else:
             print("=== SOME TESTS FAILED ===")
@@ -373,29 +373,29 @@ if __name__ == "__main__":
 
 def main():
     parser = argparse.ArgumentParser(
-        description='Test Python portable distribution'
+        description='Test Python distribution'
     )
     parser.add_argument(
-        'portable_dir',
-        help='Path to extracted Python portable directory'
+        'python_dir',
+        help='Path to extracted Python directory'
     )
 
     args = parser.parse_args()
 
     # Validate directory exists
-    if not os.path.isdir(args.portable_dir):
-        print(f"ERROR: Directory does not exist: {args.portable_dir}", file=sys.stderr)
+    if not os.path.isdir(args.python_dir):
+        print(f"ERROR: Directory does not exist: {args.python_dir}", file=sys.stderr)
         return 1
 
     print("=" * 50)
-    print("Testing Python Portable Distribution")
+    print("Testing Python Distribution")
     print("=" * 50)
-    print(f"Directory: {args.portable_dir}")
+    print(f"Directory: {args.python_dir}")
     print(f"Platform: {platform.system()}")
     print(f"Architecture: {platform.machine()}")
 
     try:
-        tester = DistributionTester(args.portable_dir)
+        tester = DistributionTester(args.python_dir)
         return tester.run_all_tests()
     except Exception as e:
         print(f"\nERROR: {e}", file=sys.stderr)

@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-# Test Python portable distribution from packaged archive
+# Test Python distribution from packaged archive
 # This script unpacks the distribution to a temporary directory and runs tests
 
 PYTHON_VERSION="2.7.18"
@@ -19,7 +19,7 @@ FLAVOR="${FLAVOR:-install_only}"
 # Follow python-build-standalone naming: cpython-VERSION+DATE-TRIPLE-FLAVOR
 ARCHIVE_NAME="cpython-${PYTHON_VERSION}+${RELEASE_DATE}-${TARGET_TRIPLE}-${FLAVOR}"
 
-echo "=== Testing Python ${PYTHON_VERSION} portable distribution ==="
+echo "=== Testing Python ${PYTHON_VERSION} distribution (self-contained, relocatable) ==="
 echo "Target: ${TARGET_TRIPLE}"
 echo "Platform: ${TARGET_PLATFORM:-unknown}"
 echo "Flavor: ${FLAVOR}"
@@ -55,17 +55,17 @@ echo "Contents after extraction:"
 ls -la "${TEST_DIR}"
 
 # Archives extract to python/ subdirectory (python-build-standalone format)
-PORTABLE_DIR="${TEST_DIR}/python"
+PYTHON_DIR="${TEST_DIR}/python"
 
-if [ ! -d "${PORTABLE_DIR}" ]; then
+if [ ! -d "${PYTHON_DIR}" ]; then
     echo "Error: Expected python/ directory not found in archive"
     echo "Contents of ${TEST_DIR}:"
     ls -la "${TEST_DIR}"
     exit 1
 fi
 
-echo "Extracted to: ${PORTABLE_DIR}"
+echo "Extracted to: ${PYTHON_DIR}"
 
 # Run tests using Python test script
 echo ""
-python3 "${SCRIPT_DIR}/test_distribution.py" "${PORTABLE_DIR}"
+python3 "${SCRIPT_DIR}/test_distribution.py" "${PYTHON_DIR}"

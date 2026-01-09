@@ -1,5 +1,5 @@
 @echo off
-REM Test Python portable distribution from packaged archive
+REM Test Python distribution from packaged archive
 REM This script unpacks the distribution to a temporary directory and runs tests
 
 setlocal enabledelayedexpansion
@@ -20,7 +20,7 @@ set "FLAVOR=%FLAVOR: =%"
 REM Follow python-build-standalone naming: cpython-VERSION+DATE-TRIPLE-FLAVOR
 set ARCHIVE_NAME=cpython-%PYTHON_VERSION%+%RELEASE_DATE%-%TARGET_TRIPLE%-%FLAVOR%
 
-echo === Testing Python %PYTHON_VERSION% portable distribution ===
+echo === Testing Python %PYTHON_VERSION% distribution (portable, self-contained) ===
 echo Target: %TARGET_TRIPLE%
 echo Platform: %TARGET_PLATFORM%
 echo Flavor: %FLAVOR%
@@ -59,9 +59,9 @@ echo Contents after extraction:
 dir "%TEST_DIR%"
 
 REM Archives extract to python/ subdirectory (python-build-standalone format)
-set PORTABLE_DIR=%TEST_DIR%\python
+set PYTHON_DIR=%TEST_DIR%\python
 
-if not exist "%PORTABLE_DIR%" (
+if not exist "%PYTHON_DIR%" (
     echo Error: Expected python\ directory not found in archive
     echo Contents of %TEST_DIR%:
     dir "%TEST_DIR%"
@@ -69,12 +69,12 @@ if not exist "%PORTABLE_DIR%" (
     exit /b 1
 )
 
-echo Extracted to: %PORTABLE_DIR%
+echo Extracted to: %PYTHON_DIR%
 
 REM Run tests using Python test script
 set SCRIPT_DIR=%~dp0
 echo.
-python "%SCRIPT_DIR%test_distribution.py" "%PORTABLE_DIR%"
+python "%SCRIPT_DIR%test_distribution.py" "%PYTHON_DIR%"
 set TEST_RESULT=%ERRORLEVEL%
 
 REM Cleanup

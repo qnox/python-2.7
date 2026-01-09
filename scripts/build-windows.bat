@@ -1,5 +1,5 @@
 @echo off
-REM Python 2.7 portable build script for Windows
+REM Python 2.7 build script for Windows
 REM Supports x86_64 and x86 with MSVC
 REM Based on python-build-standalone architecture
 
@@ -324,121 +324,104 @@ if errorlevel 1 (
     echo Tkinter test: OK
 )
 
-REM Prepare portable installation directory
+REM Prepare installation directory
 echo.
 echo ========================================
-echo === Creating Portable Distribution ===
+echo === Creating Distribution ===
 echo ========================================
-set PORTABLE_DIR=%BUILD_DIR%\python-%PYTHON_VERSION%-%TARGET_TRIPLE%
-if exist "%PORTABLE_DIR%" (
-    echo Removing existing portable directory...
-    rmdir /s /q "%PORTABLE_DIR%"
+set PYTHON_DIST_DIR=%BUILD_DIR%\python-%PYTHON_VERSION%-%TARGET_TRIPLE%
+if exist "%PYTHON_DIST_DIR%" (
+    echo Removing existing directory...
+    rmdir /s /q "%PYTHON_DIST_DIR%"
 )
-mkdir "%PORTABLE_DIR%"
-mkdir "%PORTABLE_DIR%\bin"
-mkdir "%PORTABLE_DIR%\DLLs"
-mkdir "%PORTABLE_DIR%\include"
-mkdir "%PORTABLE_DIR%\libs"
-echo Portable directory: %PORTABLE_DIR%
+mkdir "%PYTHON_DIST_DIR%"
+mkdir "%PYTHON_DIST_DIR%\bin"
+mkdir "%PYTHON_DIST_DIR%\DLLs"
+mkdir "%PYTHON_DIST_DIR%\include"
+mkdir "%PYTHON_DIST_DIR%\libs"
+echo Distribution directory: %PYTHON_DIST_DIR%
 
 echo.
 echo Copying Python executables and DLLs...
-xcopy /Y /I "%ARCH_DIR%\python.exe" "%PORTABLE_DIR%\bin\" >nul
+xcopy /Y /I "%ARCH_DIR%\python.exe" "%PYTHON_DIST_DIR%\bin\" >nul
 if errorlevel 1 (
     echo ERROR: Failed to copy python.exe
     exit /b 1
 )
-xcopy /Y /I "%ARCH_DIR%\pythonw.exe" "%PORTABLE_DIR%\bin\" >nul
-xcopy /Y /I "%ARCH_DIR%\python27.dll" "%PORTABLE_DIR%\DLLs\" >nul
+xcopy /Y /I "%ARCH_DIR%\pythonw.exe" "%PYTHON_DIST_DIR%\bin\" >nul
+xcopy /Y /I "%ARCH_DIR%\python27.dll" "%PYTHON_DIST_DIR%\DLLs\" >nul
 if errorlevel 1 (
     echo ERROR: Failed to copy python27.dll
     exit /b 1
 )
 
 echo Copying Python extension modules ^(.pyd files^)...
-if not exist "%PORTABLE_DIR%\DLLs" mkdir "%PORTABLE_DIR%\DLLs"
-xcopy /Y /I "%ARCH_DIR%\*.pyd" "%PORTABLE_DIR%\DLLs\" >nul
+if not exist "%PYTHON_DIST_DIR%\DLLs" mkdir "%PYTHON_DIST_DIR%\DLLs"
+xcopy /Y /I "%ARCH_DIR%\*.pyd" "%PYTHON_DIST_DIR%\DLLs\" >nul
 if errorlevel 1 (
     echo WARNING: Some .pyd files may not have been copied
 )
 
 echo Copying Tcl/Tk DLLs and libraries for Tkinter support...
 if exist "%TCLTK_DIR%\bin\*.dll" (
-    xcopy /Y "%TCLTK_DIR%\bin\*.dll" "%PORTABLE_DIR%\DLLs\" >nul
+    xcopy /Y "%TCLTK_DIR%\bin\*.dll" "%PYTHON_DIST_DIR%\DLLs\" >nul
     if exist "%TCLTK_DIR%\lib" (
-        xcopy /E /I /Y "%TCLTK_DIR%\lib" "%PORTABLE_DIR%\tcl\" >nul
+        xcopy /E /I /Y "%TCLTK_DIR%\lib" "%PYTHON_DIST_DIR%\tcl\" >nul
         echo Tcl/Tk runtime files copied
     )
 ) else (
-    echo WARNING: Tcl/Tk binaries not found - Tkinter may not work in portable distribution
+    echo WARNING: Tcl/Tk binaries not found - Tkinter may not work in distribution
 )
 
 echo Copying standard library...
-xcopy /E /I /Y "%SOURCE_DIR%\Lib\*" "%PORTABLE_DIR%\Lib\" >nul
+xcopy /E /I /Y "%SOURCE_DIR%\Lib\*" "%PYTHON_DIST_DIR%\Lib\" >nul
 if errorlevel 1 (
     echo ERROR: Failed to copy standard library
     exit /b 1
 )
 
 echo Copying development headers...
-xcopy /E /I /Y "%SOURCE_DIR%\Include\*" "%PORTABLE_DIR%\include\" >nul
-xcopy /Y /I "%SOURCE_DIR%\PC\pyconfig.h" "%PORTABLE_DIR%\include\" >nul
+xcopy /E /I /Y "%SOURCE_DIR%\Include\*" "%PYTHON_DIST_DIR%\include\" >nul
+xcopy /Y /I "%SOURCE_DIR%\PC\pyconfig.h" "%PYTHON_DIST_DIR%\include\" >nul
 if errorlevel 1 (x
     echo ERROR: Failed to copy development headers
     exit /b 1
 )
 
 echo Copying import libraries for C extension development...
-if not exist "%PORTABLE_DIR%\libs" mkdir "%PORTABLE_DIR%\libs"
-xcopy /Y /I "%ARCH_DIR%\python27.lib" "%PORTABLE_DIR%\libs\" >nul
+if not exist "%PYTHON_DIST_DIR%\libs" mkdir "%PYTHON_DIST_DIR%\libs"
+xcopy /Y /I "%ARCH_DIR%\python27.lib" "%PYTHON_DIST_DIR%\libs\" >nul
 if errorlevel 1 (
     echo ERROR: Failed to copy python27.lib
     exit /b 1
 )
 
-echo.
-echo Creating portable launcher script...
-(
-echo @echo off
-echo REM Portable Python launcher for Windows
-echo REM Automatically sets up environment variables
-echo setlocal
-echo set SCRIPT_DIR=%%%%~dp0
-echo for %%%%I in ^("%%%%SCRIPT_DIR%%%%."^) do set PYTHON_HOME=%%%%~dpI\..
-echo set PYTHON_HOME=%%%%PYTHON_HOME:~0,-1%%%%
-echo set PATH=%%%%PYTHON_HOME%%%%\bin;%%%%PYTHON_HOME%%%%\DLLs;%%%%PATH%%%%
-echo set PYTHONHOME=%%%%PYTHON_HOME%%%%
-echo set TCL_LIBRARY=%%%%PYTHON_HOME%%%%\tcl\tcl8.6
-echo set TK_LIBRARY=%%%%PYTHON_HOME%%%%\tcl\tk8.6
-echo "%%%%PYTHON_HOME%%%%\bin\python.exe" %%%%*
-echo endlocal
-) > "%PORTABLE_DIR%\bin\python-portable.bat"
-
 echo Creating README.txt...
 (
-echo Python %PYTHON_VERSION% Portable Build for Windows
+echo Python %PYTHON_VERSION% Build for Windows
 echo ========================================
 echo.
 echo Target: %TARGET_TRIPLE%
 echo Architecture: %TARGET_ARCH%
 echo.
-echo This is a portable Python installation that can be placed in any directory.
+echo This is a self-contained Python installation that can be placed in any directory ^(portable^).
 echo.
 echo USAGE
 echo -----
 echo 1. Extract this archive to any location
-echo 2. Use bin\python-portable.bat to run Python with correct paths:
-echo    bin\python-portable.bat --version
-echo    bin\python-portable.bat script.py
-echo.
-echo 3. Or set environment variables manually:
+echo 2. Set environment variables:
 echo    set PYTHONHOME=^<path-to-this-directory^>
 echo    set PATH=%%PYTHONHOME%%\bin;%%PYTHONHOME%%\DLLs;%%PATH%%
-echo    bin\python.exe
+echo    set TCL_LIBRARY=%%PYTHONHOME%%\tcl\tcl8.6
+echo    set TK_LIBRARY=%%PYTHONHOME%%\tcl\tk8.6
+echo.
+echo 3. Run Python:
+echo    python.exe --version
+echo    python.exe script.py
 echo.
 echo FEATURES
 echo --------
-echo - Relocatable installation - works from any directory
+echo - Self-contained and relocatable - works from any directory
 echo - All DLLs included - no external dependencies
 echo - Complete standard library included
 echo - Tkinter/GUI support with Tcl/Tk 8.6.12
@@ -448,14 +431,13 @@ echo - Built with modern MSVC v143 ^(Visual Studio 2022^)
 echo.
 echo DIRECTORY STRUCTURE
 echo -------------------
-echo python.exe, pythonw.exe    - Python executables
-echo python27.dll               - Python runtime library
-echo DLLs/                      - Python extension modules ^(.pyd files^) and Tcl/Tk DLLs
-echo Lib/                       - Python standard library
-echo tcl/                       - Tcl/Tk runtime libraries
-echo include/                   - C/C++ headers for extension development
-echo libs/                      - Import libraries for linking
-echo python-portable.bat        - Portable launcher script
+echo bin/python.exe, pythonw.exe - Python executables
+echo DLLs/python27.dll           - Python runtime library
+echo DLLs/                       - Python extension modules ^(.pyd files^) and Tcl/Tk DLLs
+echo Lib/                        - Python standard library
+echo tcl/                        - Tcl/Tk runtime libraries
+echo include/                    - C/C++ headers for extension development
+echo libs/                       - Import libraries for linking
 echo.
 echo BUILD INFO
 echo ----------
@@ -467,7 +449,7 @@ echo Built: %DATE% %TIME%
 echo.
 echo For more information, visit:
 echo https://github.com/yourusername/python-2.7
-) > "%PORTABLE_DIR%\README.txt"
+) > "%PYTHON_DIST_DIR%\README.txt"
 
 echo.
 echo ========================================
@@ -477,7 +459,7 @@ echo.
 echo Python Version: %PYTHON_VERSION%
 echo Target Triple: %TARGET_TRIPLE%
 echo Architecture: %TARGET_ARCH%
-echo Portable Location: %PORTABLE_DIR%
+echo Distribution Location: %PYTHON_DIST_DIR%
 echo.
 echo Next steps:
 echo 1. Run: scripts\package.bat    ^(to create distributable archive^)

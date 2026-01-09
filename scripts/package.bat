@@ -1,5 +1,5 @@
 @echo off
-REM Package Python portable distribution for Windows
+REM Package Python distribution for Windows
 REM Supports creating multiple flavors: install_only and install_only_stripped
 
 setlocal enabledelayedexpansion
@@ -10,7 +10,7 @@ set "TARGET_TRIPLE=%TARGET_TRIPLE: =%"
 set PYTHON_VERSION=2.7.18
 set BUILD_DIR=%CD%\build
 set DIST_DIR=%CD%\dist
-set PORTABLE_DIR=%BUILD_DIR%\python-%PYTHON_VERSION%-%TARGET_TRIPLE%
+set PYTHON_DIR=%BUILD_DIR%\python-%PYTHON_VERSION%-%TARGET_TRIPLE%
 
 REM Get current date in YYYYMMDD format
 for /f %%i in ('powershell -Command "Get-Date -Format yyyyMMdd"') do set RELEASE_DATE=%%i
@@ -22,12 +22,12 @@ echo.
 echo Version: %PYTHON_VERSION%
 echo Target: %TARGET_TRIPLE%
 echo Release Date: %RELEASE_DATE%
-echo Source: %PORTABLE_DIR%
+echo Source: %PYTHON_DIR%
 echo.
 
-REM Verify portable directory exists
-if not exist "%PORTABLE_DIR%" (
-    echo ERROR: Portable directory not found: %PORTABLE_DIR%
+REM Verify directory exists
+if not exist "%PYTHON_DIR%" (
+    echo ERROR: Python directory not found: %PYTHON_DIR%
     echo Please run build-windows.bat first
     exit /b 1
 )
@@ -79,7 +79,7 @@ if exist "%STRIPPED_DIR%" rmdir /s /q "%STRIPPED_DIR%"
 
 REM Copy to stripped directory
 echo Copying files...
-xcopy "%PORTABLE_DIR%" "%STRIPPED_DIR%\" /E /I /Q /Y >nul
+xcopy "%PYTHON_DIR%" "%STRIPPED_DIR%\" /E /I /Q /Y >nul
 if errorlevel 1 (
     echo ERROR: Failed to copy files
     exit /b 1

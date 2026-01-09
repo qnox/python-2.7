@@ -1,21 +1,21 @@
-# Python 2.7 Portable Builds
+# Python 2.7 Builds
 
-Automated builds of portable Python 2.7.18 for multiple platforms, architectures, and C libraries.
+Automated builds of Python 2.7.18 for multiple platforms, architectures, and C libraries.
 
 ## Features
 
-- **Portable/Relocatable**: Can be placed in any directory without modification
+- **Self-Contained & Relocatable**: Can be placed in any directory without modification (portable)
 - **Multiple Platforms**: Windows, Linux (glibc/musl), macOS
 - **Multiple Architectures**: x86_64, i686/x86, ARM64 (Apple Silicon)
-- **Self-Contained**: All dependencies included
+- **All Dependencies Included**: No system-wide installation required
 - **Development Ready**: Includes headers and libraries for C extension development
+- **Build Flavors**: `install_only` (complete installation with debug symbols) and `install_only_stripped` (smaller, optimized for distribution)
 
 ## Supported Platforms
 
 ### Linux
 - **x86_64-unknown-linux-gnu**: 64-bit Linux with glibc
 - **i686-unknown-linux-gnu**: 32-bit Linux with glibc
-- **aarch64-unknown-linux-musl**: ARM64 Linux with musl libc (Alpine, embedded)
 - **x86_64-unknown-linux-musl**: 64-bit Linux with musl libc (Alpine, static-friendly)
 - **i686-unknown-linux-musl**: 32-bit Linux with musl libc
 
@@ -26,7 +26,6 @@ Automated builds of portable Python 2.7.18 for multiple platforms, architectures
 ### Windows
 - **x86_64-pc-windows-msvc**: 64-bit Windows
 - **i686-pc-windows-msvc**: 32-bit Windows
-- **aarch64-pc-windows-msvc**: ARM64 Windows 10/11 (experimental)
 
 ## Download
 
@@ -38,46 +37,38 @@ Download pre-built binaries from the [Releases](../../releases) page.
 
 1. Download and extract the archive:
    ```bash
-   tar xf python-2.7.18-<target-triple>-portable.tar.xz
-   cd python-2.7.18-<target-triple>
+   tar xf cpython-2.7.18+YYYYMMDD-<target-triple>-install_only.tar.gz
+   cd python
    ```
 
-2. Use the portable launcher:
+2. Run Python directly:
    ```bash
-   ./bin/python-portable --version
-   ./bin/python-portable script.py
-   ```
-
-3. Or set environment variables:
-   ```bash
-   export PYTHONHOME="$(pwd)"
-   export LD_LIBRARY_PATH="${PYTHONHOME}/lib:${LD_LIBRARY_PATH}"  # Linux
-   # OR
-   export DYLD_LIBRARY_PATH="${PYTHONHOME}/lib:${DYLD_LIBRARY_PATH}"  # macOS
-
    ./bin/python --version
+   ./bin/python script.py
    ```
+
+   The distribution is self-contained and relocatable - no environment variables needed.
 
 ### Windows
 
 1. Download and extract the archive:
    ```cmd
-   unzip python-2.7.18-<target-triple>-portable.zip
-   cd python-2.7.18-<target-triple>
+   tar -xzf cpython-2.7.18+YYYYMMDD-<target-triple>-install_only.tar.gz
+   cd python
    ```
 
-2. Use the portable launcher:
-   ```cmd
-   python-portable.bat --version
-   python-portable.bat script.py
-   ```
-
-3. Or set environment variables:
+2. Set environment variables:
    ```cmd
    set PYTHONHOME=%CD%
-   set PATH=%PYTHONHOME%;%PYTHONHOME%\DLLs;%PATH%
+   set PATH=%PYTHONHOME%\bin;%PYTHONHOME%\DLLs;%PATH%
+   set TCL_LIBRARY=%PYTHONHOME%\tcl\tcl8.6
+   set TK_LIBRARY=%PYTHONHOME%\tcl\tk8.6
+   ```
 
+3. Run Python:
+   ```cmd
    python.exe --version
+   python.exe script.py
    ```
 
 ## Building from Source
@@ -128,14 +119,11 @@ bash scripts/package.sh
 
 #### Windows
 ```cmd
-REM Supported: x86_64, x86, aarch64 (ARM64)
+REM Supported: x86_64, i686 (x86)
 set TARGET_ARCH=x86_64
 set TARGET_TRIPLE=x86_64-pc-windows-msvc
 scripts\build-windows.bat
 scripts\package.bat
-
-REM After build, run portable launcher:
-build\python-2.7.18-%TARGET_TRIPLE%\bin\python-portable.bat --version
 ```
 
 ## GitHub Actions Workflow
@@ -173,7 +161,7 @@ jobs:
 **Matrix includes 8 targets:**
 - Linux: x86_64 & i686 with glibc and musl (4 targets)
 - macOS: x86_64 & arm64 (2 targets)
-- Windows: x86_64 & x86 (2 targets)
+- Windows: x86_64 & i686 (2 targets)
 
 All builds use **free GitHub runners**:
 - `ubuntu-20.04` for all Linux builds
@@ -192,15 +180,19 @@ python-2.7/
 │   ├── setup-linux.sh         # Linux environment setup
 │   ├── setup-macos.sh         # macOS environment setup
 │   ├── setup-windows.bat      # Windows environment setup
-│   ├── apply-patches.sh       # Patch harness system
+│   ├── apply-patches.sh       # Patch harness system (Unix)
+│   ├── apply-patches.bat      # Patch harness system (Windows)
 │   ├── build.sh               # Unified build dispatcher
 │   ├── build-linux.sh         # Linux build script
 │   ├── build-macos.sh         # macOS build script
 │   ├── build-windows.bat      # Windows build script
+│   ├── create_archive.py      # Archive creation utility
 │   ├── package.sh             # Packaging script (Unix)
 │   ├── package.bat            # Packaging script (Windows)
 │   ├── test.sh                # Test script (Unix)
-│   └── test.bat               # Test script (Windows)
+│   ├── test.bat               # Test script (Windows)
+│   ├── test_distribution.py   # Distribution testing utility
+│   └── deps/                  # Dependency build scripts
 ├── patches/                   # Platform-specific patches
 │   ├── common/               # Patches for all platforms
 │   ├── linux/                # Linux-specific patches
@@ -215,7 +207,7 @@ python-2.7/
 
 ## Technical Details
 
-### Portability Features
+### Relocatable Distribution Features
 
 #### Linux
 - Uses `$ORIGIN` relative rpath for shared libraries
@@ -232,12 +224,12 @@ python-2.7/
 - Uses relative paths via `PYTHONHOME`
 - No registry dependencies
 
-### Build Optimizations
+### Build Configuration
 
-- **PGO** (Profile-Guided Optimization): Used where supported
-- **LTO** (Link-Time Optimization): Enabled for release builds
-- **Static linking**: Available for musl builds
-- **Shared libraries**: Included for all builds
+- **Static Python binary**: The main Python executable is statically linked (does not depend on libpython.so/dylib)
+- **Shared extension modules**: Python extension modules (.so/.pyd) are built as shared libraries
+- **Release configuration**: All builds use optimized Release configuration (MSVC on Windows, default compiler optimizations on Unix)
+- **Relocatable**: No hardcoded paths, uses relative rpath on Linux/macOS
 
 ## Patch System
 

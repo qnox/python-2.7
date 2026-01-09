@@ -32,18 +32,20 @@ platforms:
         arch: x86_64
         libc: glibc
         build_options:
-          - optimizations
+          - release
         features:
-          - shared
+          - static-binary
+          - shared-modules
           - unicode-ucs4
 
       i686-unknown-linux-gnu:
         arch: i686
         libc: glibc
         build_options:
-          - optimizations
+          - release
         features:
-          - shared
+          - static-binary
+          - shared-modules
           - unicode-ucs4
           - multilib
 
@@ -51,22 +53,22 @@ platforms:
         arch: x86_64
         libc: musl
         build_options:
-          - optimizations
+          - release
         features:
-          - shared
+          - static-binary
+          - shared-modules
           - unicode-ucs4
-          - static-libs
 
       i686-unknown-linux-musl:
         arch: i686
         libc: musl
         build_options:
-          - optimizations
+          - release
         features:
-          - shared
+          - static-binary
+          - shared-modules
           - unicode-ucs4
           - multilib
-          - static-libs
 
   macos:
     deployment_target:
@@ -77,9 +79,10 @@ platforms:
         arch: x86_64
         runner: macos-12
         build_options:
-          - optimizations
+          - release
         features:
-          - shared
+          - static-binary
+          - shared-modules
           - unicode-ucs2
           - framework-disabled
 
@@ -87,9 +90,10 @@ platforms:
         arch: arm64
         runner: macos-14
         build_options:
-          - optimizations
+          - release
         features:
-          - shared
+          - static-binary
+          - shared-modules
           - unicode-ucs2
           - framework-disabled
 
@@ -100,17 +104,19 @@ platforms:
         arch: x86_64
         msvc_arch: amd64
         build_options:
-          - pgo
+          - release
         features:
-          - shared
+          - shared-binary
+          - shared-modules
 
       i686-pc-windows-msvc:
-        arch: x86
+        arch: i686
         msvc_arch: x86
         build_options:
-          - pgo
+          - release
         features:
-          - shared
+          - shared-binary
+          - shared-modules
 
 # Build dependencies by platform
 dependencies:
@@ -146,30 +152,39 @@ dependencies:
     # Built-in with MSVC
     - msvc-toolchain
 
-# Portable build configuration
-portable:
+# Distribution configuration (self-contained, relocatable builds)
+distribution:
   linux:
     rpath: "$ORIGIN/../lib"
-    launcher: python-portable
+    features:
+      - relocatable
+      - self-contained
 
   macos:
     rpath: "@loader_path/../lib"
-    launcher: python-portable
+    features:
+      - relocatable
+      - self-contained
 
   windows:
     path_relative: true
-    launcher: python-portable.bat
+    features:
+      - relocatable
+      - self-contained
+    env_vars_required:
+      - PYTHONHOME
+      - PATH
+      - TCL_LIBRARY
+      - TK_LIBRARY
 
 # Package formats by platform
 package_formats:
   linux:
     - tar.gz
-    - tar.xz
   macos:
     - tar.gz
-    - tar.xz
   windows:
-    - zip
+    - tar.gz
 
 # Free GitHub runners only
 runners:

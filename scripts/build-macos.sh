@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-# Python 2.7 portable build script for macOS
+# Python 2.7 build script for macOS
 # Supports x86_64 and arm64 (Apple Silicon)
 
 PYTHON_VERSION="2.7.18"
@@ -90,12 +90,12 @@ make -j$(sysctl -n hw.ncpu)
 rm -rf "${INSTALL_PREFIX}"
 make install DESTDIR="${INSTALL_PREFIX}"
 
-echo "=== Creating portable Python distribution ==="
+echo "=== Creating Python distribution ==="
 
-# Create portable structure
-PORTABLE_DIR="${BUILD_DIR}/python-${PYTHON_VERSION}-${TARGET_TRIPLE}"
-rm -rf "${PORTABLE_DIR}"
-mkdir -p "${PORTABLE_DIR}"
+# Create distribution structure
+PYTHON_DIST_DIR="${BUILD_DIR}/python-${PYTHON_VERSION}-${TARGET_TRIPLE}"
+rm -rf "${PYTHON_DIST_DIR}"
+mkdir -p "${PYTHON_DIST_DIR}"
 
 # Copy installed files
 echo "Checking installation at: ${INSTALL_PREFIX}"
@@ -103,7 +103,7 @@ ls -la "${INSTALL_PREFIX}" || echo "INSTALL_PREFIX does not exist"
 if [ -d "${INSTALL_PREFIX}/python" ]; then
     echo "Contents of ${INSTALL_PREFIX}/python:"
     ls -la "${INSTALL_PREFIX}/python"
-    cp -r "${INSTALL_PREFIX}/python"/* "${PORTABLE_DIR}/"
+    cp -r "${INSTALL_PREFIX}/python"/* "${PYTHON_DIST_DIR}/"
 else
     echo "ERROR: ${INSTALL_PREFIX}/python does not exist!"
     exit 1
@@ -112,19 +112,19 @@ fi
 # Note: No dylib fixup needed since we're building without --enable-shared
 # The Python binary is statically linked and doesn't require libpython2.7.dylib
 
-# Create README for portable usage
-cat > "${PORTABLE_DIR}/README.txt" << EOF
-Python ${PYTHON_VERSION} Portable Build for macOS
+# Create README for usage
+cat > "${PYTHON_DIST_DIR}/README.txt" << EOF
+Python ${PYTHON_VERSION} Build for macOS
 Target: ${TARGET_TRIPLE}
 
-This is a portable Python installation that can be placed in any directory.
+This is a self-contained Python installation that can be placed in any directory (portable).
 
 Usage:
 1. Extract this archive to any location
 2. Run ./bin/python or ./bin/python2 directly
 
 Features:
-- Relocatable installation
+- Self-contained and relocatable
 - Statically linked binary (no external dependencies)
 - Standard library included
 - Full development headers included
@@ -140,4 +140,4 @@ Note: This build requires macOS ${MACOSX_DEPLOYMENT_TARGET} or later.
 EOF
 
 echo "=== Build complete ==="
-echo "Portable Python location: ${PORTABLE_DIR}"
+echo "Python distribution location: ${PYTHON_DIST_DIR}"
