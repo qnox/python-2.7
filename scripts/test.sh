@@ -7,6 +7,9 @@ set -euo pipefail
 PYTHON_VERSION="2.7.18"
 DIST_DIR="${PWD}/dist"
 
+# Get script directory (must be before any cd commands)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 # Get current date in YYYYMMDD format (should match what package.sh created)
 RELEASE_DATE="${RELEASE_DATE:-$(date +%Y%m%d)}"
 
@@ -51,32 +54,18 @@ ${EXTRACT_CMD} "${ARCHIVE}"
 echo "Contents after extraction:"
 ls -la "${TEST_DIR}"
 
-# Archives now extract to python/ subdirectory (python-build-standalone format)
-if [ -d "${TEST_DIR}/python" ]; then
-    PORTABLE_DIR="${TEST_DIR}/python"
-    echo "Archive extracted with python/ prefix"
-elif [ -d "${TEST_DIR}/bin" ]; then
-    # Old format: extracted directly to bin/, lib/, etc.
-    PORTABLE_DIR="${TEST_DIR}"
-    echo "Archive extracted to flat structure (old format)"
-else
-    # Fallback: look for any subdirectory
-    PORTABLE_DIR=$(find "${TEST_DIR}" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | head -n 1)
-    echo "Archive has directory wrapper: ${PORTABLE_DIR}"
-fi
+# Archives extract to python/ subdirectory (python-build-standalone format)
+PORTABLE_DIR="${TEST_DIR}/python"
 
-echo "Python directory: '${PORTABLE_DIR}'"
-
-if [ -z "${PORTABLE_DIR}" ]; then
-    echo "Error: Could not find extracted Python directory"
-    echo "Looking for: python-* in ${TEST_DIR}"
-    find "${TEST_DIR}" -maxdepth 2 -type d
+if [ ! -d "${PORTABLE_DIR}" ]; then
+    echo "Error: Expected python/ directory not found in archive"
+    echo "Contents of ${TEST_DIR}:"
+    ls -la "${TEST_DIR}"
     exit 1
 fi
 
 echo "Extracted to: ${PORTABLE_DIR}"
 
 # Run tests using Python test script
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 echo ""
 python3 "${SCRIPT_DIR}/test_distribution.py" "${PORTABLE_DIR}"

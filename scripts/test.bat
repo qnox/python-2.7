@@ -58,32 +58,17 @@ REM Debug: what did we extract?
 echo Contents after extraction:
 dir "%TEST_DIR%"
 
-REM Archives now extract to python/ subdirectory (python-build-standalone format)
-if exist "%TEST_DIR%\python" (
-    set PORTABLE_DIR=%TEST_DIR%\python
-    echo Archive extracted with python/ prefix
-) else if exist "%TEST_DIR%\python.exe" (
-    REM Old format: extracted directly to python.exe, Lib/, etc.
-    set PORTABLE_DIR=%TEST_DIR%
-    echo Archive extracted to flat structure (old format)
-) else if exist "%TEST_DIR%\bin\python.exe" (
-    REM Old format: Windows install layout with bin/
-    set PORTABLE_DIR=%TEST_DIR%
-    echo Archive extracted with bin/ subdirectory (old format)
-) else (
-    REM Fallback: look for a subdirectory
-    for /d %%i in ("%TEST_DIR%\python-*") do set PORTABLE_DIR=%%i
-    echo Archive has directory wrapper: !PORTABLE_DIR!
-)
+REM Archives extract to python/ subdirectory (python-build-standalone format)
+set PORTABLE_DIR=%TEST_DIR%\python
 
-if not defined PORTABLE_DIR (
-    echo Error: Could not find extracted Python directory
+if not exist "%PORTABLE_DIR%" (
+    echo Error: Expected python\ directory not found in archive
+    echo Contents of %TEST_DIR%:
     dir "%TEST_DIR%"
     rmdir /s /q "%TEST_DIR%"
     exit /b 1
 )
 
-echo Python directory: %PORTABLE_DIR%
 echo Extracted to: %PORTABLE_DIR%
 
 REM Run tests using Python test script
