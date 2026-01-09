@@ -14,26 +14,24 @@ Python 2.7.18 was released in April 2020 and does not natively support modern pl
 
 ```
 patches/
-├── README.md              # Patch documentation
-├── common/                # Patches applied to all builds
+├── common/                # Patches applied to all builds (after platform patches)
 ├── linux/                 # Linux-specific patches
-│   ├── glibc/            # Patches for glibc builds
-│   └── musl/             # Patches for musl builds
-├── macos/                 # macOS-specific patches
-│   ├── x86_64/           # Intel Mac patches
-│   └── arm64/            # Apple Silicon patches
-└── windows/               # Windows-specific patches
+├── macos/                 # macOS-specific patches (all architectures)
+├── windows/               # Windows-specific patches
+│   └── arm64/            # Windows ARM64-specific patches
 ```
+
+Note: Only directories that contain patches are shown. Sub-platform directories (like `linux/glibc/` or `macos/arm64/`) are created only when needed.
 
 ## Patch Application Order
 
-Patches are applied in order of increasing specificity:
+Patches are applied in this specific order:
 
-1. **Common patches** (`patches/common/`) - Applied to all builds
-2. **Platform patches** (`patches/linux/`, `patches/macos/`, `patches/windows/`)
-3. **Sub-platform patches** (e.g., `patches/linux/musl/`, `patches/macos/arm64/`)
+1. **Platform patches** (`patches/linux/`, `patches/macos/`, `patches/windows/`)
+2. **Sub-platform patches** (e.g., `patches/linux/musl/`, `patches/windows/arm64/`)
+3. **Common patches** (`patches/common/`) - Applied LAST to all builds
 
-This allows general fixes to be overridden by more specific ones.
+**Important**: Platform patches are applied FIRST because some patches (like pyenv's macOS patches) modify files that common patches may also touch. Common patches are applied last to ensure they can override platform-specific behavior when needed.
 
 ## Using the Patch Harness
 
@@ -108,58 +106,93 @@ Patches should be named: `NN-description.patch`
 
 ## Current Patches
 
-### macOS (All Architectures)
+### Common Patches (All Platforms)
 
-#### `01-configure-arch-detection.patch`
+Applied after platform-specific patches to all builds.
 
-**Problem**: Python 2.7's configure script doesn't recognize ARM64 and x86_64 architectures:
-```
-configure: error: Unexpected output of 'arch' on OSX
-```
+#### `disable-multiarch-musl.patch`
+Disables multiarch configuration for musl builds to avoid compatibility issues.
 
-**Solution**: Patches the configure script to detect `arm64` and `x86_64` architectures properly.
+#### `skip-system-paths-musl.patch`
+Prevents Python from searching system paths on musl systems, ensuring self-contained builds.
 
-**Affected file**: `configure` (lines ~3151-3157)
+### Linux Patches
 
-**Changes**:
-- Adds detection for `uname -p` returning `arm` or `uname -m` returning `arm64`
-- Sets `MACOSX_DEFAULT_ARCH` to `arm64` for Apple Silicon
-- Sets `MACOSX_DEFAULT_ARCH` to `x86_64` for Intel Macs
-- Maintains error handling for unknown architectures
+#### `fix-config-args-none.patch`
+Fixes configure argument handling when arguments are None/empty.
 
-### Windows (All Architectures)
+### macOS Patches (All Architectures)
 
-#### `01-upgrade-vs2019-toolset.patch`
+These patches are primarily from the [pyenv project](https://github.com/pyenv/pyenv) and enable Python 2.7 on modern macOS, including Apple Silicon.
 
-**Problem**: Python 2.7 uses Visual Studio 2008 (v90) platform toolset which is not available in modern Visual Studio installations:
-```
-error MSB8020: The build tools for Visual Studio 2008 (Platform Toolset = 'v90') cannot be found.
-```
+#### `0001-Detect-arm64-in-configure.patch`
+Adds ARM64 (Apple Silicon) architecture detection to the configure script.
 
-**Solution**: Updates MSBuild project files to use modern Visual Studio toolsets (v142 for VS2019, v141 for VS2017, v140 for VS2015).
+#### `0002-Fix-macOS-_tkinter-use-of-Tck-Tk-in-Library-Framewor.patch`
+Fixes tkinter to properly use Tcl/Tk from system frameworks.
 
-**Affected file**: `PCbuild/pyproject.props`
+#### `0003-Support-arm64-in-Mac-Tools-pythonw.patch`
+Adds ARM64 support to the pythonw executable wrapper.
 
-**Changes**:
-- Replaces hardcoded `<PlatformToolset>v90</PlatformToolset>` with conditional selection
-- Automatically detects Visual Studio version and uses appropriate toolset
-- Adds Windows 10 SDK support
-- Adds `PreferredToolArchitecture` for better build performance
-- Fixes MSBuild condition syntax for modern MSBuild
+#### `0004-Use-system-libffi-for-Mac-OS-10.15-and-up.patch`
+Configures Python to use system libffi on macOS 10.15+ (required for ARM64 support).
 
-**Note**: This patch is applied programmatically via PowerShell in the Windows build script to handle Windows path conventions.
+#### `0005-ctypes-use-the-correct-ABI-for-variadic-functions.patch`
+Fixes ctypes ABI handling for variadic functions on modern architectures.
+
+#### `0006-ctypes-probe-libffi-for-ffi_closure_alloc-and-ffi_pr.patch`
+Adds runtime probing for libffi functions to support different libffi versions.
+
+#### `0007-Remove-QuickTime-from-link-args.patch`
+Removes deprecated QuickTime framework from linker arguments (not available on modern macOS).
+
+### Windows Patches (x86_64 and i686)
+
+#### `01-upgrade-vs2019-toolset.patch` / `01-upgrade-vs2022-toolset.patch`
+Updates MSBuild project files from Visual Studio 2008 (v90) toolset to modern toolsets (v142/v143). Enables building with Visual Studio 2019 or 2022.
 
 #### `02-fix-msbuild-conditions.patch`
+Fixes MSBuild condition syntax for compatibility with modern MSBuild versions.
 
-**Problem**: Modern MSBuild requires proper quoting in condition expressions.
+#### `02-fix-timemodule-msvc.patch`
+Fixes time module compilation with modern MSVC compilers.
 
-**Solution**: Adds proper quotes around MSBuild variables in conditions.
+#### `03-fix-posixmodule-msvc.patch`
+Fixes POSIX module compilation with modern MSVC compilers.
 
-**Affected file**: `PCbuild/pyd.props`
+#### `04-upgrade-tcltk-to-8.6.12.patch`
+Updates Tcl/Tk version references from 8.5 to 8.6.12 for compatibility with available binaries.
 
-**Changes**:
-- Updates `Condition="$(Platform)"` to `Condition="'$(Platform)'"`
-- Ensures compatibility with MSBuild 16.0+
+### Windows ARM64 Patches
+
+These patches enable Python 2.7 on Windows ARM64 (experimental):
+
+#### `01-python-props.patch`
+Adds ARM64 platform support to Python build properties.
+
+#### `02-pyproject-props.patch`
+Adds ARM64 configuration to MSBuild project files.
+
+#### `03-tcltk-props.patch`
+Configures Tcl/Tk for ARM64 builds.
+
+#### `04-pythoncore-baseaddr.patch`
+Sets appropriate base address for pythoncore DLL on ARM64.
+
+#### `05-add-arm64-support.patch`
+Adds core ARM64 architecture support to Python source.
+
+#### `06-add-arm64-configs.patch`
+Adds ARM64 project configurations to MSBuild files.
+
+#### `07-disable-ctypes-arm64.patch`
+Disables ctypes module on ARM64 (libffi not fully supported on Windows ARM64).
+
+#### `08-openssl-1.1.1w-for-arm64.patch`
+Updates OpenSSL version for ARM64 compatibility.
+
+#### `09-disable-tcltk-arm64.patch`
+Disables Tcl/Tk on ARM64 (prebuilt binaries configuration).
 
 ## Testing Patches
 
