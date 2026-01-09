@@ -43,24 +43,26 @@ echo === Creating install_only flavor ===
 echo.
 
 set ARCHIVE_NAME=cpython-%PYTHON_VERSION%+%RELEASE_DATE%-%TARGET_TRIPLE%-install_only
-echo [1/2] Creating %ARCHIVE_NAME%.zip...
+echo [1/2] Creating %ARCHIVE_NAME%.tar.gz...
 
 cd "%BUILD_DIR%"
-powershell -Command "Compress-Archive -Path 'python-%PYTHON_VERSION%-%TARGET_TRIPLE%\*' -DestinationPath '%DIST_DIR%\%ARCHIVE_NAME%.zip' -Force"
+REM Use tar with transform to add python/ prefix without copying files
+tar -czf "%DIST_DIR%\%ARCHIVE_NAME%.tar.gz" -C "python-%PYTHON_VERSION%-%TARGET_TRIPLE%" --transform "s,^,python/," .
 if errorlevel 1 (
-    echo ERROR: Failed to create zip archive
+    echo ERROR: Failed to create tar.gz archive
+    echo Note: tar is required. Install Git for Windows or use Windows 10+
     exit /b 1
 )
 
 echo [2/2] Generating SHA256 checksum...
 cd "%DIST_DIR%"
-powershell -Command "Get-FileHash '%ARCHIVE_NAME%.zip' -Algorithm SHA256 | Select-Object -ExpandProperty Hash > '%ARCHIVE_NAME%.zip.sha256'"
+powershell -Command "Get-FileHash '%ARCHIVE_NAME%.tar.gz' -Algorithm SHA256 | Select-Object -ExpandProperty Hash > '%ARCHIVE_NAME%.tar.gz.sha256'"
 if errorlevel 1 (
     echo WARNING: Failed to generate checksum
 )
 
-echo [OK] Created %ARCHIVE_NAME%.zip
-for %%F in ("%ARCHIVE_NAME%.zip") do echo      Size: %%~zF bytes
+echo [OK] Created %ARCHIVE_NAME%.tar.gz
+for %%F in ("%ARCHIVE_NAME%.tar.gz") do echo      Size: %%~zF bytes
 
 REM ========================================
 REM Create install_only_stripped flavor
@@ -98,24 +100,25 @@ echo [OK] Stripping complete
 
 REM Create the stripped archive
 set ARCHIVE_NAME=cpython-%PYTHON_VERSION%+%RELEASE_DATE%-%TARGET_TRIPLE%-install_only_stripped
-echo [1/2] Creating %ARCHIVE_NAME%.zip...
+echo [1/2] Creating %ARCHIVE_NAME%.tar.gz...
 
 cd "%BUILD_DIR%"
-powershell -Command "Compress-Archive -Path 'python-%PYTHON_VERSION%-%TARGET_TRIPLE%-stripped\*' -DestinationPath '%DIST_DIR%\%ARCHIVE_NAME%.zip' -Force"
+REM Use tar with transform to add python/ prefix without copying files
+tar -czf "%DIST_DIR%\%ARCHIVE_NAME%.tar.gz" -C "python-%PYTHON_VERSION%-%TARGET_TRIPLE%-stripped" --transform "s,^,python/," .
 if errorlevel 1 (
-    echo ERROR: Failed to create stripped zip archive
+    echo ERROR: Failed to create tar.gz archive
     exit /b 1
 )
 
 echo [2/2] Generating SHA256 checksum...
 cd "%DIST_DIR%"
-powershell -Command "Get-FileHash '%ARCHIVE_NAME%.zip' -Algorithm SHA256 | Select-Object -ExpandProperty Hash > '%ARCHIVE_NAME%.zip.sha256'"
+powershell -Command "Get-FileHash '%ARCHIVE_NAME%.tar.gz' -Algorithm SHA256 | Select-Object -ExpandProperty Hash > '%ARCHIVE_NAME%.tar.gz.sha256'"
 if errorlevel 1 (
     echo WARNING: Failed to generate checksum
 )
 
-echo [OK] Created %ARCHIVE_NAME%.zip
-for %%F in ("%ARCHIVE_NAME%.zip") do echo      Size: %%~zF bytes
+echo [OK] Created %ARCHIVE_NAME%.tar.gz
+for %%F in ("%ARCHIVE_NAME%.tar.gz") do echo      Size: %%~zF bytes
 
 REM Clean up stripped directory
 echo Cleaning up temporary files...
@@ -129,7 +132,7 @@ echo ========================================
 echo.
 echo Archives created in: %DIST_DIR%
 echo.
-dir /b "%DIST_DIR%\cpython-%PYTHON_VERSION%+%RELEASE_DATE%-%TARGET_TRIPLE%-*.zip"
+dir /b "%DIST_DIR%\cpython-%PYTHON_VERSION%+%RELEASE_DATE%-%TARGET_TRIPLE%-*.tar.gz"
 echo.
 echo Summary:
 echo   - install_only: Full installation with debug symbols

@@ -32,7 +32,8 @@ create_archive() {
 
     # Create tar.gz (for compatibility)
     echo "Creating ${ARCHIVE_NAME}.tar.gz..."
-    tar czf "${DIST_DIR}/${ARCHIVE_NAME}.tar.gz" -C "${SOURCE_DIR}" .
+    # Use tar's transform option to add python/ prefix without copying files
+    tar czf "${DIST_DIR}/${ARCHIVE_NAME}.tar.gz" -C "${SOURCE_DIR}" --transform 's,^,python/,' .
 
     # Generate checksum
     cd "${DIST_DIR}"
@@ -120,13 +121,13 @@ if [[ "$OSTYPE" == "darwin"* ]] || uname -s | grep -q "Darwin"; then
         TEMP_VERIFY=$(mktemp -d)
         cd "${TEMP_VERIFY}"
 
-        tar xzf "${DIST_DIR}/${ARCHIVE_NAME}.tar.gz" "bin/python2.7" 2>&1 || {
+        tar xzf "${DIST_DIR}/${ARCHIVE_NAME}.tar.gz" "python/bin/python2.7" 2>&1 || {
             echo "ERROR: Failed to extract binary from ${FLAVOR} archive"
             rm -rf "${TEMP_VERIFY}"
             exit 1
         }
 
-        BINARY_PATH="bin/python2.7"
+        BINARY_PATH="python/bin/python2.7"
         echo "Extracted binary: $BINARY_PATH"
         ls -la "$BINARY_PATH"
 
