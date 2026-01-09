@@ -337,8 +337,10 @@ if exist "%PYTHON_DIST_DIR%" (
 mkdir "%PYTHON_DIST_DIR%"
 mkdir "%PYTHON_DIST_DIR%\DLLs"
 mkdir "%PYTHON_DIST_DIR%\Scripts"
+mkdir "%PYTHON_DIST_DIR%\Lib"
 mkdir "%PYTHON_DIST_DIR%\include"
 mkdir "%PYTHON_DIST_DIR%\libs"
+mkdir "%PYTHON_DIST_DIR%\tcl"
 echo Distribution directory: %PYTHON_DIST_DIR%
 
 echo.
@@ -382,6 +384,10 @@ if errorlevel 1 (
     echo ERROR: Failed to copy standard library
     exit /b 1
 )
+
+echo Creating placeholder for Scripts directory...
+REM Create .empty file so Scripts directory is preserved in tar archive
+echo. 2>"%PYTHON_DIST_DIR%\Scripts\.empty"
 
 echo Copying development headers...
 xcopy /E /I /Y "%SOURCE_DIR%\Include\*" "%PYTHON_DIST_DIR%\include\" >nul
