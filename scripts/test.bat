@@ -28,10 +28,10 @@ echo.
 
 REM Find the distribution archive
 set ARCHIVE=
-if exist "%DIST_DIR%\%ARCHIVE_NAME%.zip" (
-    set ARCHIVE=%DIST_DIR%\%ARCHIVE_NAME%.zip
+if exist "%DIST_DIR%\%ARCHIVE_NAME%.tar.gz" (
+    set ARCHIVE=%DIST_DIR%\%ARCHIVE_NAME%.tar.gz
 ) else (
-    echo Error: No distribution archive found at %DIST_DIR%\%ARCHIVE_NAME%.zip
+    echo Error: No distribution archive found at %DIST_DIR%\%ARCHIVE_NAME%.tar.gz
     echo Available files in %DIST_DIR%:
     dir "%DIST_DIR%"
     exit /b 1
@@ -46,23 +46,32 @@ mkdir "%TEST_DIR%"
 
 REM Extract archive to test directory
 echo Extracting archive...
-powershell -Command "Expand-Archive -Path '%ARCHIVE%' -DestinationPath '%TEST_DIR%' -Force"
+tar -xzf "%ARCHIVE%" -C "%TEST_DIR%"
+if errorlevel 1 (
+    echo ERROR: Failed to extract tar.gz archive
+    echo Note: tar is required. Install Git for Windows or use Windows 10+
+    rmdir /s /q "%TEST_DIR%"
+    exit /b 1
+)
 
 REM Debug: what did we extract?
 echo Contents after extraction:
 dir "%TEST_DIR%"
 
-REM The new archives extract directly to python.exe, Lib/, etc. (no wrapper directory)
-REM Check if we have python.exe directly in TEST_DIR
-if exist "%TEST_DIR%\python.exe" (
+REM Archives now extract to python/ subdirectory (python-build-standalone format)
+if exist "%TEST_DIR%\python" (
+    set PORTABLE_DIR=%TEST_DIR%\python
+    echo Archive extracted with python/ prefix
+) else if exist "%TEST_DIR%\python.exe" (
+    REM Old format: extracted directly to python.exe, Lib/, etc.
     set PORTABLE_DIR=%TEST_DIR%
-    echo Archive extracted to flat structure
+    echo Archive extracted to flat structure (old format)
 ) else if exist "%TEST_DIR%\bin\python.exe" (
-    REM Windows install layout: python.exe is in bin/
+    REM Old format: Windows install layout with bin/
     set PORTABLE_DIR=%TEST_DIR%
-    echo Archive extracted with bin/ subdirectory
+    echo Archive extracted with bin/ subdirectory (old format)
 ) else (
-    REM Fallback: look for a subdirectory (old format compatibility)
+    REM Fallback: look for a subdirectory
     for /d %%i in ("%TEST_DIR%\python-*") do set PORTABLE_DIR=%%i
     echo Archive has directory wrapper: !PORTABLE_DIR!
 )
@@ -75,203 +84,17 @@ if not defined PORTABLE_DIR (
 )
 
 echo Python directory: %PORTABLE_DIR%
+echo Extracted to: %PORTABLE_DIR%
 
-REM Test 1: Verify directory structure
+REM Run tests using Python test script
+set SCRIPT_DIR=%~dp0
 echo.
-echo === Test 1: Verify directory structure ===
-REM Check for python.exe in root or bin/ subdirectory
-if exist "%PORTABLE_DIR%\python.exe" (
-    set "PYTHON_EXE=%PORTABLE_DIR%\python.exe"
-) else if exist "%PORTABLE_DIR%\bin\python.exe" (
-    set "PYTHON_EXE=%PORTABLE_DIR%\bin\python.exe"
-) else (
-    echo FAIL: Python executable not found
-    rmdir /s /q "%TEST_DIR%"
-    exit /b 1
-)
-if not exist "%PORTABLE_DIR%\Lib" (
-    echo FAIL: Lib directory not found
-    rmdir /s /q "%TEST_DIR%"
-    exit /b 1
-)
-if not exist "%PORTABLE_DIR%\include" (
-    echo FAIL: include directory not found
-    rmdir /s /q "%TEST_DIR%"
-    exit /b 1
-)
-echo PASS: Directory structure is correct
-
-REM Test 2: Test Python executable
-echo.
-echo === Test 2: Test Python executable ===
-cd "%PORTABLE_DIR%"
-set PYTHONHOME=%PORTABLE_DIR%
-set PATH=%PORTABLE_DIR%;%PORTABLE_DIR%\bin;%PORTABLE_DIR%\DLLs;%PATH%
-
-"%PYTHON_EXE%" --version 2>&1 | findstr "2.7.18" >nul
-if errorlevel 1 (
-    echo FAIL: Version check failed
-    cd %CD%
-    rmdir /s /q "%TEST_DIR%"
-    exit /b 1
-)
-
-"%PYTHON_EXE%" -c "print('Python executable: OK')"
-if errorlevel 1 (
-    echo FAIL: Python execution failed
-    cd %CD%
-    rmdir /s /q "%TEST_DIR%"
-    exit /b 1
-)
-echo PASS: Python executable works
-
-REM Test 3: Standard library imports
-echo.
-echo === Test 3: Test standard library imports ===
-REM Core modules (must work)
-"%PYTHON_EXE%" -c "import sys; print('sys: OK')"
-"%PYTHON_EXE%" -c "import os; print('os: OK')"
-"%PYTHON_EXE%" -c "import json; print('json: OK')"
-"%PYTHON_EXE%" -c "import re; print('re: OK')"
-"%PYTHON_EXE%" -c "import io; print('io: OK')"
-"%PYTHON_EXE%" -c "import struct; print('struct: OK')"
-"%PYTHON_EXE%" -c "import array; print('array: OK')"
-"%PYTHON_EXE%" -c "import math; print('math: OK')"
-"%PYTHON_EXE%" -c "import datetime; print('datetime: OK')"
-"%PYTHON_EXE%" -c "import random; print('random: OK')"
-"%PYTHON_EXE%" -c "import hashlib; print('hashlib: OK')"
-"%PYTHON_EXE%" -c "import sqlite3; print('sqlite3: OK')"
-"%PYTHON_EXE%" -c "import zlib; print('zlib: OK')"
-"%PYTHON_EXE%" -c "import socket; print('socket: OK')"
-"%PYTHON_EXE%" -c "import threading; print('threading: OK')"
-
-REM Optional modules
-"%PYTHON_EXE%" -c "import bz2; print('bz2: OK')" 2>nul || echo WARNING: bz2 module not available
-"%PYTHON_EXE%" -c "import ssl; print('ssl: OK')" 2>nul || echo WARNING: ssl module not available
-
-echo PASS: Standard library imports successful
-
-REM Test 4: Check Python paths
-echo.
-echo === Test 4: Check Python paths ===
-"%PYTHON_EXE%" -c "import sys; print('sys.executable:', sys.executable); print('sys.prefix:', sys.prefix); print('sys.exec_prefix:', sys.exec_prefix)"
-
-REM Test 5: Test relocatability (copy to different location)
-echo.
-echo === Test 5: Test relocatability ===
-set MOVED_DIR=%TEMP%\python-moved-%RANDOM%
-mkdir "%MOVED_DIR%"
-echo Moving Python to new location: %MOVED_DIR%
-
-xcopy /E /I /Q /Y "%PORTABLE_DIR%" "%MOVED_DIR%" >nul
-if errorlevel 1 (
-    echo FAIL: Failed to copy Python to new location
-    rmdir /s /q "%MOVED_DIR%"
-    rmdir /s /q "%TEST_DIR%"
-    exit /b 1
-)
-
-echo Testing from: %MOVED_DIR%
-cd "%MOVED_DIR%"
-set PYTHONHOME=%MOVED_DIR%
-set PATH=%MOVED_DIR%;%MOVED_DIR%\bin;%MOVED_DIR%\DLLs;%PATH%
-
-REM Determine python.exe location in moved directory
-if exist "%MOVED_DIR%\python.exe" (
-    set "MOVED_PYTHON_EXE=%MOVED_DIR%\python.exe"
-) else (
-    set "MOVED_PYTHON_EXE=%MOVED_DIR%\bin\python.exe"
-)
-
-"%MOVED_PYTHON_EXE%" --version
-"%MOVED_PYTHON_EXE%" -c "print('Relocatability: OK')"
-if errorlevel 1 (
-    echo FAIL: Relocatability test failed
-    rmdir /s /q "%MOVED_DIR%"
-    cd %CD%
-    rmdir /s /q "%TEST_DIR%"
-    exit /b 1
-)
-echo PASS: Python is relocatable
-
-REM Clean up moved directory
-rmdir /s /q "%MOVED_DIR%"
-
-REM Reset environment back to original portable directory
-cd "%PORTABLE_DIR%"
-set PYTHONHOME=%PORTABLE_DIR%
-set PATH=%PORTABLE_DIR%;%PORTABLE_DIR%\bin;%PORTABLE_DIR%\DLLs;%PATH%
-
-REM Test 6: Test C extension headers
-echo.
-echo === Test 6: Test C extension headers ===
-if exist "%PORTABLE_DIR%\include\Python.h" (
-    echo PASS: Python.h found - C extension development supported
-) else (
-    echo WARNING: Python.h not found - C extension development not supported
-)
-
-REM Test 7: Run a simple script
-echo.
-echo === Test 7: Run a test script ===
-(
-echo import sys
-echo import os
-echo import json
-echo.
-echo def main(^):
-echo     print("Python Test Script"^)
-echo     print("Python version:", sys.version^)
-echo     print("Platform:", sys.platform^)
-echo.
-echo     # Test basic functionality
-echo     data = {"test": "success", "version": list(sys.version_info[:2]^)}
-echo     json_str = json.dumps(data, indent=2^)
-echo     print("JSON test:", json_str^)
-echo.
-echo     # Test file I/O
-echo     test_file = os.path.join(os.path.dirname(__file__^), "test_output.txt"^)
-echo     with open(test_file, "w"^) as f:
-echo         f.write("Test output\n"^)
-echo.
-echo     with open(test_file, "r"^) as f:
-echo         content = f.read(^)
-echo.
-echo     print("File I/O test: OK"^)
-echo     os.remove(test_file^)
-echo.
-echo     print("\nAll tests passed!"^)
-echo     return 0
-echo.
-echo if __name__ == "__main__":
-echo     sys.exit(main(^)^)
-) > "%PORTABLE_DIR%\test_script.py"
-
-cd "%PORTABLE_DIR%"
-"%PYTHON_EXE%" "%PORTABLE_DIR%\test_script.py"
-if errorlevel 1 (
-    echo FAIL: Test script execution failed
-    cd %CD%
-    rmdir /s /q "%TEST_DIR%"
-    exit /b 1
-)
-echo PASS: Test script executed successfully
-
-REM Summary
-echo.
-echo ========================================
-echo === ALL TESTS PASSED SUCCESSFULLY ===
-echo ========================================
-echo.
-echo Distribution: %ARCHIVE_NAME%
-echo Flavor: %FLAVOR%
-echo Test location: %TEST_DIR%
-"%PYTHON_EXE%" --version 2>&1
-echo.
-echo The portable Python distribution is working correctly!
+python "%SCRIPT_DIR%test_distribution.py" "%PORTABLE_DIR%"
+set TEST_RESULT=%ERRORLEVEL%
 
 REM Cleanup
-cd %CD%
 rmdir /s /q "%TEST_DIR%"
+
+exit /b %TEST_RESULT%
 
 endlocal

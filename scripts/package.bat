@@ -46,11 +46,11 @@ set ARCHIVE_NAME=cpython-%PYTHON_VERSION%+%RELEASE_DATE%-%TARGET_TRIPLE%-install
 echo [1/2] Creating %ARCHIVE_NAME%.tar.gz...
 
 cd "%BUILD_DIR%"
-REM Use tar with transform to add python/ prefix without copying files
-tar -czf "%DIST_DIR%\%ARCHIVE_NAME%.tar.gz" -C "python-%PYTHON_VERSION%-%TARGET_TRIPLE%" --transform "s,^,python/," .
+REM Use Python script (like python-build-standalone)
+set SCRIPT_DIR=%~dp0
+python "%SCRIPT_DIR%create_archive.py" "python-%PYTHON_VERSION%-%TARGET_TRIPLE%" "%DIST_DIR%\%ARCHIVE_NAME%.tar.gz" --prefix python
 if errorlevel 1 (
     echo ERROR: Failed to create tar.gz archive
-    echo Note: tar is required. Install Git for Windows or use Windows 10+
     exit /b 1
 )
 
@@ -103,8 +103,8 @@ set ARCHIVE_NAME=cpython-%PYTHON_VERSION%+%RELEASE_DATE%-%TARGET_TRIPLE%-install
 echo [1/2] Creating %ARCHIVE_NAME%.tar.gz...
 
 cd "%BUILD_DIR%"
-REM Use tar with transform to add python/ prefix without copying files
-tar -czf "%DIST_DIR%\%ARCHIVE_NAME%.tar.gz" -C "python-%PYTHON_VERSION%-%TARGET_TRIPLE%-stripped" --transform "s,^,python/," .
+REM Use Python script (like python-build-standalone)
+python "%SCRIPT_DIR%create_archive.py" "python-%PYTHON_VERSION%-%TARGET_TRIPLE%-stripped" "%DIST_DIR%\%ARCHIVE_NAME%.tar.gz" --prefix python
 if errorlevel 1 (
     echo ERROR: Failed to create tar.gz archive
     exit /b 1

@@ -30,10 +30,12 @@ create_archive() {
 
     cd "${BUILD_DIR}"
 
-    # Create tar.gz (for compatibility)
-    echo "Creating ${ARCHIVE_NAME}.tar.gz..."
-    # Use tar's transform option to add python/ prefix without copying files
-    tar czf "${DIST_DIR}/${ARCHIVE_NAME}.tar.gz" -C "${SOURCE_DIR}" --transform 's,^,python/,' .
+    # Create tar.gz using Python script (like python-build-standalone)
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    python3 "${SCRIPT_DIR}/create_archive.py" \
+        "${SOURCE_DIR}" \
+        "${DIST_DIR}/${ARCHIVE_NAME}.tar.gz" \
+        --prefix python
 
     # Generate checksum
     cd "${DIST_DIR}"
