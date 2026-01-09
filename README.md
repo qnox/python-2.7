@@ -249,6 +249,19 @@ diff -Naur Python-2.7.18.orig/ Python-2.7.18/ > patches/platform/arch/fix.patch
 bash scripts/build-linux.sh
 ```
 
+## Platform-Specific Notes
+
+### Windows ARM64 (Experimental)
+
+Windows ARM64 support is experimental with the following known limitations:
+
+- ❌ **ctypes module unavailable** - libffi does not support ARM64 on Windows
+- ❌ **sqlite3 module unavailable** - Requires additional ARM64 build configuration
+- ❌ **tkinter unavailable** - Tcl/Tk ARM64 binaries not yet configured
+- ✅ Core Python and most standard library modules work correctly
+
+These limitations are due to missing third-party dependencies for ARM64 Windows, not Python itself.
+
 ## Why Python 2.7?
 
 While Python 2.7 reached end-of-life in 2020, many legacy applications still depend on it. This project provides:
