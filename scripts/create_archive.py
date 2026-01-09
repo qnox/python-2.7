@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
 Create tar.gz archive with python/ prefix.
 Based on python-build-standalone's approach.
@@ -8,6 +9,14 @@ import argparse
 import os
 import sys
 import tarfile
+
+# Set UTF-8 encoding for stdout/stderr on Windows
+if sys.platform == 'win32':
+    import codecs
+    if sys.stdout.encoding != 'utf-8':
+        sys.stdout = codecs.getwriter('utf-8')(sys.stdout.buffer, 'strict')
+    if sys.stderr.encoding != 'utf-8':
+        sys.stderr = codecs.getwriter('utf-8')(sys.stderr.buffer, 'strict')
 
 
 def create_tar_from_directory(fh, base_path, path_prefix=None):
@@ -76,7 +85,7 @@ def main():
     try:
         with open(args.output_file, 'wb') as fh:
             create_tar_from_directory(fh, args.source_dir, path_prefix=args.prefix)
-        print(f"✓ Archive created successfully")
+        print("Archive created successfully")
 
         # Show size
         size = os.path.getsize(args.output_file)

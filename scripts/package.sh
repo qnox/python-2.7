@@ -9,6 +9,9 @@ BUILD_DIR="${PWD}/build"
 DIST_DIR="${PWD}/dist"
 PORTABLE_DIR="${BUILD_DIR}/python-${PYTHON_VERSION}-${TARGET_TRIPLE}"
 
+# Get script directory (must be before any cd commands)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 # Get current date in YYYYMMDD format for release tag
 RELEASE_DATE=$(date +%Y%m%d)
 
@@ -31,7 +34,6 @@ create_archive() {
     cd "${BUILD_DIR}"
 
     # Create tar.gz using Python script (like python-build-standalone)
-    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
     python3 "${SCRIPT_DIR}/create_archive.py" \
         "${SOURCE_DIR}" \
         "${DIST_DIR}/${ARCHIVE_NAME}.tar.gz" \
