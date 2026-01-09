@@ -23,13 +23,12 @@ class DistributionTester:
 
         # Determine Python executable path
         if self.is_windows:
-            if os.path.exists(os.path.join(python_dir, 'python.exe')):
-                self.python_exe = os.path.join(python_dir, 'python.exe')
-            elif os.path.exists(os.path.join(python_dir, 'bin', 'python.exe')):
-                self.python_exe = os.path.join(python_dir, 'bin', 'python.exe')
-            else:
-                raise FileNotFoundError("python.exe not found in directory")
+            # Windows: python.exe is in root (python-build-standalone layout)
+            self.python_exe = os.path.join(python_dir, 'python.exe')
+            if not os.path.exists(self.python_exe):
+                raise FileNotFoundError(f"python.exe not found at {self.python_exe}")
         else:
+            # Unix: python is in bin/
             self.python_exe = os.path.join(python_dir, 'bin', 'python')
             if not os.path.exists(self.python_exe):
                 raise FileNotFoundError(f"python binary not found at {self.python_exe}")
@@ -50,11 +49,30 @@ class DistributionTester:
 
     def run_python(self, *args, check=True, capture_output=True):
         """Run Python with given arguments."""
+        # Set up environment for Windows
+        env = os.environ.copy()
+        if self.is_windows:
+            # Add DLLs directory to PATH for .pyd extension modules
+            # Note: python27.dll is now in root with python.exe, so no PATH needed for that
+            dlls_dir = os.path.join(self.python_dir, 'DLLs')
+            if os.path.exists(dlls_dir):
+                env['PATH'] = dlls_dir + os.pathsep + env.get('PATH', '')
+
+            # Set PYTHONHOME to the distribution directory (usually auto-detected)
+            env['PYTHONHOME'] = self.python_dir
+
+            # Set Tcl/Tk library paths if they exist
+            tcl_dir = os.path.join(self.python_dir, 'tcl')
+            if os.path.exists(tcl_dir):
+                env['TCL_LIBRARY'] = os.path.join(tcl_dir, 'tcl8.6')
+                env['TK_LIBRARY'] = os.path.join(tcl_dir, 'tk8.6')
+
         result = subprocess.run(
             [self.python_exe] + list(args),
             capture_output=capture_output,
             text=True,
-            check=False
+            check=False,
+            env=env
         )
         if check and result.returncode != 0:
             raise RuntimeError(
@@ -66,11 +84,22 @@ class DistributionTester:
 
     def test_directory_structure(self):
         """Test that all required directories exist."""
-        required_dirs = {
-            'bin': 'bin' if not self.is_windows else None,
-            'lib': 'lib' if not self.is_windows else 'Lib',
-            'include': 'include',
-        }
+        if self.is_windows:
+            # Windows structure (python-build-standalone layout)
+            required_dirs = {
+                'Lib': 'Lib',
+                'DLLs': 'DLLs',
+                'Scripts': 'Scripts',
+                'include': 'include',
+                'libs': 'libs',
+            }
+        else:
+            # Unix structure
+            required_dirs = {
+                'bin': 'bin',
+                'lib': 'lib',
+                'include': 'include',
+            }
 
         for name, dirname in required_dirs.items():
             if dirname is None:
@@ -203,19 +232,32 @@ for p in sys.path:
 
             # Determine Python executable in new location
             if self.is_windows:
-                if os.path.exists(os.path.join(dest, 'python.exe')):
-                    moved_python = os.path.join(dest, 'python.exe')
-                else:
-                    moved_python = os.path.join(dest, 'bin', 'python.exe')
+                # Windows: python.exe in root
+                moved_python = os.path.join(dest, 'python.exe')
             else:
+                # Unix: python in bin/
                 moved_python = os.path.join(dest, 'bin', 'python')
 
             # Test from new location
             print(f"Testing from: {dest}")
+
+            # Set up environment for Windows
+            env = os.environ.copy()
+            if self.is_windows:
+                dlls_dir = os.path.join(dest, 'DLLs')
+                if os.path.exists(dlls_dir):
+                    env['PATH'] = dlls_dir + os.pathsep + env.get('PATH', '')
+                env['PYTHONHOME'] = dest
+                tcl_dir = os.path.join(dest, 'tcl')
+                if os.path.exists(tcl_dir):
+                    env['TCL_LIBRARY'] = os.path.join(tcl_dir, 'tcl8.6')
+                    env['TK_LIBRARY'] = os.path.join(tcl_dir, 'tk8.6')
+
             result = subprocess.run(
                 [moved_python, '--version'],
                 capture_output=True,
-                text=True
+                text=True,
+                env=env
             )
             if result.returncode != 0:
                 raise AssertionError(f"Python failed in new location: {result.stderr}")
@@ -223,7 +265,8 @@ for p in sys.path:
             result = subprocess.run(
                 [moved_python, '-c', "print('Relocatability: OK')"],
                 capture_output=True,
-                text=True
+                text=True,
+                env=env
             )
             if 'Relocatability: OK' not in result.stdout:
                 raise AssertionError("Relocatability test failed")

@@ -57,18 +57,16 @@ Download pre-built binaries from the [Releases](../../releases) page.
    cd python
    ```
 
-2. Set environment variables:
-   ```cmd
-   set PYTHONHOME=%CD%
-   set PATH=%PYTHONHOME%\bin;%PYTHONHOME%\DLLs;%PATH%
-   set TCL_LIBRARY=%PYTHONHOME%\tcl\tcl8.6
-   set TK_LIBRARY=%PYTHONHOME%\tcl\tk8.6
-   ```
-
-3. Run Python:
+2. Run Python directly (no environment setup required):
    ```cmd
    python.exe --version
    python.exe script.py
+   ```
+
+   **Note**: The distribution follows python-build-standalone layout with `python.exe` and `python27.dll` in the same directory, so Python works immediately without PATH setup. PYTHONHOME is usually auto-detected, but can be set manually if needed:
+
+   ```cmd
+   set PYTHONHOME=%CD%
    ```
 
 ## Building from Source

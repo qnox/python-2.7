@@ -335,21 +335,22 @@ if exist "%PYTHON_DIST_DIR%" (
     rmdir /s /q "%PYTHON_DIST_DIR%"
 )
 mkdir "%PYTHON_DIST_DIR%"
-mkdir "%PYTHON_DIST_DIR%\bin"
 mkdir "%PYTHON_DIST_DIR%\DLLs"
+mkdir "%PYTHON_DIST_DIR%\Scripts"
 mkdir "%PYTHON_DIST_DIR%\include"
 mkdir "%PYTHON_DIST_DIR%\libs"
 echo Distribution directory: %PYTHON_DIST_DIR%
 
 echo.
 echo Copying Python executables and DLLs...
-xcopy /Y /I "%ARCH_DIR%\python.exe" "%PYTHON_DIST_DIR%\bin\" >nul
+REM Following python-build-standalone layout: python.exe and python27.dll in root
+xcopy /Y /I "%ARCH_DIR%\python.exe" "%PYTHON_DIST_DIR%\" >nul
 if errorlevel 1 (
     echo ERROR: Failed to copy python.exe
     exit /b 1
 )
-xcopy /Y /I "%ARCH_DIR%\pythonw.exe" "%PYTHON_DIST_DIR%\bin\" >nul
-xcopy /Y /I "%ARCH_DIR%\python27.dll" "%PYTHON_DIST_DIR%\DLLs\" >nul
+xcopy /Y /I "%ARCH_DIR%\pythonw.exe" "%PYTHON_DIST_DIR%\" >nul
+xcopy /Y /I "%ARCH_DIR%\python27.dll" "%PYTHON_DIST_DIR%\" >nul
 if errorlevel 1 (
     echo ERROR: Failed to copy python27.dll
     exit /b 1
@@ -363,8 +364,10 @@ if errorlevel 1 (
 )
 
 echo Copying Tcl/Tk DLLs and libraries for Tkinter support...
-if exist "%TCLTK_DIR%\bin\*.dll" (
-    xcopy /Y "%TCLTK_DIR%\bin\*.dll" "%PYTHON_DIST_DIR%\DLLs\" >nul
+REM Following python-build-standalone: core Tcl/Tk DLLs go to root, libs to tcl/
+if exist "%TCLTK_DIR%\bin\tcl86.dll" (
+    xcopy /Y "%TCLTK_DIR%\bin\tcl*.dll" "%PYTHON_DIST_DIR%\" >nul
+    xcopy /Y "%TCLTK_DIR%\bin\tk*.dll" "%PYTHON_DIST_DIR%\" >nul
     if exist "%TCLTK_DIR%\lib" (
         xcopy /E /I /Y "%TCLTK_DIR%\lib" "%PYTHON_DIST_DIR%\tcl\" >nul
         echo Tcl/Tk runtime files copied
@@ -409,19 +412,21 @@ echo.
 echo USAGE
 echo -----
 echo 1. Extract this archive to any location
-echo 2. Set environment variables:
+echo 2. ^(Optional^) Set PYTHONHOME for standard library location:
 echo    set PYTHONHOME=^<path-to-this-directory^>
-echo    set PATH=%%PYTHONHOME%%\bin;%%PYTHONHOME%%\DLLs;%%PATH%%
-echo    set TCL_LIBRARY=%%PYTHONHOME%%\tcl\tcl8.6
-echo    set TK_LIBRARY=%%PYTHONHOME%%\tcl\tk8.6
 echo.
-echo 3. Run Python:
+echo 3. Run Python directly:
 echo    python.exe --version
 echo    python.exe script.py
+echo.
+echo NOTE: python.exe and python27.dll are in the same directory, so no PATH
+echo       setup is required for basic operation. PYTHONHOME is only needed if
+echo       Python cannot auto-detect the standard library location.
 echo.
 echo FEATURES
 echo --------
 echo - Self-contained and relocatable - works from any directory
+echo - python.exe finds python27.dll automatically ^(same directory^)
 echo - All DLLs included - no external dependencies
 echo - Complete standard library included
 echo - Tkinter/GUI support with Tcl/Tk 8.6.12
@@ -429,13 +434,15 @@ echo - Full development headers included
 echo - Import libraries for C extension development
 echo - Built with modern MSVC v143 ^(Visual Studio 2022^)
 echo.
-echo DIRECTORY STRUCTURE
+echo DIRECTORY STRUCTURE ^(matches python-build-standalone^)
 echo -------------------
-echo bin/python.exe, pythonw.exe - Python executables
-echo DLLs/python27.dll           - Python runtime library
-echo DLLs/                       - Python extension modules ^(.pyd files^) and Tcl/Tk DLLs
+echo python.exe, pythonw.exe     - Python executables ^(root^)
+echo python27.dll                - Python runtime library ^(root^)
+echo tcl86.dll, tk86.dll         - Tcl/Tk runtime DLLs ^(root^)
+echo DLLs/                       - Python extension modules ^(.pyd files^)
 echo Lib/                        - Python standard library
-echo tcl/                        - Tcl/Tk runtime libraries
+echo Scripts/                    - Python scripts directory
+echo tcl/                        - Tcl/Tk libraries
 echo include/                    - C/C++ headers for extension development
 echo libs/                       - Import libraries for linking
 echo.
